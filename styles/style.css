@@ -8,31 +8,40 @@ body {
     font-size: 1rem;
     line-height: 1.45rem;
 }
+
 #container {
     margin: 1rem auto;
     width: calc(100% - 2rem);
     max-width: 40rem;
     text-align: left;
 }
+
 h1 {
     font-weight: 900;
 }
+
 /* styling how lists are displayd */
 ul {
-    padding-inline-start:0;    
+    padding-inline-start: 0;
 }
+
 ul li {
-    list-style:none;
+    list-style: none;
     border-top: 0.5px dotted black;
     padding: 1rem 0;
 }
+
 ul li *:first-child {
-    margin-top:0; 
+    margin-top: 0;
 }
+
 ul li *:last-child {
     margin-bottom: 0;
 }
+
 ul li img {
-    width:100% /* of its parent container */;
+    width: 100%
+        /* of its parent container */
+    ;
     /* border: .5px dotted black; */
 }
