@@ -3,14 +3,20 @@ function counter(e) {
     e.innerHTML = "clicked " + ++count + " times" ;
 }
 
-svgtree = '<svg width="100%" height="100%" viewBox="0 0 687 1367" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/"><g transform="matrix(1,0,0,1,-1368.93,-443.942)"><path d="M1641.54,1628.76L1369.43,1628.76L1711.97,444.442L2054.51,1628.76L1782.41,1628.76L1782.41,1810.05L1641.54,1810.05L1641.54,1628.76Z"/></g></svg>'
-
 /*  ------------------------------------------------------------
-    spawn trees into the scene 
+    spawn trees into the forest 
     ------------------------------------------------------------  */
 
+// SVG shape for a tree. 
+const svgtree = 
+'<svg width="100%" height="100%" viewBox="0 0 687 1367" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/">'+
+    '<g transform="matrix(1,0,0,1,-1368.93,-443.942)">'+
+        '<path d="M1641.54,1628.76L1369.43,1628.76L1711.97,444.442L2054.51,1628.76L1782.41,1628.76L1782.41,1810.05L1641.54,1810.05L1641.54,1628.76Z"/>'+
+    '</g>'+
+'</svg>' // please make note of the nested-structure (i.e., svg > g > path) within the SVG. now, if we want to detect whether the tree is clicked on, we can check for whether the <svg> or <g> or <path> elements registered the click ; it's up to us, really. i prefer checking at the <path> element.
+
 // get parent element
-trees = document.getElementById("trees")
+forest = document.getElementById("forest")
 // set constant-variables
 const totalTrees = 10
 const spaceBetweenTrees = 37.5
@@ -25,12 +31,12 @@ for (i = 0 ; i < totalTrees ; i++) {
     // add svg tree into the div
     newDiv.innerHTML = svgtree
     // position the tree in the desired pattern
-    newDiv.style.top = trees.offsetTop + 20 + 0.7*spaceBetweenTrees*(i%2) + 'px' 
-    newDiv.style.left = trees.offsetLeft + 20 + (i*spaceBetweenTrees) + 'px'
+    newDiv.style.top = forest.offsetTop + 20 + 0.7*spaceBetweenTrees*(i%2) + 'px' 
+    newDiv.style.left = forest.offsetLeft + 20 + (i*spaceBetweenTrees) + 'px'
     // set z-index, so that lower-placed seem to be in front
     if(i%2) {newDiv.style.zIndex = "1"}
-    // finally, make the div a child of #trees
-    trees.appendChild(newDiv)
+    // finally, make the div a child of #forest
+    forest.appendChild(newDiv)
 }
 
 /*  ------------------------------------------------------------
