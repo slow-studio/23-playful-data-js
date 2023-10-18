@@ -16,8 +16,26 @@ body {
     text-align: left;
 }
 
+#forest {
+    background-color: plum; 
+    padding: 10vh;
+    text-align: left;
+    height: 80vh;
+}
+
+.tree {
+    height: 100%;
+    width: 100px;
+    display: inline-block;
+}
+
+svg {
+    height : 100%
+}
+
 h1 {
     font-weight: 900;
+    text-align: center;
 }
 
 /* styling how lists are displayd */
@@ -44,4 +62,51 @@ ul li img {
         /* of its parent container */
     ;
     /* border: .5px dotted black; */
+}
+
+.cls-1,
+.cls-2,
+.cls-3 {
+    stroke-miterlimit: 10;
+    stroke-width: 5px;
+}
+
+.normal .cls-1 {
+    fill: #664d48;
+    stroke: #533c15;
+}
+
+.normal .cls-2 {
+    fill: #379546;
+    stroke: #106032;
+}
+
+.safe .cls-1 {
+    fill: #78505b;
+    stroke: #56334a;
+}
+
+.safe .cls-2 {
+    fill: #26b2a5;
+    stroke: #186c71;
+}
+
+.safe .cls-3 {
+    fill: #ffec76;
+    stroke: #ffc408;
+}
+
+.burning .cls-1 {
+    fill: #5b5045;
+    stroke: #443635;
+}
+
+.burning .cls-2 {
+    fill: #5a7854;
+    stroke: #335942;
+}
+
+.burning .cls-3 {
+    fill: #ed9026;
+    stroke: #e75726;
 }
