@@ -16,7 +16,41 @@ body {
     text-align: left;
 }
 
+h1, h2 {
+    font-weight: 900;
+}
+h2 {
+    font-size: 1.5rem;
+}
+
+ul {
+    padding-inline-start: .8rem;
+}
+
+ul li {
+    /* list-style:disc; */
+    padding: 1rem 0;
+}
+
+ul li {
+    margin: 1rem auto;
+}
+ul li *:first-child {
+    margin-top: 0;
+}
+
+ul li *:last-child {
+    margin-bottom: 0;
+}
+
+ul li img {
+    width: 100%; /* 100% of its parent container */
+    border: .5px solid #ccc;
+    margin: .5 rem auto;
+}
+
 #forest {
+    margin: 2rem auto;
     background-color: plum; 
     padding: 10vh;
     text-align: left;
@@ -33,36 +67,10 @@ svg {
     height : 100%
 }
 
-h1 {
-    font-weight: 900;
-    text-align: center;
-}
-
-/* styling how lists are displayd */
-ul {
-    padding-inline-start: 0;
-}
-
-ul li {
-    list-style: none;
-    border-top: 0.5px dotted black;
-    padding: 1rem 0;
-}
-
-ul li *:first-child {
-    margin-top: 0;
-}
-
-ul li *:last-child {
-    margin-bottom: 0;
-}
-
-ul li img {
-    width: 100%
-        /* of its parent container */
-    ;
-    /* border: .5px dotted black; */
-}
+/* 
+    styling tree SVG's.
+    note: these classes were inbuilt in the SVG's we imported from adobe illustrator's exports.
+*/
 
 .cls-1,
 .cls-2,
