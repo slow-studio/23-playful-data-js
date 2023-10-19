@@ -10,15 +10,19 @@ let safeSound = new Audio('/assets/sound/twinkle.mp3');
 
 //var trees = [tree1,tree2,tree3,tree4,tree5]
 
-// document.getElementById("forest").innerHTML = treeStates.normal
+// forest = document.getElementById("forest").innerHTML;
+let spaceBetweenTrees = 30;
+let trees = 30;
 
 //creating the forest with multiple trees
-let trees = 3;
+
 for (let i = 0; i < trees; i++) {
-    newTree = document.createElement('div')
-    newTree.setAttribute('class','tree')
-    newTree.setAttribute('id', 'tree-'+i)
-    newTree.innerHTML = treeStates.normal
+    newTree = document.createElement('div');
+    newTree.setAttribute('class','tree');
+    newTree.setAttribute('id', 'tree-'+i);
+
+    // trees = window.innerWidth%newTree;
+    newTree.innerHTML = treeStates.normal;
     
     //setting on click events to call functions
     newTree.setAttribute('onclick','burnTree(this)')
@@ -26,6 +30,22 @@ for (let i = 0; i < trees; i++) {
     
     forest = document.getElementById('forest')
     forest.appendChild(newTree)
+
+     // y is a counter to check which row needs to be offsrt(every even row)
+     let y = 0;
+     //getting x position of teh newest created tree
+     let x = newTree.getBoundingClientRect().left;
+     if(i>0) 
+     {
+        if( x < document.getElementById("tree-"+(i-1)).getBoundingClientRect().left)
+        {
+            y++;
+
+            if ( y%2 == 0)
+            document.getElementById("tree-"+i).firstChild.style.left ="100px";
+        }
+     }
+ 
 }
 
 //changes tree state to burning, actively on fire
@@ -42,3 +62,11 @@ function protectTree(e)
     e.innerHTML = treeStates.safe
     safeSound.play()
 }
+
+/*
+for each tree
+    find x pos
+    find x pos of previous tree
+     store x pos
+        for each time the x pos<the last x pos, increase a counter
+*/

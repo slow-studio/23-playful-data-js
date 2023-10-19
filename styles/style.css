@@ -12,7 +12,7 @@ body {
 #container {
     margin: 1rem auto;
     width: calc(100% - 2rem);
-    max-width: 40rem;
+    /* max-width: 40rem; */
     text-align: left;
 }
 
@@ -24,13 +24,17 @@ body {
 }
 
 .tree {
-    height: 100%;
-    width: 100px;
-    display: absolute;
+    height: 70px;
+    width: 50px;
+    display: inline-block;
+    background-color: yellow;
+    border: 1px solid black;
 }
 
 svg {
-    height : 100%
+    position: absolute;
+    height : 185px;
+    /* opacity: .5; */
 }
 
 h1 {
