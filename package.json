@@ -1,0 +1,23 @@
+{
+  "name": "23-playful-data-js",
+  "version": "1.0.0",
+  "description": "## why did we explore this?",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slow-studio/23-playful-data-js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/slow-studio/23-playful-data-js/issues"
+  },
+  "homepage": "https://github.com/slow-studio/23-playful-data-js#readme",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
