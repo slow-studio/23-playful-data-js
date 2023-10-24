@@ -16,16 +16,16 @@ const svgtree =
 '</svg>' // please make note of the nested-structure (i.e., svg > g > path) within the SVG. now, if we want to detect whether the tree is clicked on, we can check for whether the <svg> or <g> or <path> elements registered the click ; it's up to us, really. i prefer checking at the <path> element.
 
 // get parent element
-forest = document.getElementById("forest")
+const forest = document.getElementById("forest")
 // set constant-variables
 const totalTrees = 10
 const spaceBetweenTrees = 37.5
 /*  spawn all trees.
     ps. basic template for the process followed: https://stackoverflow.com/a/66481788 
     */
-for (i = 0 ; i < totalTrees ; i++) {
+for (let i = 0 ; i < totalTrees ; i++) {
     // create new div
-    newDiv = document.createElement("div")
+    const newDiv = document.createElement("div")
     newDiv.setAttribute('class', 'tree')
     newDiv.setAttribute('id', 'tree-'+(i+1))
     // add svg tree into the div
@@ -49,21 +49,21 @@ document.addEventListener("click", didClickHappenOnTree);
 function didClickHappenOnTree(e) {
 
     // get coordinates of mouseclick
-    x = e.clientX
-    y = e.clientY
+    const x = e.clientX
+    const y = e.clientY
 
     // get array of all elements that are present where the mouseclick happened ...
-    c = []
+    let c = []
     c = document.elementsFromPoint(x,y) 
 
     // ... and, in that array, find those elements which were SVGPaths (i.e., svg > g > path )
-    for(i in c) {
+    for(const i in c) {
             if ( 
                 // here, we are checking if c[i] is an "SVG Path Element", i.e., the <path> (within the DOM, you will find it at: svg > g > path)
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
                 c[i].constructor.toString().indexOf("SVGPathElement()") > -1 
                 ) {
-                SVGElementOfClickedTree = c[i]
+                const SVGElementOfClickedTree = c[i]
                 // offer some kind of feedback to show which tree was clicked on
                 changeOpacity(SVGElementOfClickedTree)
                 updateNewsTicker(SVGElementOfClickedTree)
@@ -71,8 +71,8 @@ function didClickHappenOnTree(e) {
     }
 
     function changeOpacity(t) {
-        currentOpacity = window.getComputedStyle(t).opacity
-        factor = 1
+        const currentOpacity = Number(window.getComputedStyle(t).opacity)
+        let factor = 1
         if ( currentOpacity <= 0.5 ) 
             factor = 2 
         else 
