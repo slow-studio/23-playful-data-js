@@ -1,38 +1,3 @@
-/*
-    to learn how to write JSDoc annotations:
-    - https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html
-    - https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html
-*/
-
-class Tree {
-
-    /**
-     * @param {number} [x] - The ID of the spawned tree, which is optional number param with a default value
-     */
-    constructor (x=0) {
-        this.x = x
-    }
-
-    /**
-     * @returns {number} This is the result
-     */
-    square() {
-        return this.x * this.x
-    }
-}
-
-const myTree = new Tree()
-
-/**
- * @param {Tree} t - Specify a tree
- */
-function z(t) {
-    return t.square()
-}
-
-console.log(z(myTree))
-
-
 let count = 0;
 function counter(e) {
     e.innerHTML = "clicked " + ++count + " times" ;
