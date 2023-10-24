@@ -1,3 +1,7 @@
+/*  ------------------------------------------------------------
+    "hit me!"-button counts clicks.
+    ------------------------------------------------------------  */
+    
 let count = 0;
 function counter(e) {
     e.innerHTML = "clicked " + ++count + " times" ;
@@ -40,7 +44,8 @@ for (let i = 0 ; i < totalTrees ; i++) {
 }
 
 /*  ------------------------------------------------------------
-    register whenever a tree is clicked on
+    register whenever a tree is clicked on,
+    and update div#newsTicker
     ------------------------------------------------------------  */
 
 // whenever a click happens, this triggers didClickHappenOnTree()
