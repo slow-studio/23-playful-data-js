@@ -14,11 +14,16 @@ function counter(e) {
     collect information on trees
     ------------------------------------------------------------  */
 
+const dir = 'assets/images/'
 /** @type {string} location of tree image */ 
-const treeImgSrc = 'assets/images/tree-fir-2.png'
+const treeImgSrc = 'tree-fir-2.png'
+const treeImgSrcP = 'tree-fir-2-p.png'
 
 /** @type {{width: number, height: number}} dimensions of the tree image */
-const treeImgDim = { width: 123, height: 280 }
+const treeImgDim = { 
+    width: 123, 
+    height: 253 
+}
 
 /*  ------------------------------------------------------------
     spawn trees into the forest 
@@ -56,7 +61,7 @@ for (let i = 0 ; true ; i++) {
     newDiv.setAttribute('class', 'tree')
     newDiv.setAttribute('id', 'tree-'+(i+1))
     // add tres-image into newDiv
-    newDiv.setAttribute('src', treeImgSrc)
+    newDiv.setAttribute('src', dir+treeImgSrc)
     // position the tree (so that it sits at the correct location within a desired pattern in the forest)
     newDiv.style.left = forest.offsetLeft + fSettings.hpadding + (treeIDinRow * fSettings.hSpacing) + ( rowID % 2 === 0 ? (fSettings.hSpacing/4) : (-fSettings.hSpacing/4) ) + 'px'
     newDiv.style.top = forest.offsetTop + fSettings.vpadding + fSettings.vSpacing * rowID + 'px'
@@ -107,17 +112,39 @@ function didClickHappenOnTree(e) {
     c = document.elementsFromPoint(x,y) 
     console.log(c)
 
+    let C = []
+
     // ... and, in that array, find those elements which were of the type 'HTMLImageElement'
     for(const i in c) {
             if ( 
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
                 c[i].constructor.toString().indexOf("HTMLImageElement()") > -1 
                 ) {
+                C.push(c[i])
                 const ImageElementOfClickedTree = c[i]
                 // offer some kind of feedback to show which tree was clicked on
                 changeOpacity(ImageElementOfClickedTree)
                 updateNewsTicker(ImageElementOfClickedTree)
-            }
+            } 
+    }
+
+    // from the many 'HTMLImageElement' elements, pick one, and change its state to 'protected'
+    makeTreeProtected(document.getElementById(C[Math.floor(C.length/2)].id))
+
+    // helper functions
+
+    function makeTreeProtected(imgelement) {
+        const root = imgelement.src.substring(0,imgelement.src.indexOf(dir))
+        const currentsrc = imgelement.src.substring(imgelement.src.indexOf(dir),imgelement.src.length)
+
+        if (currentsrc == dir+treeImgSrc) {
+            imgelement.src = root+dir+treeImgSrcP
+            console.log("tree id #" + imgelement.id + " set to 'protected' status")
+        }
+        else {
+            imgelement.src = root+dir+treeImgSrc
+            console.log("tree id #" + imgelement.id + " set to 'unprotected' status")
+        }
     }
 
     function changeOpacity(t) {
@@ -126,13 +153,12 @@ function didClickHappenOnTree(e) {
         if ( currentOpacity <= 0.5 ) 
             factor = 2 
         else 
-            factor = .5
+            factor = .9
         t.style.opacity = currentOpacity * factor
     }
 
     function updateNewsTicker(imgelement) {
         document.getElementById("newsTicker").innerHTML += " " + imgelement.id[5]
     }
-
     document.getElementById("newsTicker").innerHTML += ' • '
 }
