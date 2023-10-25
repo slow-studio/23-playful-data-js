@@ -15,17 +15,9 @@ function counter(e) {
     ------------------------------------------------------------  */
 
 /**
- * @type {string[]} locations of tree images
+ * @type {string} location of tree image
  */ 
-const treeImgSrc = [
-    'assets/images/tree-fir-1-2.png', 
-    'assets/images/tree-fir-2-2.png',
-    'assets/images/tree-fir-3-2.png',
-    'assets/images/tree-fir-4-2.png',
-    'assets/images/tree-fir-5-2.png',
-    'assets/images/tree-fir-6-2.png'
-]
-const totalTreeTypes = treeImgSrc.length
+const treeImgSrc = 'assets/images/tree-fir-2.png'
 
 /*  ------------------------------------------------------------
     spawn trees into the forest 
@@ -57,10 +49,8 @@ for (let i = 0 ; i < fSettings.total ; i++) {
     const newDiv = document.createElement("img")
     newDiv.setAttribute('class', 'tree')
     newDiv.setAttribute('id', 'tree-'+(i+1))
-    // select tree-image from project directory
-    const selectTreeImgSrc = Math.floor(Math.random()*totalTreeTypes)
     // add tres-image into newDiv
-    newDiv.setAttribute('src', treeImgSrc[selectTreeImgSrc])
+    newDiv.setAttribute('src', treeImgSrc)
     // position the tree (so that it sits at the correct location within a desired pattern in the forest)
     newDiv.style.top = forest.offsetTop + 20 + 0.7 * fSettings.vSpacing * (i % fSettings.rows) + 'px'
     newDiv.style.left = forest.offsetLeft + 20 + (i * fSettings.hSpacing) + 'px'
