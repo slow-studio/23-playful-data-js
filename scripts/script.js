@@ -11,18 +11,25 @@ function counter(e) {
 }
 
 /*  ------------------------------------------------------------
-    spawn trees into the forest 
+    collect information on trees
     ------------------------------------------------------------  */
 
 /**
  * @type {string[]} locations of tree images
  */ 
 const treeImgSrc = [
-    'media/images/tree-1.png',
-    'media/images/tree-2.png',
-    'media/images/tree-3.png'
+    'assets/images/tree-fir-1-2.png', 
+    'assets/images/tree-fir-2-2.png',
+    'assets/images/tree-fir-3-2.png',
+    'assets/images/tree-fir-4-2.png',
+    'assets/images/tree-fir-5-2.png',
+    'assets/images/tree-fir-6-2.png'
 ]
 const totalTreeTypes = treeImgSrc.length
+
+/*  ------------------------------------------------------------
+    spawn trees into the forest 
+    ------------------------------------------------------------  */
 
 // get parent element
 const forest = document.getElementById("forest")

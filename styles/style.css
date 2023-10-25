@@ -5,7 +5,8 @@
     /* CSS variables */
     --yellow: #ffcc00;
     --green: #00aa55;
-    --treeheight: 200px;
+    --treewidth: 123px;
+    --treeheight: 280px;
 }
 
 body {
@@ -40,7 +41,7 @@ h1 {
     opacity:.9;
     /* background-color: var(--yellow); */
     height: var(--treeheight);
-    width: var(--treeheight);
+    width: var(--treewidth);
     position: fixed; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
 }
 
