@@ -11,34 +11,41 @@ function counter(e) {
     spawn trees into the forest 
     ------------------------------------------------------------  */
 
-// SVG shape for a tree. 
-const svgtree = 
-'<svg width="100%" height="100%" viewBox="0 0 687 1367" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/">'+
-    '<g transform="matrix(1,0,0,1,-1368.93,-443.942)">'+
-        '<path d="M1641.54,1628.76L1369.43,1628.76L1711.97,444.442L2054.51,1628.76L1782.41,1628.76L1782.41,1810.05L1641.54,1810.05L1641.54,1628.76Z"/>'+
-    '</g>'+
-'</svg>' // please make note of the nested-structure (i.e., svg > g > path) within the SVG. now, if we want to detect whether the tree is clicked on, we can check for whether the <svg> or <g> or <path> elements registered the click ; it's up to us, really. i prefer checking at the <path> element.
+/**
+ * @type {string[]} locations of tree images
+ */ 
+const treeImgSrc = [
+    'media/images/tree-1.png',
+    'media/images/tree-2.png',
+    'media/images/tree-3.png'
+]
+const totalTreeTypes = treeImgSrc.length
 
 // get parent element
 const forest = document.getElementById("forest")
-// set constant-variables
-const totalTrees = 10
-const spaceBetweenTrees = 37.5
+
 /*  spawn all trees.
     ps. basic template for the process followed: https://stackoverflow.com/a/66481788 
     */
+const totalTrees = 22
+const rowsOfTrees = 5
 for (let i = 0 ; i < totalTrees ; i++) {
     // create new div
-    const newDiv = document.createElement("div")
+    const newDiv = document.createElement("img")
     newDiv.setAttribute('class', 'tree')
     newDiv.setAttribute('id', 'tree-'+(i+1))
-    // add svg tree into the div
-    newDiv.innerHTML = svgtree
+    // add tree into the div
+    const selectTreeImgSrc = Math.floor(Math.random()*totalTreeTypes)
+    newDiv.setAttribute('src', treeImgSrc[selectTreeImgSrc])
     // position the tree in the desired pattern
-    newDiv.style.top = forest.offsetTop + 20 + 0.7*spaceBetweenTrees*(i%2) + 'px' 
-    newDiv.style.left = forest.offsetLeft + 20 + (i*spaceBetweenTrees) + 'px'
+    /** @type {number} horizontal spacing between trees (in pixels) */
+    const hSpacing = 20
+    /** @type {number} vertical spacing between trees (in pixels) */
+    const vSpacing = 40
+    newDiv.style.top = forest.offsetTop + 20 + 0.7 * vSpacing * (i % rowsOfTrees) + 'px'
+    newDiv.style.left = forest.offsetLeft + 20 + (i * hSpacing) + 'px'
     // set z-index, so that lower-placed seem to be in front
-    if(i%2) {newDiv.style.zIndex = "1"}
+    newDiv.style.zIndex = (i%rowsOfTrees).toString()
     // finally, make the div a child of #forest
     forest.appendChild(newDiv)
 }
