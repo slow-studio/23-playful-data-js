@@ -105,18 +105,18 @@ function didClickHappenOnTree(e) {
     // get array of all elements that are present where the mouseclick happened ...
     let c = []
     c = document.elementsFromPoint(x,y) 
+    console.log(c)
 
-    // ... and, in that array, find those elements which were SVGPaths (i.e., svg > g > path )
+    // ... and, in that array, find those elements which were of the type 'HTMLImageElement'
     for(const i in c) {
             if ( 
-                // here, we are checking if c[i] is an "SVG Path Element", i.e., the <path> (within the DOM, you will find it at: svg > g > path)
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-                c[i].constructor.toString().indexOf("SVGPathElement()") > -1 
+                c[i].constructor.toString().indexOf("HTMLImageElement()") > -1 
                 ) {
-                const SVGElementOfClickedTree = c[i]
+                const ImageElementOfClickedTree = c[i]
                 // offer some kind of feedback to show which tree was clicked on
-                changeOpacity(SVGElementOfClickedTree)
-                updateNewsTicker(SVGElementOfClickedTree)
+                changeOpacity(ImageElementOfClickedTree)
+                updateNewsTicker(ImageElementOfClickedTree)
             }
     }
 
@@ -130,7 +130,9 @@ function didClickHappenOnTree(e) {
         t.style.opacity = currentOpacity * factor
     }
 
-    function updateNewsTicker(svgelement) {
-        document.getElementById("newsTicker").innerHTML += " " + svgelement.parentElement.parentElement.parentElement.id[5]
+    function updateNewsTicker(imgelement) {
+        document.getElementById("newsTicker").innerHTML += " " + imgelement.id[5]
     }
+
+    document.getElementById("newsTicker").innerHTML += ' • '
 }
