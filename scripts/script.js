@@ -3,6 +3,9 @@
     ------------------------------------------------------------  */
     
 let count = 0;
+/**
+ * @param {HTMLElement} e - the element
+ */
 function counter(e) {
     e.innerHTML = "clicked " + ++count + " times" ;
 }
@@ -24,28 +27,38 @@ const totalTreeTypes = treeImgSrc.length
 // get parent element
 const forest = document.getElementById("forest")
 
+/**
+ * @typedef {Object} SettingsObject
+ * @property {number} total - total number of trees in the forest
+ * @property {number} rows - number of rows to arrange the trees in 
+ * @property {number} hSpacing - horizontal spacing between trees (in pixels) 
+ * @property {number} vSpacing - vertical spacing between trees (in pixels) 
+ */
+/** @type {SettingsObject} settings for the forest */
+const fSettings = {
+    total : 20,
+    rows : 5,
+    hSpacing : 20,
+    vSpacing : 40
+}
+
 /*  spawn all trees.
     ps. basic template for the process followed: https://stackoverflow.com/a/66481788 
     */
-const totalTrees = 22
-const rowsOfTrees = 5
-for (let i = 0 ; i < totalTrees ; i++) {
+for (let i = 0 ; i < fSettings.total ; i++) {
     // create new div
     const newDiv = document.createElement("img")
     newDiv.setAttribute('class', 'tree')
     newDiv.setAttribute('id', 'tree-'+(i+1))
-    // add tree into the div
+    // select tree-image from project directory
     const selectTreeImgSrc = Math.floor(Math.random()*totalTreeTypes)
+    // add tres-image into newDiv
     newDiv.setAttribute('src', treeImgSrc[selectTreeImgSrc])
-    // position the tree in the desired pattern
-    /** @type {number} horizontal spacing between trees (in pixels) */
-    const hSpacing = 20
-    /** @type {number} vertical spacing between trees (in pixels) */
-    const vSpacing = 40
-    newDiv.style.top = forest.offsetTop + 20 + 0.7 * vSpacing * (i % rowsOfTrees) + 'px'
-    newDiv.style.left = forest.offsetLeft + 20 + (i * hSpacing) + 'px'
-    // set z-index, so that lower-placed seem to be in front
-    newDiv.style.zIndex = (i%rowsOfTrees).toString()
+    // position the tree (so that it sits at the correct location within a desired pattern in the forest)
+    newDiv.style.top = forest.offsetTop + 20 + 0.7 * fSettings.vSpacing * (i % fSettings.rows) + 'px'
+    newDiv.style.left = forest.offsetLeft + 20 + (i * fSettings.hSpacing) + 'px'
+    // set z-index, so that lower-placed trees seem to be in front
+    newDiv.style.zIndex = (i%fSettings.rows).toString()
     // finally, make the div a child of #forest
     forest.appendChild(newDiv)
 }
