@@ -4,9 +4,11 @@
 :root {
     /* CSS variables */
     --yellow: #ffcc00;
-    --green: #00aa55;
-    --treewidth: 123px;
-    --treeheight: 253px;
+    --autumn: #cc8833;
+    --green: #009977;
+    --wood: #994929;
+    --treewidth: 100px;
+    --treeheight: 300px;
 }
 
 body {
