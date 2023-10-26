@@ -4,11 +4,12 @@
 :root {
     /* CSS variables */
     --yellow: #ffcc00;
-    --autumn: #cc8833;
+    /* --autumn: #cc8833; */
+    --autumn: #b18425;
     --green: #009977;
     --wood: #994929;
-    --treewidth: 100px;
-    --treeheight: 300px;
+    --treewidth: /* placeholder */ 100px; 
+    --treeheight: /* placeholder */ 300px;
 }
 
 body {
@@ -22,29 +23,56 @@ body {
 #container {
     margin: 1rem auto;
     width: calc(100% - 2rem);
-    max-width: 40rem;
+    max-width: 60rem;
     text-align: left;
 }
+
+#container * {
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 h1 {
     font-weight: 900;
 }
 
 #forest {
-    background-color: var(--yellow);
-    width: 100%;
-    height: calc(var(--treeheight) * 1.75);
+    /* background-color: var(--yellow); */
+    max-width: 100%;
+    height: calc(var(--treeheight) * 5);
     /*  change cursor's appearance, by using an SVG.
         info: https://stackoverflow.com/a/45966695 
         */
     cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer;
 }
 
-#forest img.tree {
-    opacity:.9;
+svg {
+    fill-rule: evenodd;
+    clip-rule: evenodd;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-miterlimit: 1.5;
+}
+
+#forest .tree {
+    /* opacity:.9; */
     /* background-color: var(--yellow); */
-    height: var(--treeheight);
     width: var(--treewidth);
+    height:fit-content;
     position: fixed; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
 }
 
+#forest .tree svg path {
+    fill:#fff;
+    stroke:#000;
+    stroke-width:6px;
+}
+
+#forest .tree svg path#foliage {
+    fill: var(--autumn);
+}
+
+#forest .tree svg path#stump {
+    fill: var(--wood);
 }

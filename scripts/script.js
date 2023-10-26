@@ -2,16 +2,31 @@
     collect information on trees
     ------------------------------------------------------------  */
 
-const dir = 'assets/images/'
-/** @type {string} location of tree image */ 
-const treeImgSrc = 'tree-fir-2.png'
-const treeImgSrcP = 'tree-fir-2-p.png'
-
-/** @type {{width: number, height: number}} dimensions of the tree image */
-const treeImgDim = { 
-    width: 123, 
-    height: 253 
+const svgtree = {
+    src: {
+        starttag: '<svg width="100%" height="100%" viewBox="0 0 100 300" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve">',
+        foliage: {
+            default: '<path id="foliage" d="M23.695,264.23c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-95.673 21.939,-166.478c1.993,-14.2 14.902,-76.508 28.401,-76.508c13.498,-0 19.325,56.249 27.506,126.547c6.551,56.295 16.154,87.73 16.154,116.124c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
+            sway: {
+                left: '<path id="foliage" d="M23.695,264.23c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-91.704 21.939,-162.509c1.993,-14.2 8.099,-80.477 21.597,-80.477c13.499,0 26.129,52.281 34.31,122.578c6.551,56.296 16.154,91.699 16.154,120.093c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
+                right: '<path id="foliage" d="M23.695,264.23c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-99.641 21.939,-170.446c1.993,-14.2 18.871,-72.54 32.369,-72.54c13.499,-0 15.357,60.218 23.538,130.515c6.551,56.296 16.154,83.762 16.154,112.156c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
+            }
+        },
+        stump: '<path id="stump" d="M61.599,261.644l0,30.056l-4.484,5.341l-14.596,-0l-3.834,-4.884l0,-28.913l22.914,-1.6Z"/>',
+        endtag: '</svg>'
+    },
+    dim: {
+        width: 40,
+        height: 120
+    }
 }
+
+// apply tree dimensions to 
+function updateVariablesInCSSFile() {
+    document.documentElement.style.setProperty('--treewidth', svgtree.dim.width+'px')    
+    document.documentElement.style.setProperty('--treeheight', svgtree.dim.height+'px')    
+}
+updateVariablesInCSSFile()
 
 /*  ------------------------------------------------------------
     spawn trees into the forest 
@@ -31,9 +46,9 @@ const forest = document.getElementById("forest")
 /** @type {SettingsObject} settings for the forest */
 const fSettings = {
     total : 0,
-    hSpacing : 40,
+    hSpacing : svgtree.dim.width * 2/3,
     vSpacing : 40,
-    hpadding : 60,
+    hpadding : 20,
     vpadding : 20
 }
 
@@ -42,35 +57,30 @@ const fSettings = {
 let rowID = 0
 let treeIDinRow = 0
 let maxTreeIDinRow = treeIDinRow
+let loopBreaker = true
 
-for (let i = 0 ; true ; i++) {
+for (let i = 0 ; loopBreaker  ; i++) { 
     // create new div
-    const newDiv = document.createElement("img")
+    const newDiv = document.createElement("div")
     newDiv.setAttribute('class', 'tree')
     newDiv.setAttribute('id', 'tree-'+(i+1))
     // add tres-image into newDiv
-    newDiv.setAttribute('src', dir+treeImgSrc)
+    newDiv.innerHTML = svgtree.src.starttag + svgtree.src.foliage.default + svgtree.src.stump + svgtree.src.endtag
     // position the tree (so that it sits at the correct location within a desired pattern in the forest)
     newDiv.style.left = forest.offsetLeft + fSettings.hpadding + (treeIDinRow * fSettings.hSpacing) + ( rowID % 2 === 0 ? (fSettings.hSpacing/4) : (-fSettings.hSpacing/4) ) + 'px'
     newDiv.style.top = forest.offsetTop + fSettings.vpadding + fSettings.vSpacing * rowID + 'px'
-    // newDiv.style.left += ((rowID%2) ? (-fSettings.hpadding/2) : (fSettings.hpadding/2))
-    // calculate the bottom-right point of the tree
-    /** @type {number} */
-    const x = Number((newDiv.style.left).substring(0,newDiv.style.left.length-2)) + treeImgDim.width
-    /** @type {number} */
-    const y = Number((newDiv.style.top).substring(0, newDiv.style.top.length - 2)) + treeImgDim.height
     // draw trees on the next line if you exceed #forest's right-most bounds
-    if (x >= forest.offsetLeft + forest.offsetWidth - fSettings.hpadding) {
+    if (forest.offsetWidth - 2 * fSettings.hpadding < (treeIDinRow + 1) * fSettings.hSpacing + svgtree.dim.width ) {
         rowID++
         treeIDinRow = 0
     } else {
         treeIDinRow++
-        // update counter that counts the max number of trees per row
+        // update counter that counts the max number of trees on the longest row
         maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
     }
     // stop drawing trees if you exceed #forest's bottom-most bounds
-    if (y >= forest.offsetTop + forest.offsetHeight - fSettings.vpadding)
-        break;
+    if (forest.offsetHeight - 2 * fSettings.vpadding < rowID * fSettings.vSpacing + svgtree.dim.height)
+        loopBreaker = false
     // set z-index, so that lower-placed trees seem to be in front
     newDiv.style.zIndex = (i).toString()
     // finally, make the div a child of #forest
@@ -98,49 +108,29 @@ function didClickHappenOnTree(e) {
     // get array of all elements that are present where the mouseclick happened ...
     let c = []
     c = document.elementsFromPoint(x,y) 
-    console.log(c)
+    // console.log(c)
 
-    let C = []
-
-    // ... and, in that array, find those elements which were of the type 'HTMLImageElement'
+    // ... and, in that array, find those elements which were SVGPaths (i.e., svg > path )
     for(const i in c) {
-            if ( 
+            if (
+                // here, we are checking if c[i] is an "SVG SVG Element".
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-                c[i].constructor.toString().indexOf("HTMLImageElement()") > -1 
+                c[i].constructor.toString().indexOf("SVGSVGElement()") > -1 
                 ) {
-                C.push(c[i])
-                const ImageElementOfClickedTree = c[i]
+                const SVGElementOfClickedTree = c[i]
                 // offer some kind of feedback to show which tree was clicked on
-                changeOpacity(ImageElementOfClickedTree)
+                changetreeAppearance(SVGElementOfClickedTree)
             } 
     }
 
-    // from the many 'HTMLImageElement' elements, pick one, and change its state to 'protected'
-    makeTreeProtected(document.getElementById(C[Math.floor(C.length/2)].id))
-
-    // helper functions
-
-    function makeTreeProtected(imgelement) {
-        const root = imgelement.src.substring(0,imgelement.src.indexOf(dir))
-        const currentsrc = imgelement.src.substring(imgelement.src.indexOf(dir),imgelement.src.length)
-
-        if (currentsrc == dir+treeImgSrc) {
-            imgelement.src = root+dir+treeImgSrcP
-            console.log("tree id #" + imgelement.id + " set to 'protected' status")
+    function changetreeAppearance(t) {
+        const colour = {
+            green: getComputedStyle(document.documentElement).getPropertyValue('--green'),
+            autumn: getComputedStyle(document.documentElement).getPropertyValue('--autumn')
         }
-        else {
-            imgelement.src = root+dir+treeImgSrc
-            console.log("tree id #" + imgelement.id + " set to 'unprotected' status")
-        }
-    }
-
-    function changeOpacity(t) {
-        const currentOpacity = Number(window.getComputedStyle(t).opacity)
-        let factor = 1
-        if ( currentOpacity <= 0.5 ) 
-            factor = 2 
-        else 
-            factor = .9
-        t.style.opacity = currentOpacity * factor
+        const svgelement = t.getElementById('foliage').parentElement
+        svgelement.innerHTML = (Math.random()<.5?svgtree.src.foliage.sway.left:svgtree.src.foliage.sway.right) + svgtree.src.stump
+        svgelement.getElementById('foliage').style.fill = getComputedStyle(document.documentElement).getPropertyValue('--green')
+        setTimeout(function(){svgelement.getElementById('foliage').style.fill = colour.autumn}, 5000);
     }
 }
