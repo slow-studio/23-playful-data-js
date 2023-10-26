@@ -1,5 +1,5 @@
 /*  ------------------------------------------------------------
-    collect information on trees
+    collect information before drawing tree
     ------------------------------------------------------------  */
 
 const svgtree = {
@@ -21,7 +21,7 @@ const svgtree = {
     }
 }
 
-// apply tree dimensions to 
+// apply tree dimensions to CSS file
 function updateVariablesInCSSFile() {
     document.documentElement.style.setProperty('--treewidth', svgtree.dim.width+'px')    
     document.documentElement.style.setProperty('--treeheight', svgtree.dim.height+'px')    
@@ -44,7 +44,7 @@ const forest = document.getElementById("forest")
  * @property {number} vpadding - vertical padding inside the #forest div
  */
 /** @type {SettingsObject} settings for the forest */
-const fSettings = {
+const forestSettings = {
     total : 0,
     hSpacing : svgtree.dim.width * 2/3,
     vSpacing : 40,
@@ -57,9 +57,9 @@ const fSettings = {
 let rowID = 0
 let treeIDinRow = 0
 let maxTreeIDinRow = treeIDinRow
-let loopBreaker = true
+let loopRunner = true
 
-for (let i = 0 ; loopBreaker  ; i++) { 
+for (let i = 0 ; loopRunner ; i++) { 
     // create new div
     const newDiv = document.createElement("div")
     newDiv.setAttribute('class', 'tree')
@@ -67,10 +67,10 @@ for (let i = 0 ; loopBreaker  ; i++) {
     // add tres-image into newDiv
     newDiv.innerHTML = svgtree.src.starttag + svgtree.src.foliage.default + svgtree.src.stump + svgtree.src.endtag
     // position the tree (so that it sits at the correct location within a desired pattern in the forest)
-    newDiv.style.left = forest.offsetLeft + fSettings.hpadding + (treeIDinRow * fSettings.hSpacing) + ( rowID % 2 === 0 ? (fSettings.hSpacing/4) : (-fSettings.hSpacing/4) ) + 'px'
-    newDiv.style.top = forest.offsetTop + fSettings.vpadding + fSettings.vSpacing * rowID + 'px'
+    newDiv.style.left = forest.offsetLeft + forestSettings.hpadding + (treeIDinRow * forestSettings.hSpacing) + ( rowID % 2 === 0 ? (forestSettings.hSpacing/4) : (-forestSettings.hSpacing/4) ) + 'px'
+    newDiv.style.top = forest.offsetTop + forestSettings.vpadding + forestSettings.vSpacing * rowID + 'px'
     // draw trees on the next line if you exceed #forest's right-most bounds
-    if (forest.offsetWidth - 2 * fSettings.hpadding < (treeIDinRow + 1) * fSettings.hSpacing + svgtree.dim.width ) {
+    if (forest.offsetWidth - 2 * forestSettings.hpadding < (treeIDinRow + 1) * forestSettings.hSpacing + svgtree.dim.width ) {
         rowID++
         treeIDinRow = 0
     } else {
@@ -79,17 +79,17 @@ for (let i = 0 ; loopBreaker  ; i++) {
         maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
     }
     // stop drawing trees if you exceed #forest's bottom-most bounds
-    if (forest.offsetHeight - 2 * fSettings.vpadding < rowID * fSettings.vSpacing + svgtree.dim.height)
-        loopBreaker = false
+    if (forest.offsetHeight - 2 * forestSettings.vpadding < rowID * forestSettings.vSpacing + svgtree.dim.height)
+        loopRunner = false
     // set z-index, so that lower-placed trees seem to be in front
     newDiv.style.zIndex = (i).toString()
     // finally, make the div a child of #forest
     forest.appendChild(newDiv)
     // update the value for total number of trees spawned in the forest
-    fSettings.total = i+1
+    forestSettings.total = i+1
 }
 
-console.log(fSettings.total + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow+1) + " or fewer trees per row.") 
+console.log(forestSettings.total + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow+1) + " or fewer trees per row.") 
 
 /*  ------------------------------------------------------------
     register whenever a tree is clicked on,
@@ -118,19 +118,26 @@ function didClickHappenOnTree(e) {
                 c[i].constructor.toString().indexOf("SVGPathElement()") > -1 
                 ) {
                 const SVGElementOfClickedTree = c[i].parentNode
+                // console.log(SVGElementOfClickedTree)
                 // offer some kind of feedback to show which tree was clicked on
                 changetreeAppearance(SVGElementOfClickedTree)
             } 
     }
 
-    function changetreeAppearance(t) {
-        const colour = {
-            green: getComputedStyle(document.documentElement).getPropertyValue('--green'),
-            autumn: getComputedStyle(document.documentElement).getPropertyValue('--autumn')
-        }
-        const svgelement = t.getElementById('foliage').parentElement
+    function changetreeAppearance(svgelement) {
+
+        /* tree changes appearance: */
+        // -- 1. it animates a little, by changing the svg shape of the #foliage element
         svgelement.innerHTML = (Math.random()<.5?svgtree.src.foliage.sway.left:svgtree.src.foliage.sway.right) + svgtree.src.stump
-        svgelement.getElementById('foliage').style.fill = getComputedStyle(document.documentElement).getPropertyValue('--green')
-        setTimeout(function(){svgelement.getElementById('foliage').style.fill = colour.autumn}, 5000);
+        // -- 2. it changes the colour of its #foliage
+        svgelement.getElementById('foliage').style.fill = 'var(--green)'
+
+        /* after some time, the tree goes back to its original appearance */
+        setTimeout(function(){
+            // revert to default shape
+            svgelement.innerHTML = svgtree.src.foliage.default + svgtree.src.stump
+            // revert to original colour
+            svgelement.getElementById('foliage').style.fill = 'var(--autumn)'
+        }, 5000);
     }
 }
