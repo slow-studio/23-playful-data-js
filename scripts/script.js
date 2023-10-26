@@ -1,16 +1,4 @@
 /*  ------------------------------------------------------------
-    "hit me!"-button counts clicks.
-    ------------------------------------------------------------  */
-    
-let count = 0;
-/**
- * @param {HTMLElement} e - the element
- */
-function counter(e) {
-    e.innerHTML = "clicked " + ++count + " times" ;
-}
-
-/*  ------------------------------------------------------------
     collect information on trees
     ------------------------------------------------------------  */
 
@@ -124,7 +112,6 @@ function didClickHappenOnTree(e) {
                 const ImageElementOfClickedTree = c[i]
                 // offer some kind of feedback to show which tree was clicked on
                 changeOpacity(ImageElementOfClickedTree)
-                updateNewsTicker(ImageElementOfClickedTree)
             } 
     }
 
@@ -156,9 +143,4 @@ function didClickHappenOnTree(e) {
             factor = .9
         t.style.opacity = currentOpacity * factor
     }
-
-    function updateNewsTicker(imgelement) {
-        document.getElementById("newsTicker").innerHTML += " " + imgelement.id[5]
-    }
-    document.getElementById("newsTicker").innerHTML += ' • '
 }

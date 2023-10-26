@@ -45,11 +45,4 @@ h1 {
     position: fixed; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
 }
 
-#newsTicker {
-    margin: 1rem auto;
-    padding: 0.5rem;
-    width: 100%;
-    min-height: 2.5rem;
-    border: 1px solid black;
-    text-align: left;
 }
