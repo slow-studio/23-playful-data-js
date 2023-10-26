@@ -7,6 +7,8 @@ const treeStates = {
 }
 let burnSound = new Audio('/assets/sound/lighting-a-fire.mp3');
 let safeSound = new Audio('/assets/sound/twinkle.mp3');
+let bgBurn = new Audio('/assets/sound/burningAmbience.mp3');
+let bgForest = new Audio('/assets/sound/forestAmbience.mp3');
 
 //var trees = [tree1,tree2,tree3,tree4,tree5]
 
@@ -42,3 +44,5 @@ function protectTree(e)
     e.innerHTML = treeStates.safe
     safeSound.play()
 }
+
+bgForest.play();
