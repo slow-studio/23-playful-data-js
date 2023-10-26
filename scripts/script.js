@@ -113,11 +113,11 @@ function didClickHappenOnTree(e) {
     // ... and, in that array, find those elements which were SVGPaths (i.e., svg > path )
     for(const i in c) {
             if (
-                // here, we are checking if c[i] is an "SVG SVG Element".
+                // here, we are checking if c[i] is an "SVG Path Element", i.e., the <path> (within the DOM, you will find it at: svg > path)
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-                c[i].constructor.toString().indexOf("SVGSVGElement()") > -1 
+                c[i].constructor.toString().indexOf("SVGPathElement()") > -1 
                 ) {
-                const SVGElementOfClickedTree = c[i]
+                const SVGElementOfClickedTree = c[i].parentNode
                 // offer some kind of feedback to show which tree was clicked on
                 changetreeAppearance(SVGElementOfClickedTree)
             } 
