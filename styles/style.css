@@ -8,8 +8,8 @@
     --autumn: #b18425;
     --green: #009977;
     --wood: #994929;
+    --fire: #C95E38;
     --treewidth: /* placeholder */ 100px; 
-    --treeheight: /* placeholder */ 300px;
 }
 
 body {
@@ -38,9 +38,9 @@ h1 {
 }
 
 #forest {
-    /* background-color: var(--yellow); */
+    /* background-color: var(--green); */
     max-width: 100%;
-    height: calc(var(--treeheight) * 5);
+    height: 800px;
     /*  change cursor's appearance, by using an SVG.
         info: https://stackoverflow.com/a/45966695 
         */
@@ -56,9 +56,10 @@ svg {
 }
 
 #forest .tree {
-    /* opacity:.9; */
+    /* opacity: .8; */
     /* background-color: var(--yellow); */
-    width: var(--treewidth);
+    /* border: 1px solid black; */
+    width: /* placeholder */ var(--treewidth);
     height:fit-content;
     position: fixed; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
 }
@@ -69,10 +70,14 @@ svg {
     stroke-width:6px;
 }
 
-#forest .tree svg path#foliage {
-    fill: var(--autumn);
+#forest .tree svg path.foliage {
+    /* fill: var(--autumn); */
 }
 
-#forest .tree svg path#stump {
-    fill: var(--wood);
+#forest .tree svg path.stump {
+    /* fill: var(--wood); */
+}
+
+#forest .tree svg path.fire {
+    /* fill: var(--fire); */
 }
