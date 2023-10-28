@@ -4,7 +4,7 @@
  * */
 
 window.addEventListener('load', function () {
-    
+
     /*  ------------------------------------------------------------
         collect information before drawing tree
         ------------------------------------------------------------  */
@@ -25,8 +25,8 @@ window.addEventListener('load', function () {
             endtag: '</svg>'
         },
         dim: {
-            width: 134/2, // known to us, from when we created the svg
-            height: 382/2 // known to us, from when we created the svg
+            width: 134/3, // known to us, from when we created the svg
+            height: 382/3 // known to us, from when we created the svg
         }
     }
 
@@ -59,7 +59,7 @@ window.addEventListener('load', function () {
     const forestSettings = {
         padding: {
             h: 20,
-            v: 20
+            v: 10
         },
         spacing: {
             h: svgtree.dim.width * 2 / 3,
