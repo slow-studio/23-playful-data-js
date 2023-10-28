@@ -1,3 +1,8 @@
+/**
+ * to check browser support tables on mobile web browsers, 
+ * go to: https://caniuse.com/
+ * */
+
 /*  ------------------------------------------------------------
     collect information before drawing tree
     ------------------------------------------------------------  */
