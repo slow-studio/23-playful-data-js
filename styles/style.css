@@ -13,16 +13,31 @@
 }
 
 html {
+    margin: 0; padding: 0;
     /* disable default tap colour highlight */
     -webkit-tap-highlight-color: transparent;
 }
 
 body {
+    margin: 0; padding: 0;
     text-align: center;
     font-family: 'Merriweather', serif;
     font-weight: 300;
     font-size: 1rem;
     line-height: 1.45rem;
+}
+#container {
+    margin-left: auto;
+    margin-right: auto;
+    width: calc(100% - 2rem);
+    max-width: 60rem;
+    text-align: left;
+}
+
+#container * {
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 h1 {
