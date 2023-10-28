@@ -12,6 +12,11 @@
     --treewidth: /* placeholder */ 100px; 
 }
 
+html {
+    /* disable default tap colour highlight */
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
     text-align: center;
     font-family: 'Merriweather', serif;
