@@ -63,7 +63,7 @@ window.addEventListener('load', function () {
         },
         spacing: {
             h: svgtree.dim.width * 2 / 3,
-            v: 40
+            v: 30
         },
         orderly: {
             positionally: true,
