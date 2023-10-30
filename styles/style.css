@@ -72,6 +72,10 @@ svg {
     position: fixed; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
 }
 
+#forest .tree svg {
+    height:fit-content;
+}
+
 #forest .tree svg path {
     fill:#fff;
     stroke:#000;
