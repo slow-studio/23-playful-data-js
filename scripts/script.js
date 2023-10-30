@@ -82,8 +82,8 @@ window.addEventListener('load', function () {
     /** @type {SettingsObject} settings for the forest */
     const forestSettings = {
         padding: {
-            h: -40,
-            v: -80
+            h: 20,
+            v: 10
         },
         spacing: {
             h: svgtree.dim.width * 2 / 3,
@@ -109,7 +109,7 @@ window.addEventListener('load', function () {
 
     for (let i = 0 ; loopRunner ; i++) { 
         // sanity check
-        if(i>2000 /*an arbitarily large number*/ ) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
+        if(i>1000 /*an arbitarily large number*/ ) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
         // create new div
         /** @type {HTMLDivElement} */
         const newDiv = document.createElement("div")
