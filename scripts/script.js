@@ -5,7 +5,6 @@
 
 window.addEventListener('load', function () {
 
-
     /*  ------------------------------------------------------------
         make fires crackle
         ------------------------------------------------------------  */
@@ -27,7 +26,6 @@ window.addEventListener('load', function () {
             }
         }
     }, crackleTime * 2 * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
-
 
     /*  ------------------------------------------------------------
         collect information before drawing tree
