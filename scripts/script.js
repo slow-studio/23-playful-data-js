@@ -10,12 +10,14 @@ let safeSound = new Audio('/assets/sound/twinkle.mp3');
 let bgBurn = new Audio('/assets/sound/burningAmbience.mp3');
 let bgForest = new Audio('/assets/sound/forestAmbience.mp3');
 
+let volume = 1;
+
 //var trees = [tree1,tree2,tree3,tree4,tree5]
 
 // document.getElementById("forest").innerHTML = treeStates.normal
 
 //creating the forest with multiple trees
-let trees = 3;
+let trees = 30;
 for (let i = 0; i < trees; i++) {
     newTree = document.createElement('div')
     newTree.setAttribute('class','tree')
@@ -36,6 +38,7 @@ function burnTree(e)
   //console.log (e)
   e.innerHTML = treeStates.burning
   burnSound.play()
+  burningBG()
 }
 
 //changes tree state to protected, cannot be affected by fire
@@ -44,5 +47,22 @@ function protectTree(e)
     e.innerHTML = treeStates.safe
     safeSound.play()
 }
+// on entering the site, forest bg plays.
+onload(bgForest.play());
 
-bgForest.play();
+// if anything is left clicked(burning) the forest bg fades out and switches to burning bg
+function burningBG()
+{
+    //based on the number of burning trees, the audio will get louder
+    let burnStateTrees = document.getElementsByClassName("burning").length
+    //calculating volume percentage
+    let percentage = parseFloat((trees - burnStateTrees)/trees * 100)
+    //as soon as a tree is burning we want the nice forest background sound to be replaced with the burning one
+    if(percentage>0)
+        bgForest.pause()
+    bgBurn.play()
+    //setting volume to change and fade in and out within 2 seconds
+    setVolume(percentage, 0, 2)
+}
+  
+//fastSeek function skips to a specific time limit within the audio track- not compatible with many browsers however
