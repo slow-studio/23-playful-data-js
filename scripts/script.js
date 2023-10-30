@@ -97,8 +97,10 @@ window.addEventListener('load', function () {
     /**
      * @typedef {Object} SettingsObject
      * @property {object} padding - padding inside the #forest div
-     * @property {number} padding.h - horizontal padding inside the #forest div
-     * @property {number} padding.v - vertical padding inside the #forest div
+     * @property {number} padding.t
+     * @property {number} padding.r 
+     * @property {number} padding.b
+     * @property {number} padding.l
      * @property {object} spacing - spacing between trees (in pixels) 
      * @property {number} spacing.h - horizontal spacing between trees (in pixels) 
      * @property {number} spacing.v - vertical spacing between trees (in pixels) 
@@ -110,8 +112,10 @@ window.addEventListener('load', function () {
     /** @type {SettingsObject} settings for the forest */
     const forestSettings = {
         padding: {
-            h: 20,
-            v: 10
+            t: -20,  
+            r: 10,
+            b: 40,
+            l: 10
         },
         spacing: {
             h: svgtree.dim.width * 2 / 3,
@@ -191,8 +195,8 @@ window.addEventListener('load', function () {
                 }
             },
             dimensions: {
-                l: forest.offsetLeft + forestSettings.padding.h + (treeIDinRow * forestSettings.spacing.h) + ( rowID % 2 === 0 ? (forestSettings.spacing.h/4) : (-forestSettings.spacing.h/4) ),
-                t: forest.offsetTop + forestSettings.padding.v + forestSettings.spacing.v * rowID,
+                l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + ( rowID % 2 === 0 ? (forestSettings.spacing.h/4) : (-forestSettings.spacing.h/4) ),
+                t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
                 w: svgtree.dim.width,
                 h: svgtree.dim.height,
                 /** @type {{ x: number, y: number }} */
@@ -225,7 +229,7 @@ window.addEventListener('load', function () {
         newDiv.style.top = tree[i].dimensions.t + 'px'
         tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w/2, y: tree[i].dimensions.t + tree[i].dimensions.h/2 }
         // draw trees on the next line if you exceed #forest's right-most bounds
-        if (forest.offsetWidth - 2 * forestSettings.padding.h < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w ) {
+        if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w ) {
             rowID++
             treeIDinRow = 0
         } else {
@@ -234,7 +238,7 @@ window.addEventListener('load', function () {
             maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
         }
         // stop drawing trees if you exceed #forest's bottom-most bounds
-        if (forest.offsetHeight - 2 * forestSettings.padding.v < rowID * forestSettings.spacing.v +  tree[i].dimensions.h)
+        if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v +  tree[i].dimensions.h)
             loopRunner = false
         // set z-index, so that lower-placed trees seem to be in front
         newDiv.style.zIndex = (tree[i].zindex).toString()
