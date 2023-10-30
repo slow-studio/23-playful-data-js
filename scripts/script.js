@@ -1,9 +1,41 @@
-/**
- * to check browser support tables on mobile web browsers, 
- * go to: https://caniuse.com/
- * */
-
 window.addEventListener('load', function () {
+
+
+    /*  ------------------------------------------------------------
+        helpers
+        ------------------------------------------------------------  */
+    
+    /**
+     * helpers:
+     *  - to check browser support tables on mobile web browsers, go to: https://caniuse.com/.
+     *  - to change cursor's appearance, by using an SVG:
+     *      - info: https://stackoverflow.com/a/45966695
+     *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
+     */
+
+    /**
+     * update an element's style
+     * @param {*} e - element
+     * @param {string} p - parameter 
+     * @param {string|number} v - value
+     */
+    function updateStyle(e, p, v) {
+        e.style.setProperty(p, v)  
+    }
+
+    /** show or hide the infoBox */
+    /** @type {boolean} records whether the infoBox is displayed or not */
+    let infoBoxDisplayState = false
+    function toggleInfoBoxDisplayState() {
+        const box = document.getElementById("infoBoxContent")
+        if(infoBoxDisplayState==false) {
+            box.style.top = "-12rem"
+            infoBoxDisplayState = true
+        } else {
+            box.style.top = "-2rem"
+            infoBoxDisplayState = false
+        }
+    }
 
     /*  ------------------------------------------------------------
         make fires crackle
@@ -52,11 +84,8 @@ window.addEventListener('load', function () {
         }
     }
 
-    // apply tree dimensions to CSS file
-    function updateVariablesInCSSFile() {
-        document.documentElement.style.setProperty('--treewidth', svgtree.dim.width+'px')  
-    }
-    updateVariablesInCSSFile()
+    /** updates :root definitions in the stylesheet */
+    updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width+'px')
 
     /*  ------------------------------------------------------------
         spawn trees into the forest 
@@ -75,6 +104,7 @@ window.addEventListener('load', function () {
      * @property {number} spacing.v - vertical spacing between trees (in pixels) 
      * @property {object} orderly - defines how uniformly is everything drawn for each specified key
      * @property {boolean} orderly.positionally - spawn trees randomly in front or behind each other (by making sure every tree's zIndex is +1 than the previous tree's zIndex)
+     * @property {number} orderly.maxZIndexDeviation - if (orderly.positionally == false ) then maxZIndexDeviation defines how disorderly the trees will be 
      * @property {boolean} orderly.shape - are all trees uniformly shaped?
      */
     /** @type {SettingsObject} settings for the forest */
@@ -88,13 +118,17 @@ window.addEventListener('load', function () {
             v: 30
         },
         orderly: {
-            positionally: true,
+            positionally: false,
+            maxZIndexDeviation: 2,
             shape: true
         }
     }
 
     /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
     var totalTreesInForest = 0;
+
+    /** @type {number} keeps track of the highest z-index assigned to any tree */
+    var highestZIndexOnTree = 0;
 
     /*  spawn all trees. */
 
@@ -116,7 +150,7 @@ window.addEventListener('load', function () {
             div: newDiv,
             id: 'tree-'+i,
             class: 'tree',
-            zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * 2),
+            zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
             shape: {
                 foliage: {
                     default: svgtree.src.foliage.default,
@@ -204,6 +238,8 @@ window.addEventListener('load', function () {
             loopRunner = false
         // set z-index, so that lower-placed trees seem to be in front
         newDiv.style.zIndex = (tree[i].zindex).toString()
+        // keep track of the highest z-index assigned to any tree
+        if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
         // finally, make the div a child of #forest
         forest.appendChild(newDiv)
         // update the value for total number of trees spawned in the forest
@@ -234,40 +270,59 @@ window.addEventListener('load', function () {
         // console.log("here are all clicked-on elements:")
         // console.log(c)
 
-        c = c.map(function (x) { 
-            // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
-            // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-            if (x.constructor.toString().indexOf("SVGPathElement()") > -1 )
-                // return <path>'s parent (which is an <svg>)
-                return x.parentNode 
-            else return -1
-        } );
-        // console.log("gathered parent svg-nodes for path elements:")
-        // console.log(c)
-        
-        // filter out all non-svg elements (which we'd already replaced with -1)
-        c = c.filter(function(e) { return e != -1; })
-        // console.log("removed -1's:")
-        // console.log(c)
-
-        // ensure that all elements in the array are unique
-        c = c.filter(function(x,i,a) {return a.indexOf(x) == i})
-        // console.log("removed duplicates:")
-        // console.log(c)
-        
-        for(const i in c) {
-            const SVGElementOfClickedTree = c[i]
-            treeProvidesClickFeedback(
-                SVGElementOfClickedTree, 
-                {
-                    foliageColour: 'var(--autumn)',
-                    stumpColour: 'var(--wood)',
-                    changeShape: ( Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right ),
-                    fire: true
-                },
-                3000
-            )
+        // if the click happened on the #infoBoxContent, we don't do anything to the #forest. 
+        let clickedOnInfoBoxContent = false;
+        for(let i = 0 ; i < c.length ; i++) {
+            if (c[i].id === 'infoBoxContent') {
+                clickedOnInfoBoxContent = true
+                console.log("clicked on #infoBoxContent")
+            }
         }
+        // console.log("clicked on #infoBoxContent?: " + clickedOnInfoBoxContent)
+
+        // if we clicked on the #infoBox, we move it up or down
+        if(clickedOnInfoBoxContent == true) {
+            toggleInfoBoxDisplayState()
+        } 
+        
+        // if we didn't click on the #infoBox, then we may continue with the didClickHappenOnTree check:
+        else /* if(clickedOnInfoBoxContent == false) */ { 
+
+            c = c.map(function (x) { 
+                // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
+                // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
+                if (x.constructor.toString().indexOf("SVGPathElement()") > -1 )
+                    // return <path>'s parent (which is an <svg>)
+                    return x.parentNode 
+                else return -1
+            } );
+            // console.log("gathered parent svg-nodes for path elements:")
+            // console.log(c)
+            
+            // filter out all non-svg elements (which we'd already replaced with -1)
+            c = c.filter(function(e) { return e != -1; })
+            // console.log("removed -1's:")
+            // console.log(c)
+
+            // ensure that all elements in the array are unique
+            c = c.filter(function(x,i,a) {return a.indexOf(x) == i})
+            // console.log("removed duplicates:")
+            // console.log(c)
+            
+            for(const i in c) {
+                const SVGElementOfClickedTree = c[i]
+                treeProvidesClickFeedback(
+                    SVGElementOfClickedTree, 
+                    {
+                        foliageColour: 'var(--autumn)',
+                        stumpColour: 'var(--wood)',
+                        changeShape: ( Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right ),
+                        fire: true
+                    },
+                    3000
+                )
+            }
+        } 
     }
 
     /**
@@ -329,4 +384,7 @@ window.addEventListener('load', function () {
             }, changeBackTime);
         }
     }
+
+    /** #infoBox should have a z-index higher than all spawned trees */
+    updateStyle(document.getElementById("infoBox"), "z-index", highestZIndexOnTree+forestSettings.orderly.maxZIndexDeviation+1)
 })

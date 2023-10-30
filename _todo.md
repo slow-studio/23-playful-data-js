@@ -1,7 +1,6 @@
 # todo
 
 [ ] add message box. trees catch fire after a message appears.
-[ ] [style divs to fill vertical space](https://stackoverflow.com/questions/90178/make-a-div-fill-the-height-of-the-remaining-screen-space)
 [ ] add states
 [ ] add sound
 [ ] avani: make all stages of the animation
