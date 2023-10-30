@@ -10,7 +10,7 @@ let safeSound = new Audio('/assets/sound/twinkle.mp3');
 let bgBurn = new Audio('/assets/sound/burningAmbience.mp3');
 let bgForest = new Audio('/assets/sound/forestAmbience.mp3');
 
-let volume = 1;
+let volume = 0;
 
 //var trees = [tree1,tree2,tree3,tree4,tree5]
 
@@ -62,7 +62,7 @@ function burningBG()
         bgForest.pause()
     bgBurn.play()
     //setting volume to change and fade in and out within 2 seconds
-    setVolume(percentage, 0, 2)
+    setVolume(volume + percentage, 0, 2)
 }
   
 //fastSeek function skips to a specific time limit within the audio track- not compatible with many browsers however
