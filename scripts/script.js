@@ -11,23 +11,23 @@ window.addEventListener('load', function () {
         ------------------------------------------------------------  */
     
     const crackleTime = 300
-    const crackleRandomness = .5 // select a value within (0,1)
-    setInterval(function() {
+    setInterval(function () {
         /** @type {any} */
         let fires = document.getElementsByClassName("fire")
-        for(let i = 0 ; i<fires.length ; i++) {
-                if(fires[i]) {
+        for (let i = 0; i < fires.length; i++) {
+            if (fires[i]) {
                 fires[i].style.fill = 'var(--firedarker)'
                 // console.log("fire gets darker")
-                setTimeout(function() { 
-                    if(fires[i]) {
+                setTimeout(function () {
+                    if (fires[i]) {
                         fires[i].style.fill = 'var(--fire)'
                         // console.log("fire gets less dark") 
                     }
-                }, crackleTime * Math.max(1-crackleRandomness, (1+crackleRandomness)*Math.random()));
+                }, crackleTime * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
             }
         }
-    }, crackleTime * 2 * Math.max(1-crackleRandomness, (1+crackleRandomness)*Math.random()));
+    }, crackleTime * 2 * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
+
 
     /*  ------------------------------------------------------------
         collect information before drawing tree
