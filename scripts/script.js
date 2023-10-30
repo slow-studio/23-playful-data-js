@@ -16,12 +16,16 @@ window.addEventListener('load', function () {
         /** @type {any} */
         let fires = document.getElementsByClassName("fire")
         for(let i = 0 ; i<fires.length ; i++) {
-            fires[i].style.fill = 'var(--firedarker)'
-            console.log("flipped")
-            setTimeout(function() { 
-                fires[i].style.fill = 'var(--fire)'
-                console.log("flipped back") 
-            }, crackleTime * Math.max(1-crackleRandomness, (1+crackleRandomness)*Math.random()));
+                if(fires[i]) {
+                fires[i].style.fill = 'var(--firedarker)'
+                // console.log("fire gets darker")
+                setTimeout(function() { 
+                    if(fires[i]) {
+                        fires[i].style.fill = 'var(--fire)'
+                        // console.log("fire gets less dark") 
+                    }
+                }, crackleTime * Math.max(1-crackleRandomness, (1+crackleRandomness)*Math.random()));
+            }
         }
     }, crackleTime * 2 * Math.max(1-crackleRandomness, (1+crackleRandomness)*Math.random()));
 
