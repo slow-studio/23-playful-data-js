@@ -5,6 +5,26 @@
 
 window.addEventListener('load', function () {
 
+
+    /*  ------------------------------------------------------------
+        make fires crackle
+        ------------------------------------------------------------  */
+    
+    const crackleTime = 300
+    const crackleRandomness = .5 // select a value within (0,1)
+    setInterval(function() {
+        /** @type {any} */
+        let fires = document.getElementsByClassName("fire")
+        for(let i = 0 ; i<fires.length ; i++) {
+            fires[i].style.fill = 'var(--firedarker)'
+            console.log("flipped")
+            setTimeout(function() { 
+                fires[i].style.fill = 'var(--fire)'
+                console.log("flipped back") 
+            }, crackleTime * Math.max(1-crackleRandomness, (1+crackleRandomness)*Math.random()));
+        }
+    }, crackleTime * 2 * Math.max(1-crackleRandomness, (1+crackleRandomness)*Math.random()));
+
     /*  ------------------------------------------------------------
         collect information before drawing tree
         ------------------------------------------------------------  */
