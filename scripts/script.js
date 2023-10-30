@@ -17,7 +17,7 @@ let volume = 0;
 // document.getElementById("forest").innerHTML = treeStates.normal
 
 //creating the forest with multiple trees
-let trees = 30;
+let trees = 10;
 for (let i = 0; i < trees; i++) {
     newTree = document.createElement('div')
     newTree.setAttribute('class','tree')
@@ -48,7 +48,7 @@ function protectTree(e)
     safeSound.play()
 }
 // on entering the site, forest bg plays.
-onload(bgForest.play());
+window.onload(bgForest.play());
 
 // if anything is left clicked(burning) the forest bg fades out and switches to burning bg
 function burningBG()
@@ -56,13 +56,16 @@ function burningBG()
     //based on the number of burning trees, the audio will get louder
     let burnStateTrees = document.getElementsByClassName("burning").length
     //calculating volume percentage
-    let percentage = parseFloat((trees - burnStateTrees)/trees * 100)
+    let percentage = parseFloat((trees - burnStateTrees)/trees)
+
     //as soon as a tree is burning we want the nice forest background sound to be replaced with the burning one
-    if(percentage>0)
+    if(percentage > 0)
         bgForest.pause()
     bgBurn.play()
     //setting volume to change and fade in and out within 2 seconds
-    setVolume(volume + percentage, 0, 2)
+    bgBurn.volume = 1 - percentage
+    console.log("volume should be ", bgBurn.volume)
+    //bgBurn.volume = percentage
 }
   
 //fastSeek function skips to a specific time limit within the audio track- not compatible with many browsers however
