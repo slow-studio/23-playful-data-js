@@ -7,9 +7,12 @@ let bgForest = new Audio('/assets/sound/forestAmbience.mp3');
 bgForest.play()
 bgForest.loop = true
 bgForest.volume = 0
-bgBurn.play()
+window.onload = bgBurn.play()
 bgBurn.loop = true
 bgBurn.volume = 0
+
+// set volume depending on the number of trees of each type
+setVolume()
 
 // vairables for counting number of trees 
 function countTotalTrees() {
@@ -39,7 +42,7 @@ function stateChanger(b) {
             break;
     }
 
-    setVolumes()
+    setVolume()
 
 }
 
