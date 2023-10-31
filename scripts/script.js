@@ -287,6 +287,7 @@ window.addEventListener('load', function () {
 
         // style the tree
         const svgelement = newDiv.getElementsByTagName("svg")[0] // the first (and only) child is an <svg>
+        svgelement.classList.add(tree[i].state.now)
         const foliages = svgelement.getElementsByClassName('foliage')
         const wood = svgelement.getElementsByClassName('stump')
         /** @ts-ignore */
@@ -339,6 +340,7 @@ window.addEventListener('load', function () {
         console.log("clicked on: (" + x + ", " + y + ")")
 
         // get array of all elements that are present where the mouseclick happened ...
+        /** @type {*} */
         let c = []
         c = document.elementsFromPoint(x, y)
         // console.log("here are all clicked-on elements:")
@@ -388,11 +390,35 @@ window.addEventListener('load', function () {
             // now, we instruct each (clicked-)tree to change
             for (const i in c) {
                 const SVGElementOfClickedTree = c[i]
-                updateTree(SVGElementOfClickedTree, "burning")
-                setTimeout(function () {
-                    updateTree(SVGElementOfClickedTree,"absent")
-                }, 3000);
-
+                if (SVGElementOfClickedTree.classList.contains("burned")) {
+                    if (Math.random() > .5)
+                        updateTree(SVGElementOfClickedTree, "absent")
+                    else
+                        updateTree(SVGElementOfClickedTree, "dry")
+                } else if (SVGElementOfClickedTree.classList.contains("dry")) {
+                    updateTree(SVGElementOfClickedTree, "burning")
+                    setTimeout(function () {
+                        updateTree(SVGElementOfClickedTree, "burned")
+                        if (Math.random() > .5)
+                            setTimeout(function () {
+                                updateTree(SVGElementOfClickedTree, "absent")
+                            }, 5000);
+                    }, 2000);
+                } else {
+                    updateTree(SVGElementOfClickedTree, "dry")
+                    if (Math.random() > .5) {
+                        setTimeout(function () {
+                            updateTree(SVGElementOfClickedTree, "burning")
+                            setTimeout(function () {
+                                updateTree(SVGElementOfClickedTree, "burned")
+                                if (Math.random() > .5)
+                                    setTimeout(function () {
+                                        updateTree(SVGElementOfClickedTree, "absent")
+                                    }, 5000);
+                            }, 2000);
+                        }, 3000);
+                    }
+                }
             }
         }
     }
@@ -443,6 +469,8 @@ window.addEventListener('load', function () {
 
         /* tree decides what its new appearance will be */
         tree[id].state.now = state
+        svgelement.classList.remove(tree[id].state.previous)
+        svgelement.classList.add(tree[id].state.now)
         const settings = tree[id].stateSettings[state]
         if (settings.shape.foliage) tree[id].shape.foliage.now = settings.shape.foliage
         if (settings.shape.stump) tree[id].shape.stump.now = settings.shape.stump
