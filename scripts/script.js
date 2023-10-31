@@ -8,6 +8,7 @@ let bgForest = new Audio('/assets/sound/forestAmbience.mp3');
 
 let volume = 0;
 let buttons = 1;
+let percentage
 
 function stateChanger(b) {
     console.log("toggling 'yellow' class.")
@@ -21,13 +22,13 @@ function stateChanger(b) {
         case "yellow":
             b.innerText = "normal tree"
             bgForest.play()
-            let percentage = parseFloat((buttons - (document.getElementsByClassName("yellow").length+1))/buttons)
-            bgForest.volume = percentage
+            percentage = parseFloat((buttons - (document.getElementsByClassName("yellow").length+1))/buttons)
+            bgForest.volume = 1- percentage
             break;
         
         case "orange":
             b.innerText = "burning tree"
-            let percentageBurn = parseFloat((buttons - (document.getElementsByClassName("orange").length+1))/buttons)
+            percentage = parseFloat((buttons - (document.getElementsByClassName("orange").length+1))/buttons)
             bgBurn.volume = 1- percentage
             break;
     }
