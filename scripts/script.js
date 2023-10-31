@@ -230,7 +230,6 @@ window.addEventListener('load', function () {
                         stump: svgtree.src.stump,
                         fire: false,
                         burned: false,
-                        poop: 'yay'
                     },
                     colour: {
                         outline: 'black',
