@@ -17,7 +17,7 @@
  * @param {string|number} v - value
  */
 function updateStyle(e, p, v) {
-    e.style.setProperty(p, v)  
+    e.style.setProperty(p, v)
 }
 
 /** show or hide the infoBox */
@@ -25,7 +25,7 @@ function updateStyle(e, p, v) {
 let infoBoxDisplayState = false
 function toggleInfoBoxDisplayState() {
     const box = document.getElementById("infoBoxContent")
-    if(infoBoxDisplayState==false) {
+    if (infoBoxDisplayState == false) {
         box.style.top = "-12rem"
         infoBoxDisplayState = true
     } else {
@@ -76,13 +76,14 @@ window.addEventListener('load', function () {
             endtag: '</svg>'
         },
         dim: {
-            width: 134/3, // known to us, from when we created the svg
-            height: 382/3 // known to us, from when we created the svg
+            // these are known to us, from when we created the svg
+            width: 134 / 3,
+            height: 382 / 3
         }
     }
 
     /** updates :root definitions in the stylesheet */
-    updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width+'px')
+    updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width + 'px')
 
     /*  ------------------------------------------------------------
         spawn trees into the forest 
@@ -109,7 +110,7 @@ window.addEventListener('load', function () {
     /** @type {SettingsObject} settings for the forest */
     const forestSettings = {
         padding: {
-            t: -20,  
+            t: -20,
             r: 10,
             b: 40,
             l: 10
@@ -140,16 +141,16 @@ window.addEventListener('load', function () {
 
     const tree = []
 
-    for (let i = 0 ; loopRunner ; i++) { 
+    for (let i = 0; loopRunner; i++) {
         // sanity check
-        if(i>1000 /*an arbitarily large number*/ ) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
+        if (i > 1000 /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
         // create new div
         /** @type {HTMLDivElement} */
         const newDiv = document.createElement("div")
         // store the tree's information in its own object
         tree[i] = {
             div: newDiv,
-            id: 'tree-'+i,
+            id: 'tree-' + i,
             class: 'tree',
             zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
             shape: {
@@ -202,15 +203,15 @@ window.addEventListener('load', function () {
                 }
             },
             dimensions: {
-                l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + ( rowID % 2 === 0 ? (forestSettings.spacing.h/4) : (-forestSettings.spacing.h/4) ),
+                l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)),
                 t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
                 w: svgtree.dim.width,
                 h: svgtree.dim.height,
                 /** @type {{ x: number, y: number }} */
-                heart: { 
+                heart: {
                     /* will be filled correctly when the tree is spawned */
-                    x: svgtree.dim.width/2,
-                    y: svgtree.dim.height/2
+                    x: svgtree.dim.width / 2,
+                    y: svgtree.dim.height / 2
                 }
             }
         }
@@ -224,19 +225,19 @@ window.addEventListener('load', function () {
         const svgelement = newDiv.getElementsByTagName("svg")[0] // the first (and only) child is an <svg>
         const foliages = svgelement.getElementsByClassName('foliage')
         const wood = svgelement.getElementsByClassName('stump')
-        /** @ts-ignore */ 
-        for(const f of foliages) { f.style.fill = tree[i].colour.foliage.now }
-        /** @ts-ignore */ 
-        for(const w of wood) { w.style.fill = tree[i].colour.stump.now }
+        /** @ts-ignore */
+        for (const f of foliages) { f.style.fill = tree[i].colour.foliage.now }
+        /** @ts-ignore */
+        for (const w of wood) { w.style.fill = tree[i].colour.stump.now }
 
         // newDiv should be as large as the tree-image
         newDiv.style.width = tree[i].dimensions.w + 'px'
         // position the tree (so that it sits at the correct location within a desired pattern in the forest)
         newDiv.style.left = tree[i].dimensions.l + 'px'
         newDiv.style.top = tree[i].dimensions.t + 'px'
-        tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w/2, y: tree[i].dimensions.t + tree[i].dimensions.h/2 }
+        tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w / 2, y: tree[i].dimensions.t + tree[i].dimensions.h / 2 }
         // draw trees on the next line if you exceed #forest's right-most bounds
-        if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w ) {
+        if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w) {
             rowID++
             treeIDinRow = 0
         } else {
@@ -245,7 +246,7 @@ window.addEventListener('load', function () {
             maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
         }
         // stop drawing trees if you exceed #forest's bottom-most bounds
-        if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v +  tree[i].dimensions.h)
+        if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v + tree[i].dimensions.h)
             loopRunner = false
         // set z-index, so that lower-placed trees seem to be in front
         newDiv.style.zIndex = (tree[i].zindex).toString()
@@ -257,7 +258,7 @@ window.addEventListener('load', function () {
         totalTreesInForest += 1
     }
 
-    console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow+1) + " or fewer trees per row.") 
+    console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
 
     /*  ------------------------------------------------------------
         register whenever a tree is clicked on
@@ -275,13 +276,13 @@ window.addEventListener('load', function () {
 
         // get array of all elements that are present where the mouseclick happened ...
         let c = []
-        c = document.elementsFromPoint(x,y) 
+        c = document.elementsFromPoint(x, y)
         // console.log("here are all clicked-on elements:")
         // console.log(c)
 
         // if the click happened on the #infoBoxContent, we don't do anything to the #forest. 
         let clickedOnInfoBoxContent = false;
-        for(let i = 0 ; i < c.length ; i++) {
+        for (let i = 0; i < c.length; i++) {
             if (c[i].id === 'infoBoxContent') {
                 clickedOnInfoBoxContent = true
                 console.log("clicked on #infoBoxContent")
@@ -290,44 +291,44 @@ window.addEventListener('load', function () {
         // console.log("clicked on #infoBoxContent?: " + clickedOnInfoBoxContent)
 
         // if we clicked on the #infoBox, we move it up or down
-        if(clickedOnInfoBoxContent == true) {
+        if (clickedOnInfoBoxContent == true) {
             toggleInfoBoxDisplayState()
-        } 
-        
+        }
+
         // if we didn't click on the #infoBox, then we may continue with the didClickHappenOnTree check:
-        else /* if(clickedOnInfoBoxContent == false) */ { 
+        else /* if(clickedOnInfoBoxContent == false) */ {
 
             // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
-            c = c.map(function (x) { 
+            c = c.map(function (x) {
                 if (
-                    x.constructor.toString().indexOf("SVGPathElement()") > -1 
+                    x.constructor.toString().indexOf("SVGPathElement()") > -1
                     // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
                 )
                     // return <path>'s parent (which is an <svg>)
-                    return x.parentNode 
+                    return x.parentNode
                 else return -1
-            } );
+            });
             // console.log("gathered parent svg-nodes for path elements:")
             // console.log(c)
-            
+
             // filter out all non-svg elements (which we'd already replaced with -1)
-            c = c.filter(function(e) { return e != -1; })
+            c = c.filter(function (e) { return e != -1; })
             // console.log("removed -1's:")
             // console.log(c)
 
             // ensure that all elements in the array are unique
-            c = c.filter(function(x,i,a) {return a.indexOf(x) == i})
-            // console.log("removed duplicates:")
-            // console.log(c)
+            c = c.filter(function (x, i, a) { return a.indexOf(x) == i })
+    // console.log("removed duplicates:")
+    // console.log(c)
             
             // now, we instruct each (clicked-)tree to change
-            for(const i in c) {
+            for (const i in c) {
                 const SVGElementOfClickedTree = c[i]
                 updateTree(
-                    SVGElementOfClickedTree, 
+                    SVGElementOfClickedTree,
                     {
                         shape: {
-                            foliage: ( Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right ),
+                            foliage: (Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right),
                             stump: svgtree.src.stump,
                             fire: svgtree.src.fire,
                             burned: false
@@ -341,14 +342,11 @@ window.addEventListener('load', function () {
                         }
                     }
                 )
-                setTimeout(function(){
+                setTimeout(function () {
                     updateTree(
                         SVGElementOfClickedTree,
                         {
                             shape: {
-                                foliage: false,
-                                stump: false,
-                                fire: false,
                                 burned: svgtree.src.burned
                             },
                             colour: {
@@ -358,9 +356,9 @@ window.addEventListener('load', function () {
                         }
                     )
                 }, 3000);
-            
+
             }
-        } 
+        }
     }
 
     /*  ------------------------------------------------------------
@@ -389,7 +387,7 @@ window.addEventListener('load', function () {
     function updateTree(svgelement, settings) {
 
         // helper variables
-        const id = Number(svgelement.parentNode.id.substring("tree-".length,svgelement.parentNode.id.length))
+        const id = Number(svgelement.parentNode.id.substring("tree-".length, svgelement.parentNode.id.length))
         const foliages = svgelement.getElementsByClassName('foliage')
         const wood = svgelement.getElementsByClassName('stump')
         const fires = svgelement.getElementsByClassName('fire')
@@ -407,15 +405,15 @@ window.addEventListener('load', function () {
         tree[id].colour.burned.previous = tree[id].colour.burned.now
 
         /* tree decides what its new appearance will be */
-        if( settings.shape.foliage ) tree[id].shape.foliage.now = settings.shape.foliage
-        if( settings.shape.stump ) tree[id].shape.stump.now = settings.shape.stump
-        if( settings.shape.fire ) tree[id].shape.fire.now = settings.shape.fire
-        if( settings.shape.burned ) tree[id].shape.burned.now = settings.shape.burned
-        if( settings.colour.outline ) tree[id].colour.outline.now = settings.colour.outline
-        if( settings.colour.foliage ) tree[id].colour.foliage.now = settings.colour.foliage
-        if( settings.colour.stump ) tree[id].colour.stump.now = settings.colour.stump
-        if( settings.colour.fire ) tree[id].colour.fire.now = settings.colour.fire
-        if( settings.colour.burned ) tree[id].colour.burned.now = settings.colour.burned
+        if (settings.shape.foliage) tree[id].shape.foliage.now = settings.shape.foliage
+        if (settings.shape.stump) tree[id].shape.stump.now = settings.shape.stump
+        if (settings.shape.fire) tree[id].shape.fire.now = settings.shape.fire
+        if (settings.shape.burned) tree[id].shape.burned.now = settings.shape.burned
+        if (settings.colour.outline) tree[id].colour.outline.now = settings.colour.outline
+        if (settings.colour.foliage) tree[id].colour.foliage.now = settings.colour.foliage
+        if (settings.colour.stump) tree[id].colour.stump.now = settings.colour.stump
+        if (settings.colour.fire) tree[id].colour.fire.now = settings.colour.fire
+        if (settings.colour.burned) tree[id].colour.burned.now = settings.colour.burned
 
         /* tree changes appearance: */
         console.log("change t# " + id)
@@ -427,24 +425,24 @@ window.addEventListener('load', function () {
             + (settings.shape.fire ? tree[id].shape.fire.now : '')
             + (settings.shape.burned ? tree[id].shape.burned.now : '')
         // -- and then, it sets the colour for those svg-shapes
-        for(const p of foliages) { 
-            p.style.stroke = tree[id].colour.outline.now 
-            p.style.fill = tree[id].colour.foliage.now 
+        for (const p of foliages) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.foliage.now
         }
-        for(const p of wood) { 
-            p.style.stroke = tree[id].colour.outline.now 
-            p.style.fill = tree[id].colour.stump.now 
+        for (const p of wood) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.stump.now
         }
-        for(const p of fires) { 
-            p.style.stroke = tree[id].colour.outline.now 
-            p.style.fill = tree[id].colour.fire.now 
+        for (const p of fires) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.fire.now
         }
-        for(const p of burnedses) { 
-            p.style.stroke = tree[id].colour.outline.now 
-            p.style.fill = tree[id].colour.burned.now 
+        for (const p of burnedses) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.burned.now
         }
     }
 
     /** #infoBox should have a z-index higher than all spawned trees */
-    updateStyle(document.getElementById("infoBox"), "z-index", highestZIndexOnTree+forestSettings.orderly.maxZIndexDeviation+1)
+    updateStyle(document.getElementById("infoBox"), "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
 })
