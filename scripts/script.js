@@ -391,15 +391,15 @@ window.addEventListener('load', function () {
             for (const i in c) {
                 const SVGElementOfClickedTree = c[i]
                 if (SVGElementOfClickedTree.classList.contains("burned")) {
-                    if (Math.random() > .5)
-                        updateTree(SVGElementOfClickedTree, "absent")
-                    else
-                        updateTree(SVGElementOfClickedTree, "dry")
+                    updateTree(SVGElementOfClickedTree, "dry")
+                    setTimeout(function () {
+                        updateTree(SVGElementOfClickedTree, "normal")
+                    }, 500);
                 } else if (SVGElementOfClickedTree.classList.contains("dry")) {
                     updateTree(SVGElementOfClickedTree, "burning")
                     setTimeout(function () {
                         updateTree(SVGElementOfClickedTree, "burned")
-                        if (Math.random() > .5)
+                        if (Math.random() > .75)
                             setTimeout(function () {
                                 updateTree(SVGElementOfClickedTree, "absent")
                             }, 5000);
@@ -411,7 +411,7 @@ window.addEventListener('load', function () {
                             updateTree(SVGElementOfClickedTree, "burning")
                             setTimeout(function () {
                                 updateTree(SVGElementOfClickedTree, "burned")
-                                if (Math.random() > .5)
+                                if (Math.random() > .75)
                                     setTimeout(function () {
                                         updateTree(SVGElementOfClickedTree, "absent")
                                     }, 5000);
