@@ -77,8 +77,8 @@ window.addEventListener('load', function () {
         },
         dim: {
             // these are known to us, from when we created the svg
-            width: 134 / 3,
-            height: 382 / 3
+            width: 134 / 2.5,
+            height: 382 / 2.5
         }
     }
 
@@ -221,15 +221,19 @@ window.addEventListener('load', function () {
             },
             stateSettings: {
                 absent: {
-                    shape: {},
-                    colour: {}
+                    shape: {
+                        // stump: svgtree.src.stump
+                    },
+                    colour: {
+                        // stump: 'var(--wood)'
+                    }
                 },
                 normal: {
                     shape: {
                         foliage: svgtree.src.foliage.default,
                         stump: svgtree.src.stump,
                         fire: false,
-                        burned: false,
+                        burned: false
                     },
                     colour: {
                         outline: 'black',
@@ -342,7 +346,7 @@ window.addEventListener('load', function () {
         let charreds = document.getElementsByClassName("charred")
     
         // calculate the health of the forest
-        const maxHealth = .975
+        const maxHealth = .975 - (clickCounter>5?5:clickCounter)/100
         let forestHealth = 
             ( normals.length * maxHealth
             + drys.length * .8
@@ -372,7 +376,7 @@ window.addEventListener('load', function () {
     
         // burning -> charred
         for (let i=0 ; i<burnings.length;i++) {
-            if (Math.random() > .9)
+            if (Math.random() > .95)
                     updateTree(burnings[i], "charred") 
         }
 
@@ -392,11 +396,24 @@ window.addEventListener('load', function () {
     }
 
     /*  ------------------------------------------------------------
-        register whenever a tree is clicked on
+        if the person taps on the screen
         ------------------------------------------------------------  */
 
-    // whenever a click happens, this triggers didClickHappenOnTree()
-    document.addEventListener("click", didClickHappenOnTree);
+    let clickCounter = 0;
+
+    // whenever a click happens:
+    document.addEventListener("click", handleClicks);
+
+    function handleClicks(e) {
+        // count the click
+        clickCounter++
+        // check if the click happened on a tree
+        didClickHappenOnTree(e)
+    }
+
+    /*  ------------------------------------------------------------
+        if the click happened on a tree...
+        ------------------------------------------------------------  */
 
     function didClickHappenOnTree(e) {
 
