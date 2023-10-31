@@ -384,9 +384,9 @@ window.addEventListener('load', function () {
 
             // ensure that all elements in the array are unique
             c = c.filter(function (x, i, a) { return a.indexOf(x) == i })
-    // console.log("removed duplicates:")
-    // console.log(c)
-            
+            // console.log("removed duplicates:")
+            // console.log(c)
+
             // now, we instruct each (clicked-)tree to change
             for (const i in c) {
                 const SVGElementOfClickedTree = c[i]
