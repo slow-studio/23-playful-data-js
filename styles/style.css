@@ -71,9 +71,16 @@ svg {
     styling button
 */
 
-.orange {
+button {
+    font-size: 2rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    width: 20rem;
+    text-align: center;
+}
+.burning {
     background: orange;
 }
-.yellow {
-    background: yellow;
+.normal {
+    background: green;
 }

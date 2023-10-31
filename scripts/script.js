@@ -11,22 +11,22 @@ let buttons = 1;
 let percentage
 
 function stateChanger(b) {
-    console.log("toggling 'yellow' class.")
-    b.classList.toggle("yellow");
-    console.log("toggling 'orange' class.")
-    b.classList.toggle("orange")  
+    console.log("toggling 'normal' class.")
+    b.classList.toggle("normal");
+    console.log("toggling 'burning' class.")
+    b.classList.toggle("burning")  
     console.log(b.className)
 
     switch(b.className)
     {
-        case "yellow":
+        case "normal":
             b.innerText = "normal tree"
             bgForest.play()
             percentage = parseFloat((buttons - (document.getElementsByClassName("yellow").length+1))/buttons)
             bgForest.volume = 1- percentage
             break;
         
-        case "orange":
+        case "burning":
             b.innerText = "burning tree"
             percentage = parseFloat((buttons - (document.getElementsByClassName("orange").length+1))/buttons)
             bgBurn.volume = 1- percentage
