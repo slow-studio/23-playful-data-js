@@ -483,7 +483,7 @@ window.addEventListener('load', function () {
         if (settings.colour.burned) tree[id].colour.burned.now = settings.colour.burned
 
         /* tree changes appearance: */
-        console.log("change t# " + id)
+        // console.log("change t# " + id)
         // console.log(tree[id])
         // -- first, it updates its svg shape
         svgelement.innerHTML =
