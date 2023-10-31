@@ -8,18 +8,26 @@ let bgForest = new Audio('/assets/sound/forestAmbience.mp3');
 
 let volume = 0;
 
-let count = 0;
-function counter(e) 
-{
-    e.innerHTML = ++count ;
+function stateChanger(b) {
+    console.log("toggling 'yellow' class.")
+    b.classList.toggle("yellow");
+    console.log("toggling 'orange' class.")
+    b.classList.toggle("orange")  
+    console.log(b.className)
+
+    switch(b.className)
+    {
+        case "yellow":
+            console.log("this is case yellow")
+            bgForest.play()
+            break;
+        
+        case "orange":
+            console.log("this is case orange")
+            break;
+    }
 }
 
-
-
-
-
-// on entering the site, forest bg plays.
-window.onload = bgForest.play();
 
 // if anything is left clicked(burning) the forest bg fades out and switches to burning bg
 function burningBG()
