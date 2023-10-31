@@ -326,6 +326,73 @@ window.addEventListener('load', function () {
     console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
 
     /*  ------------------------------------------------------------
+        trees catch fire (automatically)
+        ------------------------------------------------------------  */
+
+    const refreshRate = 3 // fps
+    const refreshTime = 1000/refreshRate // time in millisecond
+    this.setInterval(function () { updateForest() }, refreshTime)
+    
+    function updateForest() {
+
+        // collect all trees by the states they are in
+        let absents = document.getElementsByClassName("absent")
+        let normals = document.getElementsByClassName("normal")
+        let drys = document.getElementsByClassName("dry")
+        let burnings = document.getElementsByClassName("burning")
+        let charreds = document.getElementsByClassName("charred")
+    
+        // calculate the health of the forest
+        const maxHealth = .975
+        let forestHealth = 
+            ( normals.length * maxHealth
+            + drys.length * .8
+            + burnings.length * .5
+            + charreds.length * .1
+            + absents.length * 0 )
+            / (totalTreesInForest - absents.length)
+        forestHealth = Math.min(maxHealth,forestHealth)
+        
+        // report the forest's health
+        console.log("forest health: " + Math.floor(forestHealth*100) + "%")
+        // console.log("(" + normals.length+drys.length+burnings.length+charreds.length + ", " + totalTreesInForest + ")")
+
+        // normal -> dry
+        for (let i=0 ; i<normals.length;i++) {
+            if (Math.random() > forestHealth)
+                if (Math.random() > forestHealth)
+                    updateTree(normals[i], "dry") 
+        }
+    
+        // dry -> burning
+        for (let i=0 ; i<drys.length;i++) {
+            if (Math.random() > forestHealth)
+                if (Math.random() > forestHealth)
+                    updateTree(drys[i], "burning") 
+        }
+    
+        // burning -> charred
+        for (let i=0 ; i<burnings.length;i++) {
+            if (Math.random() > .9)
+                    updateTree(burnings[i], "charred") 
+        }
+
+        // charred -> absent
+        for (let i=0 ; i<charreds.length;i++) {
+            if (Math.random()>.9) 
+                    updateTree(charreds[i], "absent") 
+        }
+
+        // absent -> new forest
+        for (let i=0 ; i<absents.length;i++) {
+            if (absents.length==totalTreesInForest) 
+                setTimeout(function() {
+                    updateTree(absents[i], "normal") 
+                }, Math.random()*5000)
+        }
+    }
+
+    /*  ------------------------------------------------------------
         register whenever a tree is clicked on
         ------------------------------------------------------------  */
 
@@ -390,34 +457,11 @@ window.addEventListener('load', function () {
             // now, we instruct each (clicked-)tree to change
             for (const i in c) {
                 const SVGElementOfClickedTree = c[i]
-                if (SVGElementOfClickedTree.classList.contains("burned")) {
-                    updateTree(SVGElementOfClickedTree, "dry")
-                    setTimeout(function () {
-                        updateTree(SVGElementOfClickedTree, "normal")
-                    }, 500);
-                } else if (SVGElementOfClickedTree.classList.contains("dry")) {
-                    updateTree(SVGElementOfClickedTree, "burning")
-                    setTimeout(function () {
-                        updateTree(SVGElementOfClickedTree, "burned")
-                        if (Math.random() > .75)
-                            setTimeout(function () {
-                                updateTree(SVGElementOfClickedTree, "absent")
-                            }, 5000);
-                    }, 2000);
-                } else {
-                    updateTree(SVGElementOfClickedTree, "dry")
-                    if (Math.random() > .5) {
-                        setTimeout(function () {
-                            updateTree(SVGElementOfClickedTree, "burning")
-                            setTimeout(function () {
-                                updateTree(SVGElementOfClickedTree, "burned")
-                                if (Math.random() > .75)
-                                    setTimeout(function () {
-                                        updateTree(SVGElementOfClickedTree, "absent")
-                                    }, 5000);
-                            }, 2000);
-                        }, 3000);
-                    }
+                if (SVGElementOfClickedTree.classList.contains("dry")) {
+                    updateTree(SVGElementOfClickedTree,"normal")
+                }
+                if (SVGElementOfClickedTree.classList.contains("burning")) {
+                    updateTree(SVGElementOfClickedTree,"dry")
                 }
             }
         }
