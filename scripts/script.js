@@ -265,7 +265,7 @@ window.addEventListener('load', function () {
                         fire: 'var(--fire)'
                     }
                 },
-                burned: {
+                charred: {
                     shape: {
                         foliage: false,
                         stump: false,
