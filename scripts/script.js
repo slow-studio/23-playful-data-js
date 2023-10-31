@@ -213,6 +213,70 @@ window.addEventListener('load', function () {
                     x: svgtree.dim.width / 2,
                     y: svgtree.dim.height / 2
                 }
+            },
+            state: {
+                default: 'normal',
+                previous: '',
+                now: 'normal'
+            },
+            stateSettings: {
+                absent: {
+                    shape: {},
+                    colour: {}
+                },
+                normal: {
+                    shape: {
+                        foliage: svgtree.src.foliage.default,
+                        stump: svgtree.src.stump,
+                        fire: false,
+                        burned: false,
+                        poop: 'yay'
+                    },
+                    colour: {
+                        outline: 'black',
+                        foliage: 'var(--green)',
+                        stump: 'var(--wood)'
+                    }
+                },
+                dry: {
+                    shape: {
+                        foliage: (Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right),
+                        stump: svgtree.src.stump,
+                        fire: false,
+                        burned: false
+                    },
+                    colour: {
+                        outline: 'black',
+                        foliage: 'var(--autumn)',
+                        stump: 'var(--wood)'
+                    }
+                },
+                burning: {
+                    shape: {
+                        foliage: (Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right),
+                        stump: svgtree.src.stump,
+                        fire: svgtree.src.fire,
+                        burned: false
+                    },
+                    colour: {
+                        outline: 'black',
+                        foliage: 'var(--autumn)',
+                        stump: 'var(--wood)',
+                        fire: 'var(--fire)'
+                    }
+                },
+                burned: {
+                    shape: {
+                        foliage: false,
+                        stump: false,
+                        fire: false,
+                        burned: svgtree.src.burned
+                    },
+                    colour: {
+                        outline: 'black',
+                        burned: 'black'
+                    }
+                }
             }
         }
         // set id and class
@@ -324,37 +388,9 @@ window.addEventListener('load', function () {
             // now, we instruct each (clicked-)tree to change
             for (const i in c) {
                 const SVGElementOfClickedTree = c[i]
-                updateTree(
-                    SVGElementOfClickedTree,
-                    {
-                        shape: {
-                            foliage: (Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right),
-                            stump: svgtree.src.stump,
-                            fire: svgtree.src.fire,
-                            burned: false
-                        },
-                        colour: {
-                            outline: 'black',
-                            foliage: 'var(--autumn)',
-                            stump: 'var(--wood)',
-                            fire: 'var(--fire)',
-                            burned: 'black'
-                        }
-                    }
-                )
+                updateTree(SVGElementOfClickedTree, "burning")
                 setTimeout(function () {
-                    updateTree(
-                        SVGElementOfClickedTree,
-                        {
-                            shape: {
-                                burned: svgtree.src.burned
-                            },
-                            colour: {
-                                outline: 'black',
-                                burned: 'black'
-                            }
-                        }
-                    )
+                    updateTree(SVGElementOfClickedTree,"absent")
                 }, 3000);
 
             }
@@ -382,9 +418,9 @@ window.addEventListener('load', function () {
 
     /**
      * @param {*} svgelement 
-     * @param {TreeChangeSettings} settings
+     * @param {string} state - the state of the tree
      */
-    function updateTree(svgelement, settings) {
+    function updateTree(svgelement, state) {
 
         // helper variables
         const id = Number(svgelement.parentNode.id.substring("tree-".length, svgelement.parentNode.id.length))
@@ -394,6 +430,7 @@ window.addEventListener('load', function () {
         const burnedses = svgelement.getElementsByClassName('burned')
 
         /* tree memorises its present state */
+        tree[id].state.previous = tree[id].state.now
         tree[id].shape.foliage.previous = tree[id].shape.foliage.now
         tree[id].shape.stump.previous = tree[id].shape.stump.now
         tree[id].shape.fire.previous = tree[id].shape.fire.now
@@ -405,6 +442,8 @@ window.addEventListener('load', function () {
         tree[id].colour.burned.previous = tree[id].colour.burned.now
 
         /* tree decides what its new appearance will be */
+        tree[id].state.now = state
+        const settings = tree[id].stateSettings[state]
         if (settings.shape.foliage) tree[id].shape.foliage.now = settings.shape.foliage
         if (settings.shape.stump) tree[id].shape.stump.now = settings.shape.stump
         if (settings.shape.fire) tree[id].shape.fire.now = settings.shape.fire
