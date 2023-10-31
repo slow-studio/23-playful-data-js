@@ -1,63 +1,60 @@
+/*  ------------------------------------------------------------
+    helpers
+    ------------------------------------------------------------  */
+
+/**
+ * helpful links:
+ *  - to check browser support tables on mobile web browsers, go to: https://caniuse.com/.
+ *  - to change cursor's appearance, by using an SVG:
+ *      - info: https://stackoverflow.com/a/45966695
+ *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
+ */
+
+/**
+ * update an element's style
+ * @param {*} e - element
+ * @param {string} p - parameter 
+ * @param {string|number} v - value
+ */
+function updateStyle(e, p, v) {
+    e.style.setProperty(p, v)  
+}
+
+/** show or hide the infoBox */
+/** @type {boolean} records whether the infoBox is displayed or not */
+let infoBoxDisplayState = false
+function toggleInfoBoxDisplayState() {
+    const box = document.getElementById("infoBoxContent")
+    if(infoBoxDisplayState==false) {
+        box.style.top = "-12rem"
+        infoBoxDisplayState = true
+    } else {
+        box.style.top = "-2rem"
+        infoBoxDisplayState = false
+    }
+}
+
+/** make fires crackle */
+const crackleTime = 300
+setInterval(function () {
+    /** @type {any} */
+    let fires = document.getElementsByClassName("fire")
+    for (let i = 0; i < fires.length; i++) {
+        if (fires[i]) {
+            fires[i].style.fill = 'var(--firedarker)'
+            // console.log("fire gets darker")
+            setTimeout(function () {
+                if (fires[i]) {
+                    fires[i].style.fill = 'var(--fire)'
+                    // console.log("fire gets less dark") 
+                }
+            }, crackleTime * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
+        }
+    }
+}, crackleTime * 2 * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
+
+
 window.addEventListener('load', function () {
-
-
-    /*  ------------------------------------------------------------
-        helpers
-        ------------------------------------------------------------  */
-    
-    /**
-     * helpers:
-     *  - to check browser support tables on mobile web browsers, go to: https://caniuse.com/.
-     *  - to change cursor's appearance, by using an SVG:
-     *      - info: https://stackoverflow.com/a/45966695
-     *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
-     */
-
-    /**
-     * update an element's style
-     * @param {*} e - element
-     * @param {string} p - parameter 
-     * @param {string|number} v - value
-     */
-    function updateStyle(e, p, v) {
-        e.style.setProperty(p, v)  
-    }
-
-    /** show or hide the infoBox */
-    /** @type {boolean} records whether the infoBox is displayed or not */
-    let infoBoxDisplayState = false
-    function toggleInfoBoxDisplayState() {
-        const box = document.getElementById("infoBoxContent")
-        if(infoBoxDisplayState==false) {
-            box.style.top = "-12rem"
-            infoBoxDisplayState = true
-        } else {
-            box.style.top = "-2rem"
-            infoBoxDisplayState = false
-        }
-    }
-
-    /*  ------------------------------------------------------------
-        make fires crackle
-        ------------------------------------------------------------  */
-    
-    const crackleTime = 300
-    setInterval(function () {
-        /** @type {any} */
-        let fires = document.getElementsByClassName("fire")
-        for (let i = 0; i < fires.length; i++) {
-            if (fires[i]) {
-                fires[i].style.fill = 'var(--firedarker)'
-                // console.log("fire gets darker")
-                setTimeout(function () {
-                    if (fires[i]) {
-                        fires[i].style.fill = 'var(--fire)'
-                        // console.log("fire gets less dark") 
-                    }
-                }, crackleTime * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
-            }
-        }
-    }, crackleTime * 2 * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
 
     /*  ------------------------------------------------------------
         collect information before drawing tree
@@ -253,14 +250,12 @@ window.addEventListener('load', function () {
     console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow+1) + " or fewer trees per row.") 
 
     /*  ------------------------------------------------------------
-        register whenever a tree is clicked on,
-        and update div#newsTicker
+        register whenever a tree is clicked on
         ------------------------------------------------------------  */
 
     // whenever a click happens, this triggers didClickHappenOnTree()
     document.addEventListener("click", didClickHappenOnTree);
 
-    var g
     function didClickHappenOnTree(e) {
 
         // get coordinates of mouseclick
@@ -292,10 +287,12 @@ window.addEventListener('load', function () {
         // if we didn't click on the #infoBox, then we may continue with the didClickHappenOnTree check:
         else /* if(clickedOnInfoBoxContent == false) */ { 
 
+            // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
             c = c.map(function (x) { 
-                // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
-                // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-                if (x.constructor.toString().indexOf("SVGPathElement()") > -1 )
+                if (
+                    x.constructor.toString().indexOf("SVGPathElement()") > -1 
+                    // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
+                )
                     // return <path>'s parent (which is an <svg>)
                     return x.parentNode 
                 else return -1
@@ -313,6 +310,7 @@ window.addEventListener('load', function () {
             // console.log("removed duplicates:")
             // console.log(c)
             
+            // now, we instruct each (clicked-)tree to change
             for(const i in c) {
                 const SVGElementOfClickedTree = c[i]
                 treeProvidesClickFeedback(
@@ -328,6 +326,10 @@ window.addEventListener('load', function () {
             }
         } 
     }
+
+    /*  ------------------------------------------------------------
+        tree changes as instructed
+        ------------------------------------------------------------  */
 
     /**
      * @typedef {Object} TreeChangeSettings
