@@ -1,7 +1,6 @@
 # todo
 
 [ ] add message box. trees catch fire after a message appears.
-[ ] add states
 [ ] add sound
 [ ] avani: make all stages of the animation
 [ ] position all trees to be in the middle of the forest
