@@ -167,7 +167,12 @@ window.addEventListener('load', function () {
                     default: '',
                     previous: '',
                     now: ''
-                }
+                },
+                burned: {
+                    default: svgtree.src.burned,
+                    previous: svgtree.src.burned,
+                    now: svgtree.src.burned
+                },
             },
             colour: {
                 outline: {
@@ -189,6 +194,11 @@ window.addEventListener('load', function () {
                     default: 'white',
                     previous: '',
                     now: 'var(--fire)'
+                },
+                burned: {
+                    default: 'black',
+                    previous: '',
+                    now: 'black'
                 }
             },
             dimensions: {
@@ -313,16 +323,42 @@ window.addEventListener('load', function () {
             // now, we instruct each (clicked-)tree to change
             for(const i in c) {
                 const SVGElementOfClickedTree = c[i]
-                treeProvidesClickFeedback(
+                updateTree(
                     SVGElementOfClickedTree, 
                     {
-                        foliageColour: 'var(--autumn)',
-                        stumpColour: 'var(--wood)',
-                        changeShape: ( Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right ),
-                        fire: true
-                    },
-                    3000
+                        shape: {
+                            foliage: ( Math.random() < .5 ? svgtree.src.foliage.sway.left : svgtree.src.foliage.sway.right ),
+                            stump: svgtree.src.stump,
+                            fire: svgtree.src.fire,
+                            burned: false
+                        },
+                        colour: {
+                            outline: 'black',
+                            foliage: 'var(--autumn)',
+                            stump: 'var(--wood)',
+                            fire: 'var(--fire)',
+                            burned: 'black'
+                        }
+                    }
                 )
+                setTimeout(function(){
+                    updateTree(
+                        SVGElementOfClickedTree,
+                        {
+                            shape: {
+                                foliage: false,
+                                stump: false,
+                                fire: false,
+                                burned: svgtree.src.burned
+                            },
+                            colour: {
+                                outline: 'black',
+                                burned: 'black'
+                            }
+                        }
+                    )
+                }, 3000);
+            
             }
         } 
     }
@@ -333,61 +369,79 @@ window.addEventListener('load', function () {
 
     /**
      * @typedef {Object} TreeChangeSettings
-     * @property {string|boolean} [foliageColour=false] - the tree's foliage changes to this colour
-     * @property {string|boolean} [stumpColour=false] - the tree's stump changes to this colour
-     * @property {string|boolean} [changeShape=false] - the tree's foliage changes to this shape
-     * @property {boolean} [fire=false] - fire is added to the tree (using this shape)
+     * @property {object} shape
+     * @property {string|boolean} [shape.foliage=false] 
+     * @property {string|boolean} [shape.stump=false] 
+     * @property {string|boolean} [shape.fire=false] 
+     * @property {string|boolean} [shape.burned=false] 
+     * @property {object} colour
+     * @property {string|boolean} [colour.outline=false] 
+     * @property {string|boolean} [colour.foliage=false] 
+     * @property {string|boolean} [colour.stump=false] 
+     * @property {string|boolean} [colour.fire=false] 
+     * @property {string|boolean} [colour.burned=false] 
      */
 
     /**
      * @param {*} svgelement 
      * @param {TreeChangeSettings} settings
-     * @param {number} [changeBackTime=5000]
      */
-    function treeProvidesClickFeedback(svgelement, settings, changeBackTime) {
+    function updateTree(svgelement, settings) {
 
         // helper variables
         const id = Number(svgelement.parentNode.id.substring("tree-".length,svgelement.parentNode.id.length))
         const foliages = svgelement.getElementsByClassName('foliage')
         const wood = svgelement.getElementsByClassName('stump')
         const fires = svgelement.getElementsByClassName('fire')
+        const burnedses = svgelement.getElementsByClassName('burned')
 
         /* tree memorises its present state */
+        tree[id].shape.foliage.previous = tree[id].shape.foliage.now
+        tree[id].shape.stump.previous = tree[id].shape.stump.now
+        tree[id].shape.fire.previous = tree[id].shape.fire.now
+        tree[id].shape.burned.previous = tree[id].shape.burned.now
+        tree[id].colour.outline.previous = tree[id].colour.outline.now
         tree[id].colour.foliage.previous = tree[id].colour.foliage.now
         tree[id].colour.stump.previous = tree[id].colour.stump.now
-        tree[id].shape.foliage.previous = tree[id].shape.foliage.now
-        tree[id].shape.fire.previous = tree[id].shape.fire.now
+        tree[id].colour.fire.previous = tree[id].colour.fire.now
+        tree[id].colour.burned.previous = tree[id].colour.burned.now
 
         /* tree decides what its new appearance will be */
-        if( settings.foliageColour ) tree[id].colour.foliage.now = settings.foliageColour
-        if( settings.stumpColour ) tree[id].colour.stump.now = settings.stumpColour
-        if( settings.changeShape ) tree[id].shape.foliage.now = settings.changeShape
-        if( settings.fire ) tree[id].shape.fire.now = svgtree.src.fire
+        if( settings.shape.foliage ) tree[id].shape.foliage.now = settings.shape.foliage
+        if( settings.shape.stump ) tree[id].shape.stump.now = settings.shape.stump
+        if( settings.shape.fire ) tree[id].shape.fire.now = settings.shape.fire
+        if( settings.shape.burned ) tree[id].shape.burned.now = settings.shape.burned
+        if( settings.colour.outline ) tree[id].colour.outline.now = settings.colour.outline
+        if( settings.colour.foliage ) tree[id].colour.foliage.now = settings.colour.foliage
+        if( settings.colour.stump ) tree[id].colour.stump.now = settings.colour.stump
+        if( settings.colour.fire ) tree[id].colour.fire.now = settings.colour.fire
+        if( settings.colour.burned ) tree[id].colour.burned.now = settings.colour.burned
 
         /* tree changes appearance: */
         console.log("change t# " + id)
         // console.log(tree[id])
-        // -- first, it animates a little, by updating its svg shape
-        svgelement.innerHTML = tree[id].shape.foliage.now + (settings.fire ? tree[id].shape.stump.now : '') + ( settings.fire ? tree[id].shape.fire.now : '' )
-        // -- and then, it sets the colour of its foliage
-        for(const f of foliages) { f.style.fill = tree[id].colour.foliage.now }
-        for(const w of wood) { w.style.fill = tree[id].colour.stump.now }
-        for(const f of fires) { f.style.fill = tree[id].colour.fire.now }
-
-        if(changeBackTime>0) {
-            /* after some time, the tree goes back to its original appearance */
-            setTimeout(function(){
-                treeProvidesClickFeedback(
-                    svgelement,
-                    {
-                        foliageColour: 'var(--autumn)',
-                        stumpColour: tree[id].colour.stump.previous,
-                        changeShape: settings.fire ? svgtree.src.burned : tree[id].shape.foliage.previous,
-                        fire: !settings.fire
-                    },
-                    /* do not change: */ 0
-                )
-            }, changeBackTime);
+        // -- first, it updates its svg shape
+        svgelement.innerHTML =
+            (settings.shape.foliage ? tree[id].shape.foliage.now : '')
+            + (settings.shape.stump ? tree[id].shape.stump.now : '')
+            + (settings.shape.fire ? tree[id].shape.fire.now : '')
+            + (settings.shape.burned ? tree[id].shape.burned.now : '')
+        // -- and then, it sets the colour for those svg-shapes
+        for(const p of foliages) { 
+            p.style.stroke = tree[id].colour.outline.now 
+            p.style.fill = tree[id].colour.foliage.now 
+        }
+        for(const p of wood) { 
+            p.style.stroke = tree[id].colour.outline.now 
+            p.style.fill = tree[id].colour.stump.now 
+        }
+        for(const p of fires) { 
+            p.style.stroke = tree[id].colour.outline.now 
+            p.style.fill = tree[id].colour.fire.now 
+        }
+        for(const p of burnedses) { 
+            p.style.stroke = tree[id].colour.outline.now 
+            p.style.fill = tree[id].colour.burned.now 
         }
     }
 
