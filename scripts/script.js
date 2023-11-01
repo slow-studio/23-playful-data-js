@@ -673,7 +673,6 @@ window.addEventListener('load', function () {
         if (settings.colour.fire) tree[id].colour.fire.now = settings.colour.fire
         if (settings.colour.burned) tree[id].colour.burned.now = settings.colour.burned
 
-        /* tree changes appearance: */
         // console.log("change t# " + id)
         // console.log(tree[id])
 
@@ -701,8 +700,70 @@ window.addEventListener('load', function () {
             p.style.stroke = tree[id].colour.outline.now
             p.style.fill = tree[id].colour.burned.now
         }
+        // -- 3. sound feedback:
+        //      -- tree catches fire (i.e., was not burning before, but is now)
+        if( tree[id].state.previous!="burning" && tree[id].state.now=="burning" ) {
+            playSound(sCatchFire, volumeScaler.sCatchFire)
+        }
     }
 
     /** #infoBox should have a z-index higher than all spawned trees */
     updateStyle(document.getElementById("infoBox"), "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
+
+    /*  ------------------------------------------------------------
+        sound
+        ------------------------------------------------------------  */
+
+    const soundsrc = "/assets/sound/"
+    let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
+    let sMakeTreeSafe = new Audio(soundsrc + 'twinkle.mp3');
+    let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
+    let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
+    let sEagle = new Audio(soundsrc + 'eagle.mp3');
+    const volumeScaler = {
+        sCatchFire: .03125,
+        sMakeTreeSafe: .25,
+        sBurning: 1,
+        sForest: 1,
+        sEagle: .125
+    }
+    
+    // start playing sounds, on loop, but muted.
+    sForest.loop = true
+    sForest.volume = 1
+    sBurning.loop = true
+    sBurning.volume = 0
+    
+    // count the number of trees in any particular state
+    /** @param {string} state */
+    function percentageOfTrees(state) {
+        let trees = document.getElementsByClassName(state)
+        return Number(trees.length / totalTreesInForest)
+    }
+
+    /**
+     * @param {*} sound 
+     * @param {number} [volume=1] 
+     */
+    function playSound(sound, volume) {
+        // if(sound.ended) {
+            // sound.currentTime = 0
+            sound.volume = volume
+            sound.play()
+        // }
+    }
+    
+    setInterval(function () {
+        /* update volume of ambient sounds */
+        sBurning.volume = percentageOfTrees("dry") + percentageOfTrees("burning")
+        sBurning.play()
+        sForest.volume = percentageOfTrees("normal")
+        sForest.play()
+
+        /* randomly play a sound from the forest */
+        sEagle.volume = Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle
+        const secondses = 30 // time (in seconds) after which the sound ought to play
+        if (Math.random() < 1 / (refreshRate * secondses)) sEagle.play();
+    }, refreshTime);
+    
 })
