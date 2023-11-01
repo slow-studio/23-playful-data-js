@@ -55,10 +55,10 @@ function setVolume() {
 }
 
 function randomSound() {
-    eagleSound.volume = Math.random() * Math.random()
+    eagleSound.volume = Math.random() * Math.random() *.75
     eagleSound.play(); // playing the audio
 }
 
 setInterval(function () {
     randomSound(); // calling the loop function again to make it infinite
-}, Math.round(Math.random() * (10000 - 1000)) + 1000 /* random value between 15s and 5s*/);
+}, Math.round(Math.random() * (40000 - 25000)) + 25000 /* random value between 25s and 40s */);
