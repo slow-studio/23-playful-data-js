@@ -12,8 +12,6 @@ bgForest.volume = 0
 bgBurn.loop = true
 bgBurn.volume = 0
 
-let canPlay = false;
-
 // vairables for counting number of trees 
 function countTotalTrees() {
     return /* a number */ document.getElementsByTagName("button").length;
@@ -31,47 +29,36 @@ function stateChanger(b) {
     console.log("toggling 'normal' class.")
     b.classList.toggle("normal");
     console.log("toggling 'burning' class.")
-    b.classList.toggle("burning")  
+    b.classList.toggle("burning")
     console.log(b.className)
 
     // depending on the class in a button, its innerHTML changes
-    switch(b.className)
-    {
+    switch (b.className) {
         case "normal":
             b.innerText = "normal tree"
             break;
         case "burning":
             b.innerText = "burning tree"
+            burnSound.currentTime = 0
             burnSound.play()
             break;
     }
 
     setVolume()
-    canPlay = true
-
 }
 
-if(canPlay = true)
-randomSound();
 
 /* set the columes of the audio */
-function setVolume() { 
+function setVolume() {
     bgBurn.volume = percentageOfTrees("burning")
     bgForest.volume = percentageOfTrees("normal")
 }
 
-function randomSound() 
-{
-    console.log ("enter random sound")
-    if(canPlay == true)
-    {
-        var playRandom = Math.round(Math.random() * (3000 - 500)) + 500; // random value between 3 s and 500 ms
-
-        setTimeout(function() 
-        {
-            eagleSound.play(); // playing the audio
-            randomSound(); // calling the loop function again to make it infinite
-        }, playRandom);
-    }   
+function randomSound() {
+    eagleSound.volume = Math.random() * Math.random()
+    eagleSound.play(); // playing the audio
 }
 
+setInterval(function () {
+    randomSound(); // calling the loop function again to make it infinite
+}, Math.round(Math.random() * (10000 - 1000)) + 1000 /* random value between 15s and 5s*/);
