@@ -385,11 +385,12 @@ window.addEventListener('load', function () {
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
     
-        // if there are no dry trees, seed one
+        // if there are no dry trees left (but there still are normal trees): then, seed them.
         // console.log("no dry trees")
-        if (drys.length == 0)
+        const drySeeds = 2 // number of dry trees to seed into the forest
+        if (drys.length == 0 && normals.length != 0)
             if (Math.random() < .075)
-                seedDryTrees(Math.floor(Math.random() * 2)+1)
+                seedDryTrees(Math.floor(Math.random() * drySeeds) + 1)
 
         // calculate the health of the forest
         const maxHealth = .975 - (clickCounter>5?5:clickCounter)/100
