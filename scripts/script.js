@@ -337,11 +337,11 @@ window.addEventListener('load', function () {
         ------------------------------------------------------------  */
 
     /**
-     * if there aren't any dry trees in the forest, randomly convert one "normal" tree to "dry"
+     * if there aren't any dry trees in the forest, randomly convert some "normal" trees to their "dry" state
      * @param {number} [n=1] - number of trees to seed
      */ 
     function seedDryTrees(n) {
-        console.log("seeding " + n + " dry trees")
+        // console.log("seeding " + n + " dry trees")
         if(n<=1) n=1
         function selectRandomTree() {
             const treeid = (Math.floor(Math.random() * totalTreesInForest))
@@ -382,10 +382,10 @@ window.addEventListener('load', function () {
         let charreds = document.getElementsByClassName("charred")
     
         // if there are no dry trees, seed one
-        console.log("no dry trees")
+        // console.log("no dry trees")
         if (drys.length == 0)
             if (Math.random() < .075)
-                seedDryTrees(Math.floor(Math.random() * 3))
+                seedDryTrees(Math.floor(Math.random() * 2)+1)
 
         // calculate the health of the forest
         const maxHealth = .975 - (clickCounter>5?5:clickCounter)/100
