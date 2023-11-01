@@ -73,6 +73,21 @@ h1 {
     flex: 0 1 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
 }
 
+button#startButton {
+    display: block;
+    position: fixed;
+    height:4rem;
+    top: calc(50vh - 2rem);
+    width: 6rem;
+    left: calc(50vw - 3rem);
+    border-radius: 1rem;
+    border: 2px solid black;
+    background-color: var(--green);
+    font-weight:bold;
+    font-style: italic;
+    color:black;
+}
+
 #forest {
     /* background-color: var(--green); */
     max-width: 100%;

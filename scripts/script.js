@@ -5,6 +5,13 @@
 const refreshRate = 10 // fps
 const refreshTime = 1000/refreshRate // time in millisecond
 
+const soundsrc = "assets/sound/"
+let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
+let sMakeTreeSafe = new Audio(soundsrc + 'twinkle.mp3');
+let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
+let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
+let sEagle = new Audio(soundsrc + 'eagle.mp3');
+
 /**
  * helpful links:
  *  - to check browser support tables on mobile web browsers, go to: https://caniuse.com/.
@@ -60,7 +67,10 @@ setInterval(function () {
     forest & trees
     ------------------------------------------------------------  */
 
-window.addEventListener('load', function () {
+const startButton = document.getElementById('startButton')
+startButton.addEventListener('click', function () {
+    
+    startButton.style.display = 'none'
 
     /*  ------------------------------------------------------------
         collect information before drawing tree
@@ -330,8 +340,12 @@ window.addEventListener('load', function () {
         newDiv.style.zIndex = (tree[i].zindex).toString()
         // keep track of the highest z-index assigned to any tree
         if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
+        // the tree is not displayed when it is spawned (because we plan to make it appear _organically_ a few seconds later)
+        newDiv.style.visibility = 'hidden'
         // finally, make the div a child of #forest
         forest.appendChild(newDiv)
+        // the tree appears:
+        setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
         // update the value for total number of trees spawned in the forest
         totalTreesInForest += 1
     }
@@ -372,7 +386,7 @@ window.addEventListener('load', function () {
     /** 
      * now, set the wheels in motion, for trees to catch fire automatically. 
      */
-    this.setInterval(function () { updateForest() }, refreshTime)
+    setInterval(function () { updateForest() }, refreshTime)
     
     function updateForest() {
 
@@ -715,12 +729,6 @@ window.addEventListener('load', function () {
         sound
         ------------------------------------------------------------  */
 
-    const soundsrc = "/assets/sound/"
-    let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
-    let sMakeTreeSafe = new Audio(soundsrc + 'twinkle.mp3');
-    let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
-    let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
-    let sEagle = new Audio(soundsrc + 'eagle.mp3');
     const volumeScaler = {
         sCatchFire: .03125,
         sMakeTreeSafe: .25,
@@ -730,10 +738,12 @@ window.addEventListener('load', function () {
     }
     
     // start playing sounds, on loop, but muted.
-    sForest.loop = true
-    sForest.volume = 1
-    sBurning.loop = true
     sBurning.volume = 0
+    sBurning.loop = true
+    sBurning.play()
+    sForest.volume = 1
+    sForest.loop = true
+    sForest.play()
     
     // count the number of trees in any particular state
     /** @param {string} state */
@@ -755,16 +765,16 @@ window.addEventListener('load', function () {
     }
     
     setInterval(function () {
+
         /* update volume of ambient sounds */
-        sBurning.volume = percentageOfTrees("dry") + percentageOfTrees("burning")
-        sBurning.play()
-        sForest.volume = percentageOfTrees("normal")
-        sForest.play()
+        sBurning.volume = percentageOfTrees("burning") * volumeScaler.sBurning
+        sForest.volume = percentageOfTrees("normal") * volumeScaler.sForest
 
         /* randomly play a sound from the forest */
         sEagle.volume = Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle
         const secondses = 30 // time (in seconds) after which the sound ought to play
         if (Math.random() < 1 / (refreshRate * secondses)) sEagle.play();
+
     }, refreshTime);
     
 })

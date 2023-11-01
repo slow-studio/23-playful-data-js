@@ -1,6 +1,6 @@
 # todo
 
-[ ] add sound
+[ ] fix sound: volume-settings dont seem to work on iphone browsers
 [ ] add 'protected' state
 [ ] limit how many trees can be protected at one time
 [ ] protected trees lose their protection after some time
