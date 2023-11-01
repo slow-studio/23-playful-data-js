@@ -12,6 +12,8 @@ bgForest.volume = 0
 bgBurn.loop = true
 bgBurn.volume = 0
 
+let canPlay = false;
+
 // vairables for counting number of trees 
 function countTotalTrees() {
     return /* a number */ document.getElementsByTagName("button").length;
@@ -45,8 +47,12 @@ function stateChanger(b) {
     }
 
     setVolume()
+    canPlay = true
 
 }
+
+if(canPlay = true)
+randomSound();
 
 /* set the columes of the audio */
 function setVolume() { 
@@ -54,12 +60,18 @@ function setVolume() {
     bgForest.volume = percentageOfTrees("normal")
 }
 
-/* function randomSound() {
-    var playRandom = Math.round(Math.random() * (3000 - 500)) + 500; // random value between 3 s and 500 ms
+function randomSound() 
+{
+    console.log ("enter random sound")
+    if(canPlay == true)
+    {
+        var playRandom = Math.round(Math.random() * (3000 - 500)) + 500; // random value between 3 s and 500 ms
 
-    setTimeout(function() {
+        setTimeout(function() 
+        {
             eagleSound.play(); // playing the audio
             randomSound(); // calling the loop function again to make it infinite
-    }, playRandom);
-} */
+        }, playRandom);
+    }   
+}
 
