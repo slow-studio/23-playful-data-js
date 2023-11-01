@@ -151,6 +151,10 @@ window.addEventListener('load', function () {
         tree[i] = {
             div: newDiv,
             id: 'tree-' + i,
+            positionInForestGrid: {
+                y: rowID,
+                x: treeIDinRow
+            },
             class: 'tree',
             zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
             shape: {
@@ -332,7 +336,37 @@ window.addEventListener('load', function () {
         trees catch fire (automatically)
         ------------------------------------------------------------  */
 
-    const refreshRate = 3 // fps
+    /**
+     * if there aren't any dry trees in the forest, randomly convert one "normal" tree to "dry"
+     * @param {number} [n=1] - number of trees to seed
+     */ 
+    function seedDryTrees(n) {
+        console.log("seeding " + n + " dry trees")
+        if(n<=1) n=1
+        function selectRandomTree() {
+            const treeid = (Math.floor(Math.random() * totalTreesInForest))
+            const treediv = document.getElementById('tree-' + treeid)
+            const svgelementintree = treediv.getElementsByTagName("svg")[0]
+            if (
+                svgelementintree.classList.contains("charred")
+                ||
+                svgelementintree.classList.contains("absent")
+                ||
+                svgelementintree.classList.contains("burning")
+                ) {
+                    return selectRandomTree()
+                }
+            return svgelementintree
+        }
+        for (let i = 0; i < n; i++) {
+            updateTree(selectRandomTree(),"dry")
+        }
+    }
+
+    /** 
+     * now, set the wheels in motion, for trees to catch fire automatically. 
+     */
+    const refreshRate = 10 // fps
     const refreshTime = 1000/refreshRate // time in millisecond
     this.setInterval(function () { updateForest() }, refreshTime)
     
@@ -341,10 +375,18 @@ window.addEventListener('load', function () {
         // collect all trees by the states they are in
         let absents = document.getElementsByClassName("absent")
         let normals = document.getElementsByClassName("normal")
+        /** @type {*} */
         let drys = document.getElementsByClassName("dry")
+        /** @type {*} */
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
     
+        // if there are no dry trees, seed one
+        console.log("no dry trees")
+        if (drys.length == 0)
+            if (Math.random() < .075)
+                seedDryTrees(Math.floor(Math.random() * 3))
+
         // calculate the health of the forest
         const maxHealth = .975 - (clickCounter>5?5:clickCounter)/100
         let forestHealth = 
@@ -357,41 +399,126 @@ window.addEventListener('load', function () {
         forestHealth = Math.min(maxHealth,forestHealth)
         
         // report the forest's health
-        console.log("forest health: " + Math.floor(forestHealth*100) + "%")
+        // console.log("forest health: " + Math.floor(forestHealth*100) + "%")
         // console.log("(" + normals.length+drys.length+burnings.length+charreds.length + ", " + totalTreesInForest + ")")
-
-        // normal -> dry
-        for (let i=0 ; i<normals.length;i++) {
-            if (Math.random() > forestHealth)
-                if (Math.random() > forestHealth)
-                    updateTree(normals[i], "dry") 
-        }
-    
+        
+        // // normal -> dry
+        // for (let i=0 ; i<normals.length;i++) {
+        //     if (Math.random() > forestHealth)
+        //         if (Math.random() > forestHealth)
+        //             updateTree(normals[i], "dry") 
+        // }
+        
         // dry -> burning
         for (let i=0 ; i<drys.length;i++) {
-            if (Math.random() > forestHealth)
-                if (Math.random() > forestHealth)
+            if (Math.random() > .9983)
                     updateTree(drys[i], "burning") 
         }
-    
+        
         // burning -> charred
         for (let i=0 ; i<burnings.length;i++) {
             if (Math.random() > .95)
                     updateTree(burnings[i], "charred") 
         }
-
+        
         // charred -> absent
         for (let i=0 ; i<charreds.length;i++) {
-            if (Math.random()>.9) 
+            if (Math.random()>.9999) 
                     updateTree(charreds[i], "absent") 
         }
+        
+        // // absent -> new forest
+        // for (let i=0 ; i<absents.length;i++) {
+        //     if (absents.length==totalTreesInForest) 
+        //         setTimeout(function() {
+        //             updateTree(absents[i], "normal") 
+        //         }, Math.random()*5000)
+        // }
 
-        // absent -> new forest
-        for (let i=0 ; i<absents.length;i++) {
-            if (absents.length==totalTreesInForest) 
-                setTimeout(function() {
-                    updateTree(absents[i], "normal") 
-                }, Math.random()*5000)
+        for (let i = 0; i < drys.length; i++) {
+            const id = Number(drys[i].parentNode.id.substring("tree-".length, drys[i].parentNode.id.length))
+            const _x = tree[id].positionInForestGrid.x
+            const _y = tree[id].positionInForestGrid.y
+            const _state = tree[id].state.now
+            const spreadDistance = 1
+                for (let t = 0; t < totalTreesInForest; t++) {
+                    if (
+                        true
+                        && tree[t].positionInForestGrid.x >= 0
+                        && tree[t].positionInForestGrid.y >= 0
+                        && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                        && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                        && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                        && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                        && tree[t].id
+                    ) {
+                        if (Math.random() > .995) {
+                            // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                            setTimeout(function () {
+                                const neighbour = document.getElementById('tree-' + t)
+                                const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                                if(
+                                    neighbourSvg.classList.contains("charred")
+                                    ||
+                                    neighbourSvg.classList.contains("absent")
+                                ) {
+                                    // can't do anything
+                                } 
+                                else if(
+                                    neighbourSvg.classList.contains("normal")
+                                ) {
+                                    updateTree(neighbourSvg, "dry")
+                                }
+                            }, refreshTime)
+                        }
+                    }
+                }
+            
+        }
+
+        for (let i = 0; i < burnings.length; i++) {
+            const id = Number(burnings[i].parentNode.id.substring("tree-".length, burnings[i].parentNode.id.length))
+            const _x = tree[id].positionInForestGrid.x
+            const _y = tree[id].positionInForestGrid.y
+            const _state = tree[id].state.now
+            const spreadDistance = 1
+                for (let t = 0; t < totalTreesInForest; t++) {
+                    if (
+                        true
+                        && tree[t].positionInForestGrid.x >= 0
+                        && tree[t].positionInForestGrid.y >= 0
+                        && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                        && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                        && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                        && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                        && tree[t].id
+                    ) {
+                        if (Math.random() > .995) {
+                            // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                            setTimeout(function () {
+                                const neighbour = document.getElementById('tree-' + t)
+                                const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                                if(
+                                    neighbourSvg.classList.contains("charred")
+                                    ||
+                                    neighbourSvg.classList.contains("absent")
+                                ) {
+                                    // can't do anything
+                                } 
+                                else if(
+                                    neighbourSvg.classList.contains("normal")
+                                ) {
+                                    updateTree(neighbourSvg, "dry")
+                                }
+                                else if(
+                                    neighbourSvg.classList.contains("dry")
+                                ) {
+                                    updateTree(neighbourSvg, tree[id].state.now)
+                                }
+                            }, refreshTime)
+                        }
+                    }
+            }
         }
     }
 
@@ -420,7 +547,7 @@ window.addEventListener('load', function () {
         // get coordinates of mouseclick
         const x = e.clientX
         const y = e.clientY
-        console.log("clicked on: (" + x + ", " + y + ")")
+        // console.log("clicked on: (" + x + ", " + y + ")")
 
         // get array of all elements that are present where the mouseclick happened ...
         /** @type {*} */
@@ -475,7 +602,7 @@ window.addEventListener('load', function () {
                 const SVGElementOfClickedTree = c[i]
                 if (SVGElementOfClickedTree.classList.contains("dry")) {
                     updateTree(SVGElementOfClickedTree,"normal")
-                }
+                } else
                 if (SVGElementOfClickedTree.classList.contains("burning")) {
                     updateTree(SVGElementOfClickedTree,"dry")
                 }
