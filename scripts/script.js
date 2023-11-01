@@ -2,6 +2,9 @@
     helpers
     ------------------------------------------------------------  */
 
+const refreshRate = 10 // fps
+const refreshTime = 1000/refreshRate // time in millisecond
+
 /**
  * helpful links:
  *  - to check browser support tables on mobile web browsers, go to: https://caniuse.com/.
@@ -53,6 +56,9 @@ setInterval(function () {
     }
 }, crackleTime * 2 * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
 
+/*  ------------------------------------------------------------
+    forest & trees
+    ------------------------------------------------------------  */
 
 window.addEventListener('load', function () {
 
@@ -366,8 +372,6 @@ window.addEventListener('load', function () {
     /** 
      * now, set the wheels in motion, for trees to catch fire automatically. 
      */
-    const refreshRate = 10 // fps
-    const refreshTime = 1000/refreshRate // time in millisecond
     this.setInterval(function () { updateForest() }, refreshTime)
     
     function updateForest() {
@@ -672,13 +676,15 @@ window.addEventListener('load', function () {
         /* tree changes appearance: */
         // console.log("change t# " + id)
         // console.log(tree[id])
-        // -- first, it updates its svg shape
+
+        /* tree changes appearance: */
+        // -- 1. it updates its svg shape
         svgelement.innerHTML =
             (settings.shape.foliage ? tree[id].shape.foliage.now : '')
             + (settings.shape.stump ? tree[id].shape.stump.now : '')
             + (settings.shape.fire ? tree[id].shape.fire.now : '')
             + (settings.shape.burned ? tree[id].shape.burned.now : '')
-        // -- and then, it sets the colour for those svg-shapes
+        // -- 2. it sets the colour for those svg-shapes
         for (const p of foliages) {
             p.style.stroke = tree[id].colour.outline.now
             p.style.fill = tree[id].colour.foliage.now
