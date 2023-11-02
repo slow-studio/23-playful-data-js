@@ -245,7 +245,7 @@ const newsArrives = function () {
             getRandomHeadlines()
             ) 
     }, 100)
-    setTimeout(newsArrives, newsFrequencyTime())
+    setTimeout(newsArrives, approx(20000,75))
 }
 
 function hideBox(box) {
@@ -257,13 +257,6 @@ function getRandomHeadlines() {
     return headlines[ Math.floor(headlines.length * Math.random()) ]
 }
 
-/**
- * @returns {number} time (in ms) after which the headline arrives
- */
-function newsFrequencyTime() {
-    return 2500 + Math.random() * 2500
-}
-
 /*  ------------------------------------------------------------
     forest & trees
     ------------------------------------------------------------  */
@@ -273,7 +266,7 @@ startButton.addEventListener('click', function () {
     
     startButton.style.display = 'none'
     
-    setTimeout(newsArrives, newsFrequencyTime())
+    setTimeout(newsArrives, approx(5000,50))
 
     /*  ------------------------------------------------------------
         collect information before drawing tree
@@ -331,12 +324,12 @@ startButton.addEventListener('click', function () {
         padding: {
             t: -50,
             r: 0,
-            b: 50,
+            b: 0,
             l: 0
         },
         spacing: {
             h: svgtree.dim.width * 2 / 3,
-            v: 30
+            v: 37.5
         },
         orderly: {
             positionally: false,
