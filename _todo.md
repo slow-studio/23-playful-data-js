@@ -1,7 +1,9 @@
 # todo
 
 [ ] trees catch fire after a message appears
-[ ] pressing the spacebar pauses updateForest()
+[ ] pause updateForest(): by pressing spacebar, or when some event occurs
+[ ] click on headline to (a) pause sketch, and (b) read project-article
+[ ] update mouse-pointer svg's
 [ ] at spawn, use "states" to set the state of the tree (instead of manually specifying the colours and shapes)
 [ ] fix sound: volume-settings dont seem to work on iphone browsers
 [ ] on protected trees: add a visual cue (a star, perhaps)
