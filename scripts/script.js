@@ -436,7 +436,7 @@ startButton.addEventListener('click', function () {
         
         // burning -> charred
         for (let i=0 ; i<burnings.length;i++) {
-            if (Math.random() > .95)
+            if (Math.random() > .975)
                     updateTree(burnings[i], "charred") 
         }
         
