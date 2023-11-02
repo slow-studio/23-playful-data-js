@@ -4,6 +4,7 @@
 
 const refreshRate = 10 // fps
 const refreshTime = 1000/refreshRate // time in millisecond
+const protectionDuration = 10000 // time in millisecond
 
 const soundsrc = "assets/sound/"
 let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
@@ -248,6 +249,20 @@ startButton.addEventListener('click', function () {
                         // stump: 'var(--wood)'
                     }
                 },
+                protected: {
+                    isProtected: false,
+                    shape: {
+                        foliage: svgtree.src.foliage.default,
+                        stump: svgtree.src.stump,
+                        fire: false,
+                        burned: false
+                    },
+                    colour: {
+                        outline: 'black',
+                        foliage: 'var(--protected)',
+                        stump: 'var(--wood)'
+                    }
+                },
                 normal: {
                     shape: {
                         foliage: svgtree.src.foliage.default,
@@ -480,6 +495,8 @@ startButton.addEventListener('click', function () {
                                     neighbourSvg.classList.contains("charred")
                                     ||
                                     neighbourSvg.classList.contains("absent")
+                                    ||
+                                    neighbourSvg.classList.contains("protected")
                                 ) {
                                     // can't do anything
                                 } 
@@ -521,6 +538,8 @@ startButton.addEventListener('click', function () {
                                     neighbourSvg.classList.contains("charred")
                                     ||
                                     neighbourSvg.classList.contains("absent")
+                                    ||
+                                    neighbourSvg.classList.contains("protected")
                                 ) {
                                     // can't do anything
                                 } 
@@ -619,11 +638,14 @@ startButton.addEventListener('click', function () {
             // now, we instruct each (clicked-)tree to change
             for (const i in c) {
                 const SVGElementOfClickedTree = c[i]
+                if (SVGElementOfClickedTree.classList.contains("burning")) {
+                    updateTree(SVGElementOfClickedTree,"dry")
+                } else
                 if (SVGElementOfClickedTree.classList.contains("dry")) {
                     updateTree(SVGElementOfClickedTree,"normal")
                 } else
-                if (SVGElementOfClickedTree.classList.contains("burning")) {
-                    updateTree(SVGElementOfClickedTree,"dry")
+                if (SVGElementOfClickedTree.classList.contains("normal")) {
+                    updateTree(SVGElementOfClickedTree,"protected")
                 }
             }
         }
@@ -716,9 +738,25 @@ startButton.addEventListener('click', function () {
             p.style.fill = tree[id].colour.burned.now
         }
         // -- 3. sound feedback:
-        //      -- tree catches fire (i.e., was not burning before, but is now)
+        //      -- a. tree catches fire (i.e., was not burning before, but is now)
         if( tree[id].state.previous!="burning" && tree[id].state.now=="burning" ) {
             playSound(sCatchFire, volumeScaler.sCatchFire)
+        }
+        //      -- b. tree is protected
+        if( tree[id].state.previous!="protected" && tree[id].state.now=="protected" ) {
+            forcePlaySound(sMakeTreeSafe, volumeScaler.sMakeTreeSafe)
+        }
+
+        /* trigger any state-specific behaviours */
+        // if the tree just got protected:
+        if( tree[id].state.previous!="protected" && tree[id].state.now=="protected" ) {
+            tree[id].stateSettings.protected.isProtected = true
+            // remains protected for 'protectionDuration' time
+            setInterval(function() {
+                if(tree[id].state.now="protected") {
+                    updateTree(svgelement, "normal")
+                }
+            }, protectionDuration)
         }
     }
 
@@ -731,7 +769,7 @@ startButton.addEventListener('click', function () {
 
     const volumeScaler = {
         sCatchFire: .03125,
-        sMakeTreeSafe: .25,
+        sMakeTreeSafe: .03125,
         sBurning: 1,
         sForest: 1,
         sEagle: .125
@@ -750,6 +788,15 @@ startButton.addEventListener('click', function () {
     function percentageOfTrees(state) {
         let trees = document.getElementsByClassName(state)
         return Number(trees.length / totalTreesInForest)
+    }
+
+    /**
+     * @param {*} sound 
+     * @param {number} [volume=1] 
+     */
+    function forcePlaySound(sound, volume) {
+            sound.currentTime = 0
+            playSound(sound, volume)
     }
 
     /**
