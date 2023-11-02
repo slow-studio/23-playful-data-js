@@ -1,6 +1,7 @@
 # todo
 
 [ ] fix sound: volume-settings dont seem to work on iphone browsers
+[ ] disable double-tap-zooms-page on phones
 [ ] add 'protected' state
 [ ] limit how many trees can be protected at one time
 [ ] protected trees lose their protection after some time
@@ -11,6 +12,6 @@
 [ ] position all trees to be in the middle of the forest
 [ ] create 2d-array (map) of the locations of trees in the forest
 [ ] add randomness to all colours (for example: when a tree is asked to be green, the green should be slightly different each time it is applied)
-
+[ ] add a button to toggle 'game' and 'toy' mode
 [ ] add gamestatus json-object, which can be viewed in the browser console (for debugging)
 [ ] pressing the spacebar pauses updateForest()
