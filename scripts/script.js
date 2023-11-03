@@ -652,7 +652,7 @@ startButton.addEventListener('click', function () {
         
         // burning -> charred
         for (let i=0 ; i<burnings.length;i++) {
-            if (Math.random() > .975)
+            if (Math.random() > .983)
                 updateTree(burnings[i], "charred") 
         }
         
@@ -670,96 +670,97 @@ startButton.addEventListener('click', function () {
         //         }, Math.random()*5000)
         // }
 
+        /** makes dryness spread from one dry tree to its neighbours */
         for (let i = 0; i < drys.length; i++) {
             const id = Number(drys[i].parentNode.id.substring("tree-".length, drys[i].parentNode.id.length))
             const _x = tree[id].positionInForestGrid.x
             const _y = tree[id].positionInForestGrid.y
             const _state = tree[id].state.now
             const spreadDistance = 1
-                for (let t = 0; t < totalTreesInForest; t++) {
-                    if (
-                        true
-                        && tree[t].positionInForestGrid.x >= 0
-                        && tree[t].positionInForestGrid.y >= 0
-                        && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                        && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                        && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                        && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                        && tree[t].id
-                    ) {
-                        if (Math.random() > .995) {
-                            // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
-                            setTimeout(function () {
-                                const neighbour = document.getElementById('tree-' + t)
-                                const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                                if(
-                                    neighbourSvg.classList.contains("charred")
-                                    ||
-                                    neighbourSvg.classList.contains("absent")
-                                    ||
-                                    neighbourSvg.classList.contains("protected")
-                                ) {
-                                    // can't do anything
-                                } 
-                                else if(
-                                    neighbourSvg.classList.contains("normal")
-                                ) {
-                                    // console.log(`spreading dryness. making tree-${id} dry.`)
-                                    updateTree(neighbourSvg, "dry")
-                                }
-                            }, refreshTime)
-                        }
+            for (let t = 0; t < totalTreesInForest; t++) {
+                if (
+                    true
+                    && tree[t].positionInForestGrid.x >= 0
+                    && tree[t].positionInForestGrid.y >= 0
+                    && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                    && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                    && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                    && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                    && tree[t].id
+                ) {
+                    if (Math.random() > .995) {
+                        // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                        setTimeout(function () {
+                            const neighbour = document.getElementById('tree-' + t)
+                            const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                            if(
+                                neighbourSvg.classList.contains("charred")
+                                ||
+                                neighbourSvg.classList.contains("absent")
+                                ||
+                                neighbourSvg.classList.contains("protected")
+                            ) {
+                                // can't do anything
+                            } 
+                            else if(
+                                neighbourSvg.classList.contains("normal")
+                            ) {
+                                // console.log(`spreading dryness. making tree-${id} dry.`)
+                                updateTree(neighbourSvg, "dry")
+                            }
+                        }, refreshTime)
                     }
                 }
-            
+            } 
         }
 
+        /** makes fires (or dryness) spread from one burning tree to its neighbours */
         for (let i = 0; i < burnings.length; i++) {
             const id = Number(burnings[i].parentNode.id.substring("tree-".length, burnings[i].parentNode.id.length))
             const _x = tree[id].positionInForestGrid.x
             const _y = tree[id].positionInForestGrid.y
             const _state = tree[id].state.now
             const spreadDistance = 1
-                for (let t = 0; t < totalTreesInForest; t++) {
-                    if (
-                        true
-                        && tree[t].positionInForestGrid.x >= 0
-                        && tree[t].positionInForestGrid.y >= 0
-                        && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                        && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                        && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                        && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                        && tree[t].id
-                    ) {
-                        if (Math.random() > .995) {
-                            // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
-                            setTimeout(function () {
-                                const neighbour = document.getElementById('tree-' + t)
-                                const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                                if(
-                                    neighbourSvg.classList.contains("charred")
-                                    ||
-                                    neighbourSvg.classList.contains("absent")
-                                    ||
-                                    neighbourSvg.classList.contains("protected")
-                                ) {
-                                    // can't do anything
-                                } 
-                                else if(
-                                    neighbourSvg.classList.contains("normal")
-                                ) {
-                                    // console.log(`spreading fire. making tree-${id} dry.`)
-                                    updateTree(neighbourSvg, "dry")
-                                }
-                                else if(
-                                    neighbourSvg.classList.contains("dry")
-                                ) {
-                                    // console.log(`spreading fire. tree-${id} catches fire.`)
-                                    updateTree(neighbourSvg, "burning")
-                                }
-                            }, refreshTime)
-                        }
+            for (let t = 0; t < totalTreesInForest; t++) {
+                if (
+                    true
+                    && tree[t].positionInForestGrid.x >= 0
+                    && tree[t].positionInForestGrid.y >= 0
+                    && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                    && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                    && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                    && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                    && tree[t].id
+                ) {
+                    if (Math.random() > .995) {
+                        // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                        setTimeout(function () {
+                            const neighbour = document.getElementById('tree-' + t)
+                            const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                            if(
+                                neighbourSvg.classList.contains("charred")
+                                ||
+                                neighbourSvg.classList.contains("absent")
+                                ||
+                                neighbourSvg.classList.contains("protected")
+                            ) {
+                                // can't do anything
+                            } 
+                            else if(
+                                neighbourSvg.classList.contains("normal")
+                            ) {
+                                // console.log(`spreading fire. making tree-${id} dry.`)
+                                updateTree(neighbourSvg, "dry")
+                            }
+                            else if(
+                                neighbourSvg.classList.contains("dry")
+                            ) {
+                                // console.log(`spreading fire. tree-${id} catches fire.`)
+                                updateTree(neighbourSvg, "burning")
+                            }
+                        }, refreshTime)
                     }
+                }
             }
         }
     }
@@ -890,7 +891,7 @@ startButton.addEventListener('click', function () {
         const burnedses = svgelement.getElementsByClassName('burned')
 
         if(tree[id].stateSettings.protected.isProtected==true) {
-            // do nothing
+            // if the tree is protected, we can do nothing
         } else {
             /* tree memorises its present state */
             tree[id].state.previous = tree[id].state.now
@@ -1016,6 +1017,7 @@ startButton.addEventListener('click', function () {
     }
 
     /**
+     * even if the sound is currently playing, stop it and play it again.
      * @param {*} sound 
      * @param {number} [volume=1] 
      */
