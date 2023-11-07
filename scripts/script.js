@@ -15,17 +15,27 @@ treeGrowth = [
 ]
 
 shape = 0
-direction = 1
-changeShape()
-function changeShape()
-{
-if((shape == 0) || (shape == treeGrowth.length - 1))
-    direction = direction * -1
-shape = shape + (direction * -1)
-console.log (shape)
-document.getElementById("svg").innerHTML = svgtag + treeGrowth[shape] + '</svg>'
-}
 
-setInterval(() => {
-    changeShape()
-}, 300);
+changeShape(0)
+
+function changeShape(start) {
+    /* sanity check: if the tree is currently actively changing, don't let a "click" event start it from scratch */
+    if(shape!=0) {
+        start=shape
+    }
+
+    /* at the start of this loop, shape takes whatever value (i.e., start) was passed to this function */
+    shape = start
+    
+    // console.log(shape)
+
+    document.getElementById("svg").innerHTML = svgtag + treeGrowth[shape] + '</svg>'
+
+    /* let the tree grow */
+    if(shape < treeGrowth.length-1) {
+        shape++
+        setTimeout(function() {changeShape(shape)},1000)
+    } else 
+        shape=0
+
+}
