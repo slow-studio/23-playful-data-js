@@ -1,9 +1,10 @@
+svgtag = '<svg width="100%" height="100%" viewBox="0 0 134 382">'
+
 shapes = [
-        '<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect class="cls-1" x="0.5" y="34.5" width="99" height="30"/></svg>', 
-        '<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect class="cls-1" x="0.5" y="23.5" width="99" height="50"/></svg>' ,
-        '<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect class="cls-1" x="0.5" y="13.5" width="99" height="70"/></svg>' , 
-        '<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect class="cls-1" x="0.5" y="3.5" width="99" height="90"/></svg>'
-        ]
+    '<path class="foliage" id="t0" d="M40.695,345.956c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-95.673 21.939,-166.478c1.993,-14.2 14.902,-76.508 28.401,-76.508c13.498,0 19.325,56.249 27.506,126.547c6.551,56.295 16.154,87.73 16.154,116.124c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
+    '<path class="foliage" id="t1" d="M40.695,345.956c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-95.673 21.939,-166.478c1.993,-14.2 14.902,-76.508 28.401,-76.508c33.498,0 19.325,56.249 27.506,126.547c6.551,56.295 16.154,87.73 16.154,116.124c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
+    '<path class="foliage" id="t1" d="M40.695,345.956c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-95.673 21.939,-166.478c1.993,-14.2 14.902,-76.508 28.401,-76.508c53.498,0 19.325,56.249 27.506,126.547c6.551,56.295 16.154,87.73 16.154,116.124c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
+]
 
 shape = 0
 direction = 1
@@ -14,5 +15,5 @@ if((shape == 0) || (shape == shapes.length - 1))
     direction = direction * -1
 shape = shape + (direction * -1)
 console.log (shape)
-document.getElementById("svg").innerHTML = shapes[shape]
+document.getElementById("svg").innerHTML = svgtag + shapes[shape] + '</svg>'
 }
