@@ -1,9 +1,5 @@
 # todo
 
-[ ] trees catch fire after a message appears
-[ ] pause updateForest(): by pressing spacebar, or when some event occurs
-[ ] click on headline to (a) pause sketch, and (b) read project-article
-[ ] update mouse-pointer svg's
 [ ] at spawn, use "states" to set the state of the tree (instead of manually specifying the colours and shapes)
 [ ] improve sounds. build soundscape. find more randomSounds. 
 [ ] fix sound: volume-settings dont seem to work on iphone browsers
@@ -16,3 +12,6 @@
 [ ] add a (well-timed) conclusion or reward to the experience
 [ ] different messaging depending on the gamestate/timed-conclusion of the playful experience
 [ ] add gamestatus json-object, which can be viewed in the browser console (for debugging)
+
+[ ] update mouse-pointer svg's
+[ ] pause updateForest(): by pressing spacebar, or when some event occurs

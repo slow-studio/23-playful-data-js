@@ -2,16 +2,23 @@
     helpers
     ------------------------------------------------------------  */
 
+/**
+ * helpful links:
+ *  - to check browser support tables on mobile web browsers, go to: https://caniuse.com/.
+ *  - to change cursor's appearance, by using an SVG:
+ *      - info: https://stackoverflow.com/a/45966695
+ *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
+ */
+
+
 const refreshRate = 10 // fps
-const refreshTime = 1000/refreshRate // time in millisecond
+const refreshTime = 1000 / refreshRate // time in millisecond
+
+/** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
-const soundsrc = "assets/sound/"
-let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
-let sMakeTreeSafe = new Audio(soundsrc + 'twinkle.mp3');
-let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
-let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
-let sEagle = new Audio(soundsrc + 'eagle.mp3');
+/** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
+var totalTreesInForest = 0;
 
 /** @type {*} an array. stores one object (each) for every tree. the object contains all info/settings for that tree. */
 const tree = []
@@ -21,21 +28,13 @@ const tree = []
  * @param {number} [p=20] - deviation %. (eg. for 10% deviation, p = 10). default = 20% deviation.
 */
 function approx(n, p) {
-    const maxDeviation = n * (p/100)
+    const maxDeviation = n * (p / 100)
     const randomDeviation = Math.random() * maxDeviation
-    if (Math.random() < .5) 
+    if (Math.random() < .5)
         return n + randomDeviation
-    else 
+    else
         return n - randomDeviation
 }
-
-/**
- * helpful links:
- *  - to check browser support tables on mobile web browsers, go to: https://caniuse.com/.
- *  - to change cursor's appearance, by using an SVG:
- *      - info: https://stackoverflow.com/a/45966695
- *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
- */
 
 /**
  * update an element's style
@@ -48,7 +47,7 @@ function updateStyle(e, p, v) {
 }
 
 /** make fires crackle */
-const crackleTime = 300
+const fireCrackleTime = 600
 setInterval(function () {
     /** @type {any} */
     let fires = document.getElementsByClassName("fire")
@@ -61,11 +60,167 @@ setInterval(function () {
                     fires[i].style.fill = 'var(--fire)'
                     // console.log("fire gets less dark") 
                 }
-            }, crackleTime * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
+            }, approx(fireCrackleTime, 50));
         }
     }
-}, crackleTime * 2 * (1 + (Math.max(Math.random(), .5) * Math.pow(-1, Math.floor(2 * Math.random())))));
+}, fireCrackleTime);
 
+/**
+ * randomly convert some "normal" trees to their "dry" state
+ * @param {number} [n=1] - number of trees to seed
+ */
+function seedDryTrees(n) {
+
+    /* if there's at-least 1 "normal"/"protected" tree in the forest... */
+    if (document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length > 0) {
+        /* ...then, select a random "normal"/"protected" tree to turn "dry". */
+        if (n <= 1) n = 1
+        // console.log("trying to seed " + n + " dry trees")
+        for (let i = 0; i < n; i++) {
+            updateTree(selectRandomTree(), "dry")
+        }
+
+        function selectRandomTree() {
+            const treeid = (Math.floor(Math.random() * totalTreesInForest))
+            const treediv = document.getElementById('tree-' + treeid)
+            const svgelementintree = treediv.getElementsByTagName("svg")[0]
+            if (
+                svgelementintree.classList.contains("absent")
+                ||
+                svgelementintree.classList.contains("burning")
+                ||
+                svgelementintree.classList.contains("charred")
+            ) {
+                return selectRandomTree()
+            }
+            return svgelementintree
+        }
+    }
+}
+
+/**
+ * tree changes as instructed
+ * @typedef {Object} TreeChangeSettings
+ * @property {object} shape
+ * @property {string|boolean} [shape.foliage=false] 
+ * @property {string|boolean} [shape.stump=false] 
+ * @property {string|boolean} [shape.fire=false] 
+ * @property {string|boolean} [shape.burned=false] 
+ * @property {object} colour
+ * @property {string|boolean} [colour.outline=false] 
+ * @property {string|boolean} [colour.foliage=false] 
+ * @property {string|boolean} [colour.stump=false] 
+ * @property {string|boolean} [colour.fire=false] 
+ * @property {string|boolean} [colour.burned=false] 
+ */
+/**
+ * @param {*} svgelement 
+ * @param {string} state - the state of the tree
+ */
+function updateTree(svgelement, state) {
+
+    // helper variables
+    const id = Number(svgelement.parentNode.id.substring("tree-".length, svgelement.parentNode.id.length))
+    const foliages = svgelement.getElementsByClassName('foliage')
+    const wood = svgelement.getElementsByClassName('stump')
+    const fires = svgelement.getElementsByClassName('fire')
+    const burnedses = svgelement.getElementsByClassName('burned')
+
+    if (tree[id].stateSettings.protected.isProtected == true) {
+        // if the tree is protected, we can do nothing
+    } else {
+        /* tree memorises its present state */
+        tree[id].state.previous = tree[id].state.now
+        tree[id].shape.foliage.previous = tree[id].shape.foliage.now
+        tree[id].shape.stump.previous = tree[id].shape.stump.now
+        tree[id].shape.fire.previous = tree[id].shape.fire.now
+        tree[id].shape.burned.previous = tree[id].shape.burned.now
+        tree[id].colour.outline.previous = tree[id].colour.outline.now
+        tree[id].colour.foliage.previous = tree[id].colour.foliage.now
+        tree[id].colour.stump.previous = tree[id].colour.stump.now
+        tree[id].colour.fire.previous = tree[id].colour.fire.now
+        tree[id].colour.burned.previous = tree[id].colour.burned.now
+
+        /* tree decides what its new appearance will be */
+        tree[id].state.now = state
+        // console.log(`updateTree # ${id}: ${tree[id].state.previous} -> ${tree[id].state.now}`)
+        const classes = svgelement.classList
+        for (let i = 0; i < classes.length; i++) {
+            svgelement.classList.remove(classes[i])
+        }
+        svgelement.classList.add(tree[id].state.now)
+        const settings = tree[id].stateSettings[state]
+        tree[id].shape.foliage.now = settings.shape.foliage ? settings.shape.foliage : ''
+        tree[id].shape.stump.now = settings.shape.stump ? settings.shape.stump : ''
+        tree[id].shape.fire.now = settings.shape.fire ? settings.shape.fire : ''
+        tree[id].shape.burned.now = settings.shape.burned ? settings.shape.burned : ''
+        tree[id].colour.outline.now = settings.colour.outline ? settings.colour.outline : ''
+        tree[id].colour.foliage.now = settings.colour.foliage ? settings.colour.foliage : ''
+        tree[id].colour.stump.now = settings.colour.stump ? settings.colour.stump : ''
+        tree[id].colour.fire.now = settings.colour.fire ? settings.colour.fire : ''
+        tree[id].colour.burned.now = settings.colour.burned ? settings.colour.burned : ''
+
+        // console.log("change t# " + id)
+        // console.log(tree[id])
+
+        /* tree changes appearance: */
+        // -- 1. it updates its svg shape
+        svgelement.innerHTML =
+            (settings.shape.foliage ? tree[id].shape.foliage.now : '')
+            + (settings.shape.stump ? tree[id].shape.stump.now : '')
+            + (settings.shape.fire ? tree[id].shape.fire.now : '')
+            + (settings.shape.burned ? tree[id].shape.burned.now : '')
+        // -- 2. it sets the colour for those svg-shapes
+        for (const p of foliages) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.foliage.now
+        }
+        for (const p of wood) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.stump.now
+        }
+        for (const p of fires) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.fire.now
+        }
+        for (const p of burnedses) {
+            p.style.stroke = tree[id].colour.outline.now
+            p.style.fill = tree[id].colour.burned.now
+        }
+        // -- 3. sound feedback:
+        //      -- a. tree catches fire (i.e., was not burning before, but is now)
+        if (tree[id].state.previous != "burning" && tree[id].state.now == "burning") {
+            playSound(sCatchFire, volumeScaler.sCatchFire)
+        }
+        //      -- b. tree is protected
+        if (tree[id].state.previous != "protected" && tree[id].state.now == "protected") {
+            forcePlaySound(sMakeTreeSafe, volumeScaler.sMakeTreeSafe)
+        }
+
+        /*  state-specific behaviour:
+            if the tree just got protected...
+            */
+        if (tree[id].state.previous != "protected" && tree[id].state.now == "protected") {
+            tree[id].stateSettings.protected.isProtected = true
+            // remains protected for 'protectionDuration' time
+            setTimeout(function () {
+                // console.log(`protected tree-${id} is preparing to become "normal" (automatically).\n(protectionDuration: ${protectionDuration}ms)\nchecking status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
+                if (tree[id].stateSettings.protected.isProtected = true) {
+                    tree[id].stateSettings.protected.isProtected = false
+                    // console.log(`protected tree-${id} is now ready to become "normal" (automatically).\nupdating status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
+                    updateTree(svgelement, "normal")
+                }
+            }, approx(protectionDuration, 20))
+        }
+    }
+
+    // let protecteds = document.getElementsByClassName("protected")
+
+    // just to be extra careful...
+    if (tree[id].state.now != "protected") {
+        tree[id].stateSettings.protected.isProtected = false
+    }
+}
 
 /*  ------------------------------------------------------------
     newsBox
@@ -208,53 +363,54 @@ const headlines = [
     }
 ];
 
+/** @type {number} count the total number of times the newsBox has been shown so far */
+let newsSeenCounter = 0
+
 /** @type {HTMLElement} */
 const newsBox = document.getElementById('newsBoxContent')
 
 /** @type {boolean} tracks whether the newsBox is displayed or not */
-let displayNewsBox = false
+let newsBoxDisplayState = false
 
-// sets the display-position of the newsBox at startup
-actOnNewsBox(newsBox, displayNewsBox, getRandomHeadlines())
+const newsBoxTransitionDuration = 300
+updateStyle(newsBox,"transition-duration",newsBoxTransitionDuration+'ms')
 
-newsBox.addEventListener('click', function () {
-    actOnNewsBox(this, !displayNewsBox, getRandomHeadlines())
+// sets the content and display-position of the newsBox at startup
+changeNews(newsBox, fetchHeadline())
+hideBox(newsBox)
+
+/** @type {HTMLElement} */
+const xNewsBox = document.getElementById('dismissNewsBoxIcon')
+xNewsBox.addEventListener('click', function () {
+    hideBox(newsBox)
 })
 
-/**
- * (1) updates the boolean displayNewsBox, and then (2) acts on the newsBox accordingly
- * @param {HTMLElement} box 
- * @param {boolean} displayState 
- * @param {object} content - content (news headline) to show in the newsBox
- */
-function actOnNewsBox(box, displayState, content) {
-    box.getElementsByTagName('h3')[0].innerHTML = content.headline
-    box.getElementsByTagName('p')[0].innerHTML = content.source + ' (' + content.date + ')'
-    displayNewsBox = displayState
-    if (displayNewsBox) box.style.bottom = "0rem" 
-    else hideBox(box)
-}
-
-const newsArrives = function () {
-    if(displayNewsBox) 
-        hideBox(newsBox)
-    setTimeout(function () { 
-        actOnNewsBox(
-            newsBox, 
-            true, 
-            getRandomHeadlines()
-            ) 
-    }, 100)
-    setTimeout(newsArrives, approx(20000,75))
+function showBox(box) {
+    newsBoxDisplayState = true
+    box.style.bottom = "calc(100vh - 2rem)"
 }
 
 function hideBox(box) {
-    displayNewsBox = false
+    newsBoxDisplayState = false
     box.style.bottom = "-100vh"
+    newsSeenCounter++
+    // console.log(`newsSeenCounter: ${newsSeenCounter}`)  
+    setTimeout(function() {
+        const newHeadline = fetchHeadline()
+        // console.log(`changing news headline to: ${newHeadline.headline}`)
+        changeNews(newsBox, newHeadline)
+    }, newsBoxTransitionDuration) // change the headlines only once the box has been hidden completely
+    seedDryTrees(Math.max(newsSeenCounter,1))
 }
 
-function getRandomHeadlines() {
-    return headlines[ Math.floor(headlines.length * Math.random()) ]
+function changeNews(box, content) {
+    box.getElementsByTagName('h3')[0].innerHTML = content.headline
+    box.getElementsByTagName('p')[0].innerHTML = content.source + ' (' + content.date + ')'
+}
+
+/** @returns {object} */
+function fetchHeadline() {
+    return headlines[Math.floor(headlines.length * Math.random())]
 }
 
 /*  ------------------------------------------------------------
@@ -263,10 +419,16 @@ function getRandomHeadlines() {
 
 const startButton = document.getElementById('startButton')
 startButton.addEventListener('click', function () {
-    
+
     startButton.style.display = 'none'
     
-    setTimeout(newsArrives, approx(5000,50))
+    // start playing sounds, on loop, but muted.
+    sBurning.volume = 0
+    sBurning.loop = true
+    sBurning.play()
+    sForest.volume = 1
+    sForest.loop = true
+    sForest.play()
 
     /*  ------------------------------------------------------------
         collect information before drawing tree
@@ -337,9 +499,6 @@ startButton.addEventListener('click', function () {
             shape: true
         }
     }
-
-    /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
-    var totalTreesInForest = 0;
 
     /** @type {number} keeps track of the highest z-index assigned to any tree */
     var highestZIndexOnTree = 0;
@@ -561,204 +720,151 @@ startButton.addEventListener('click', function () {
     console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
 
     /*  ------------------------------------------------------------
-        trees catch fire (automatically)
+        update the forest.
         ------------------------------------------------------------  */
 
-    /**
-     * if there aren't any dry trees in the forest, randomly convert some "normal" trees to their "dry" state
-     * @param {number} [n=1] - number of trees to seed
-     */ 
-    function seedDryTrees(n) {
-        
-        /* if there's at-least 1 "normal"/"protected" tree in the forest... */
-        if(document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length > 0) {
-            /* ...then, select a random "normal"/"protected" tree to turn "dry". */
-            if(n<=1) n=1
-            // console.log("trying to seed " + n + " dry trees")
-            for (let i = 0; i < n; i++) {
-                updateTree(selectRandomTree(), "dry")
-            }
-            
-            function selectRandomTree() {
-                const treeid = (Math.floor(Math.random() * totalTreesInForest))
-                const treediv = document.getElementById('tree-' + treeid)
-                const svgelementintree = treediv.getElementsByTagName("svg")[0]
-                if (
-                    svgelementintree.classList.contains("absent")
-                    || 
-                    svgelementintree.classList.contains("burning")
-                    ||
-                    svgelementintree.classList.contains("charred")
-                    ) {
-                        return selectRandomTree()
-                    }
-                return svgelementintree
-            }
-        }
-    }
-
-    /** 
-     * now, set the wheels in motion, for trees to catch fire automatically. 
-     */
     setInterval(function () { updateForest() }, refreshTime)
-    
+
     function updateForest() {
 
-        // collect all trees by the states they are in
-        let absents = document.getElementsByClassName("absent")
-        let protecteds = document.getElementsByClassName("protected")
-        let normals = document.getElementsByClassName("normal")
-        /** @type {*} */
-        let drys = document.getElementsByClassName("dry")
-        /** @type {*} */
-        let burnings = document.getElementsByClassName("burning")
-        let charreds = document.getElementsByClassName("charred")
+        /* update sound */
+
+        // update volume of ambient sounds
+
+        sBurning.volume = percentageOfTrees("burning") * volumeScaler.sBurning
+        // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
+        sForest.volume = percentageOfTrees("normal") * volumeScaler.sForest
+        // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
     
-        // if there are no dry trees left (but there still are normal trees): then, seed them.
-        // console.log("no dry trees")
-        const drySeeds = 3 // number of dry trees to seed into the forest
-        if (drys.length == 0 && (normals.length != 0 || protecteds.length != 0))
-            if (Math.random() < .075)
-                seedDryTrees(Math.floor(Math.random() * drySeeds) + 1)
+        // randomly play a random-sound from the forest
 
-        // calculate the health of the forest
-        const maxHealth = .975 - (clickCounter>5?5:clickCounter)/100
-        let forestHealth = 
-            ( protecteds.length * 1
-            + normals.length * maxHealth
-            + drys.length * .8
-            + burnings.length * .5
-            + charreds.length * .1
-            + absents.length * 0 )
-            / (totalTreesInForest - absents.length)
-        forestHealth = Math.min(maxHealth,forestHealth)
-        
-        // report the forest's health
-        // console.log("forest health: " + Math.floor(forestHealth*100) + "%")
-        // console.log("(" + protecteds.length+normals.length+drys.length+burnings.length+charreds.length + ", " + totalTreesInForest + ")")
-        
-        // // normal -> dry
-        // for (let i=0 ; i<normals.length;i++) {
-        //     if (Math.random() > forestHealth)
-        //         if (Math.random() > forestHealth)
-        //             updateTree(normals[i], "dry") 
-        // }
-        
-        // dry -> burning
-        for (let i=0 ; i<drys.length;i++) {
-            if (Math.random() > .9983)
-                updateTree(drys[i], "burning") 
-        }
-        
-        // burning -> charred
-        for (let i=0 ; i<burnings.length;i++) {
-            if (Math.random() > .983)
-                updateTree(burnings[i], "charred") 
-        }
-        
-        // charred -> absent
-        for (let i=0 ; i<charreds.length;i++) {
-            if (Math.random()>.9999) 
-                updateTree(charreds[i], "absent") 
-        }
-        
-        // // absent -> new forest
-        // for (let i=0 ; i<absents.length;i++) {
-        //     if (absents.length==totalTreesInForest) 
-        //         setTimeout(function() {
-        //             updateTree(absents[i], "normal") 
-        //         }, Math.random()*5000)
-        // }
+        const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
+        if (Math.random() < 1 / (refreshRate * secondses)) {
+            sEagle.volume = Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle
+            sEagle.play();
+        } 
 
-        /** makes dryness spread from one dry tree to its neighbours */
-        for (let i = 0; i < drys.length; i++) {
-            const id = Number(drys[i].parentNode.id.substring("tree-".length, drys[i].parentNode.id.length))
-            const _x = tree[id].positionInForestGrid.x
-            const _y = tree[id].positionInForestGrid.y
-            const _state = tree[id].state.now
-            const spreadDistance = 1
-            for (let t = 0; t < totalTreesInForest; t++) {
+        /* update visuals */
+
+        if (!newsBoxDisplayState) {
+
+            // collect all trees by the states they are in
+            let absents = document.getElementsByClassName("absent")
+            let protecteds = document.getElementsByClassName("protected")
+            let normals = document.getElementsByClassName("normal")
+            /** @type {*} */
+            let drys = document.getElementsByClassName("dry")
+            /** @type {*} */
+            let burnings = document.getElementsByClassName("burning")
+            let charreds = document.getElementsByClassName("charred")
+
+            // if there are no dry/burning trees left (but there still are normal trees):
+            if (drys.length == 0 && burnings.length == 0 && (normals.length + protecteds.length >= 0)) {
+                // console.log(`no dry or burning trees (there are, however, normal trees).`)
+                if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {        
+                    setTimeout(function() {
+                        showBox(newsBox)
+                    }, approx(2000, 50))
+                }
+            }
+
+            // dry -> burning
+            for (let i = 0; i < drys.length; i++) {
+                if (Math.random() > .9995)
+                    updateTree(drys[i], "burning")
+            }
+
+            // burning -> charred
+            for (let i = 0; i < burnings.length; i++) {
+                if (Math.random() > .983)
+                    updateTree(burnings[i], "charred")
+            }
+
+            // charred -> absent
+            for (let i = 0; i < charreds.length; i++) {
+                if (Math.random() > .9999)
+                    updateTree(charreds[i], "absent")
+            }
+            for (let i = 0; i < charreds.length; i++) {
+                if ((protecteds.length + normals.length + drys.length) < 1)
+                    if (Math.random() > .95)
+                        updateTree(charreds[i], "absent")
+            }
+
+            // absent -> new forest
+            for (let i = 0; i < absents.length; i++) {
                 if (
-                    true
-                    && tree[t].positionInForestGrid.x >= 0
-                    && tree[t].positionInForestGrid.y >= 0
-                    && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                    && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                    && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                    && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                    && tree[t].id
+                    ((protecteds.length + normals.length + drys.length) < (.1 * totalTreesInForest))
+                    &&
+                    (absents.length >= .8 * totalTreesInForest)
                 ) {
-                    if (Math.random() > .995) {
-                        // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                    if (Math.random() < .67) {
                         setTimeout(function () {
-                            const neighbour = document.getElementById('tree-' + t)
-                            const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                            if(
-                                neighbourSvg.classList.contains("charred")
-                                ||
-                                neighbourSvg.classList.contains("absent")
-                                ||
-                                neighbourSvg.classList.contains("protected")
-                            ) {
-                                // can't do anything
-                            } 
-                            else if(
-                                neighbourSvg.classList.contains("normal")
-                            ) {
-                                // console.log(`spreading dryness. making tree-${id} dry.`)
-                                updateTree(neighbourSvg, "dry")
-                            }
-                        }, refreshTime)
+                            updateTree(absents[i], "normal")
+                        }, Math.random() * 5000)
                     }
                 }
-            } 
-        }
+            }
 
-        /** makes fires (or dryness) spread from one burning tree to its neighbours */
-        for (let i = 0; i < burnings.length; i++) {
-            const id = Number(burnings[i].parentNode.id.substring("tree-".length, burnings[i].parentNode.id.length))
-            const _x = tree[id].positionInForestGrid.x
-            const _y = tree[id].positionInForestGrid.y
-            const _state = tree[id].state.now
-            const spreadDistance = 1
-            for (let t = 0; t < totalTreesInForest; t++) {
-                if (
-                    true
-                    && tree[t].positionInForestGrid.x >= 0
-                    && tree[t].positionInForestGrid.y >= 0
-                    && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                    && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                    && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                    && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                    && tree[t].id
-                ) {
-                    if (Math.random() > .995) {
-                        // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
-                        setTimeout(function () {
-                            const neighbour = document.getElementById('tree-' + t)
-                            const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                            if(
-                                neighbourSvg.classList.contains("charred")
-                                ||
-                                neighbourSvg.classList.contains("absent")
-                                ||
-                                neighbourSvg.classList.contains("protected")
-                            ) {
-                                // can't do anything
-                            } 
-                            else if(
-                                neighbourSvg.classList.contains("normal")
-                            ) {
-                                // console.log(`spreading fire. making tree-${id} dry.`)
-                                updateTree(neighbourSvg, "dry")
+            /** make fires & dryness spread from one tree to its neighbours */
+
+            spreadInfection(burnings, "burning", .99, 1)
+            spreadInfection(drys, "dry", .995, 1)
+
+            /**
+             * make fires & dryness spread from one tree to its neighbours
+             * @param {*} trees
+             * @param {string} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
+             * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
+             * @param {number} spreadDistance
+             */
+            function spreadInfection(trees, state, immunity, spreadDistance) {
+                for (let i = 0; i < trees.length; i++) {
+                    const id = Number(trees[i].parentNode.id.substring("tree-".length, trees[i].parentNode.id.length))
+                    const _x = tree[id].positionInForestGrid.x
+                    const _y = tree[id].positionInForestGrid.y
+                    for (let t = 0; t < totalTreesInForest; t++) {
+                        if (
+                            true
+                            && tree[t].positionInForestGrid.x >= 0
+                            && tree[t].positionInForestGrid.y >= 0
+                            && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                            && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                            && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                            && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                            && tree[t].id
+                        ) {
+                            if (Math.random() > immunity) {
+                                // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                                setTimeout(function () {
+                                    const neighbour = document.getElementById('tree-' + t)
+                                    const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                                    if (
+                                        neighbourSvg.classList.contains("charred")
+                                        ||
+                                        neighbourSvg.classList.contains("absent")
+                                        ||
+                                        neighbourSvg.classList.contains("protected")
+                                    ) {
+                                        // can't do anything
+                                    }
+                                    else if (
+                                        neighbourSvg.classList.contains("normal")
+                                    ) {
+                                        // console.log(`spreading dryness. making tree-${id} dry.`)
+                                        updateTree(neighbourSvg, "dry")
+                                    }
+                                    else if (
+                                        state == "burning"
+                                        &&
+                                        neighbourSvg.classList.contains("dry")
+                                    ) {
+                                        // console.log(`spreading fire. tree-${id} catches fire.`)
+                                        updateTree(neighbourSvg, "burning")
+                                    }
+                                }, refreshTime)
                             }
-                            else if(
-                                neighbourSvg.classList.contains("dry")
-                            ) {
-                                // console.log(`spreading fire. tree-${id} catches fire.`)
-                                updateTree(neighbourSvg, "burning")
-                            }
-                        }, refreshTime)
+                        }
                     }
                 }
             }
@@ -769,11 +875,12 @@ startButton.addEventListener('click', function () {
         if the person taps on the screen
         ------------------------------------------------------------  */
 
-    let clickCounter = 0;
+    let clickCounter = 0
 
     // whenever a click happens:
     document.addEventListener("click", handleClicks);
 
+    /** @param {MouseEvent} e */
     function handleClicks(e) {
         // count the click
         clickCounter++
@@ -785,6 +892,7 @@ startButton.addEventListener('click', function () {
         if the click happened on a tree...
         ------------------------------------------------------------  */
 
+    /** @param {MouseEvent} e */
     function didClickHappenOnTree(e) {
 
         // get coordinates of mouseclick
@@ -810,7 +918,7 @@ startButton.addEventListener('click', function () {
         }
 
         // if we didn't click on the #newsBox, then we may continue checking whether the click happened on a tree in the #forest:
-        if (clickedOnNewsBoxContent==false) {
+        if (clickedOnNewsBoxContent == false) {
 
             // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
             c = c.map(function (x) {
@@ -840,215 +948,73 @@ startButton.addEventListener('click', function () {
                 const SVGElementOfClickedTree = c[i]
                 if (SVGElementOfClickedTree.classList.contains("burning")) {
                     // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: burning -> dry`)
-                    updateTree(SVGElementOfClickedTree,"dry")
-                } else
-                if (SVGElementOfClickedTree.classList.contains("dry")) {
+                    updateTree(SVGElementOfClickedTree, "dry")
+                }
+                else if (SVGElementOfClickedTree.classList.contains("dry")) {
                     // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: dry -> normal`)
-                    updateTree(SVGElementOfClickedTree,"normal")
-                } else
-                if (SVGElementOfClickedTree.classList.contains("normal")) {
+                    updateTree(SVGElementOfClickedTree, "normal")
+                }
+                else if (SVGElementOfClickedTree.classList.contains("normal")) {
                     // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: normal -> protected`)
-                    updateTree(SVGElementOfClickedTree,"protected")
-                } else
-                if (SVGElementOfClickedTree.classList.contains("protected")) {
+                    updateTree(SVGElementOfClickedTree, "protected")
+                }
+                else if (SVGElementOfClickedTree.classList.contains("protected")) {
                     // console.log(`click on tree-${SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)}: classList.contains("${SVGElementOfClickedTree.classList}") • isProtected=${tree[SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)].stateSettings.protected.isProtected}`)
-                    updateTree(SVGElementOfClickedTree,"protected")
+                    updateTree(SVGElementOfClickedTree, "protected")
                 }
             }
-        }
-    }
-
-    /*  ------------------------------------------------------------
-        tree changes as instructed
-        ------------------------------------------------------------  */
-
-    /**
-     * @typedef {Object} TreeChangeSettings
-     * @property {object} shape
-     * @property {string|boolean} [shape.foliage=false] 
-     * @property {string|boolean} [shape.stump=false] 
-     * @property {string|boolean} [shape.fire=false] 
-     * @property {string|boolean} [shape.burned=false] 
-     * @property {object} colour
-     * @property {string|boolean} [colour.outline=false] 
-     * @property {string|boolean} [colour.foliage=false] 
-     * @property {string|boolean} [colour.stump=false] 
-     * @property {string|boolean} [colour.fire=false] 
-     * @property {string|boolean} [colour.burned=false] 
-     */
-
-    /**
-     * @param {*} svgelement 
-     * @param {string} state - the state of the tree
-     */
-    function updateTree(svgelement, state) {
-
-        // helper variables
-        const id = Number(svgelement.parentNode.id.substring("tree-".length, svgelement.parentNode.id.length))
-        const foliages = svgelement.getElementsByClassName('foliage')
-        const wood = svgelement.getElementsByClassName('stump')
-        const fires = svgelement.getElementsByClassName('fire')
-        const burnedses = svgelement.getElementsByClassName('burned')
-
-        if(tree[id].stateSettings.protected.isProtected==true) {
-            // if the tree is protected, we can do nothing
-        } else {
-            /* tree memorises its present state */
-            tree[id].state.previous = tree[id].state.now
-            tree[id].shape.foliage.previous = tree[id].shape.foliage.now
-            tree[id].shape.stump.previous = tree[id].shape.stump.now
-            tree[id].shape.fire.previous = tree[id].shape.fire.now
-            tree[id].shape.burned.previous = tree[id].shape.burned.now
-            tree[id].colour.outline.previous = tree[id].colour.outline.now
-            tree[id].colour.foliage.previous = tree[id].colour.foliage.now
-            tree[id].colour.stump.previous = tree[id].colour.stump.now
-            tree[id].colour.fire.previous = tree[id].colour.fire.now
-            tree[id].colour.burned.previous = tree[id].colour.burned.now
-
-            /* tree decides what its new appearance will be */
-            tree[id].state.now = state
-            // console.log(`updateTree # ${id}: ${tree[id].state.previous} -> ${tree[id].state.now}`)
-            const classes = svgelement.classList
-            for (let i = 0; i < classes.length; i++) {
-                svgelement.classList.remove(classes[i])
-            }
-            svgelement.classList.add(tree[id].state.now)
-            const settings = tree[id].stateSettings[state]
-            tree[id].shape.foliage.now = settings.shape.foliage ? settings.shape.foliage : ''
-            tree[id].shape.stump.now = settings.shape.stump ? settings.shape.stump : ''
-            tree[id].shape.fire.now = settings.shape.fire ? settings.shape.fire : ''
-            tree[id].shape.burned.now = settings.shape.burned ? settings.shape.burned : ''
-            tree[id].colour.outline.now = settings.colour.outline ? settings.colour.outline : ''
-            tree[id].colour.foliage.now = settings.colour.foliage ? settings.colour.foliage : ''
-            tree[id].colour.stump.now = settings.colour.stump ? settings.colour.stump : ''
-            tree[id].colour.fire.now = settings.colour.fire ? settings.colour.fire : ''
-            tree[id].colour.burned.now = settings.colour.burned ? settings.colour.burned : ''
-
-            // console.log("change t# " + id)
-            // console.log(tree[id])
-
-            /* tree changes appearance: */
-            // -- 1. it updates its svg shape
-            svgelement.innerHTML =
-                (settings.shape.foliage ? tree[id].shape.foliage.now : '')
-                + (settings.shape.stump ? tree[id].shape.stump.now : '')
-                + (settings.shape.fire ? tree[id].shape.fire.now : '')
-                + (settings.shape.burned ? tree[id].shape.burned.now : '')
-            // -- 2. it sets the colour for those svg-shapes
-            for (const p of foliages) {
-                p.style.stroke = tree[id].colour.outline.now
-                p.style.fill = tree[id].colour.foliage.now
-            }
-            for (const p of wood) {
-                p.style.stroke = tree[id].colour.outline.now
-                p.style.fill = tree[id].colour.stump.now
-            }
-            for (const p of fires) {
-                p.style.stroke = tree[id].colour.outline.now
-                p.style.fill = tree[id].colour.fire.now
-            }
-            for (const p of burnedses) {
-                p.style.stroke = tree[id].colour.outline.now
-                p.style.fill = tree[id].colour.burned.now
-            }
-            // -- 3. sound feedback:
-            //      -- a. tree catches fire (i.e., was not burning before, but is now)
-            if( tree[id].state.previous!="burning" && tree[id].state.now=="burning" ) {
-                playSound(sCatchFire, volumeScaler.sCatchFire)
-            }
-            //      -- b. tree is protected
-            if( tree[id].state.previous!="protected" && tree[id].state.now=="protected" ) {
-                forcePlaySound(sMakeTreeSafe, volumeScaler.sMakeTreeSafe)
-            }
-
-            /*  state-specific behaviour:
-                if the tree just got protected...
-                */
-            if( tree[id].state.previous!="protected" && tree[id].state.now=="protected" ) {
-                tree[id].stateSettings.protected.isProtected = true
-                // remains protected for 'protectionDuration' time
-                setTimeout(function() {
-                    // console.log(`protected tree-${id} is preparing to become "normal" (automatically).\n(protectionDuration: ${protectionDuration}ms)\nchecking status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
-                    if(tree[id].stateSettings.protected.isProtected = true) {
-                        tree[id].stateSettings.protected.isProtected = false
-                        // console.log(`protected tree-${id} is now ready to become "normal" (automatically).\nupdating status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
-                        updateTree(svgelement, "normal")
-                    }
-                }, approx(protectionDuration,20))
-            }
-        }
-
-        // let protecteds = document.getElementsByClassName("protected")
-
-        // just to be extra careful...
-        if (tree[id].state.now != "protected") {
-            tree[id].stateSettings.protected.isProtected = false
         }
     }
 
     /** #newsBox should have a z-index higher than all spawned trees */
     updateStyle(document.getElementById("newsBox"), "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
 
-    /*  ------------------------------------------------------------
-        sound
-        ------------------------------------------------------------  */
-
-    const volumeScaler = {
-        sCatchFire: .03125,
-        sMakeTreeSafe: .03125,
-        sBurning: 1,
-        sForest: 1,
-        sEagle: .125
-    }
-    
-    // start playing sounds, on loop, but muted.
-    sBurning.volume = 0
-    sBurning.loop = true
-    sBurning.play()
-    sForest.volume = 1
-    sForest.loop = true
-    sForest.play()
-    
-    // count the number of trees in any particular state
-    /** @param {string} state */
-    function percentageOfTrees(state) {
-        let trees = document.getElementsByClassName(state)
-        return Number(trees.length / totalTreesInForest)
-    }
-
-    /**
-     * even if the sound is currently playing, stop it and play it again.
-     * @param {*} sound 
-     * @param {number} [volume=1] 
-     */
-    function forcePlaySound(sound, volume) {
-            sound.currentTime = 0
-            playSound(sound, volume)
-    }
-
-    /**
-     * @param {*} sound 
-     * @param {number} [volume=1] 
-     */
-    function playSound(sound, volume) {
-        // if(sound.ended) {
-            // sound.currentTime = 0
-            sound.volume = volume
-            sound.play()
-        // }
-    }
-    
-    setInterval(function () {
-
-        /* update volume of ambient sounds */
-        sBurning.volume = percentageOfTrees("burning") * volumeScaler.sBurning
-        sForest.volume = percentageOfTrees("normal") * volumeScaler.sForest
-
-        /* randomly play a sound from the forest */
-        sEagle.volume = Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle
-        const secondses = 30 // time (in seconds) after which the sound ought to play
-        if (Math.random() < 1 / (refreshRate * secondses)) sEagle.play();
-
-    }, refreshTime);
-    
 })
+
+/*  ------------------------------------------------------------
+    sound
+    ------------------------------------------------------------  */
+
+const soundsrc = "assets/sound/"
+let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
+let sMakeTreeSafe = new Audio(soundsrc + 'twinkle.mp3');
+let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
+let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
+let sEagle = new Audio(soundsrc + 'eagle.mp3');
+
+const volumeScaler = {
+    sCatchFire: .03125,
+    sMakeTreeSafe: .0078125,
+    sBurning: 1,
+    sForest: 1,
+    sEagle: .125
+}
+
+// count the number of trees in any particular state
+/** @param {string} state */
+function percentageOfTrees(state) {
+    let trees = document.getElementsByClassName(state)
+    return Number(trees.length / totalTreesInForest)
+}
+
+/**
+ * even if the sound is currently playing, stop it and play it again.
+ * @param {*} sound 
+ * @param {number} [volume=1] 
+ */
+function forcePlaySound(sound, volume) {
+    sound.currentTime = 0
+    playSound(sound, volume)
+}
+
+/**
+ * @param {*} sound 
+ * @param {number} [volume=1] 
+ */
+function playSound(sound, volume) {
+    // if(sound.ended) {
+    // sound.currentTime = 0
+    sound.volume = volume
+    sound.play()
+    // }
+}

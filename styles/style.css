@@ -56,22 +56,19 @@ h1, h2, h3, p {
 
 h1 {
     font-size: 1.33rem;
+    font-weight: 900;
 }
 
 h2 {
     font-size: 1rem;
 }
 
-p {
-    font-size: .67rem;
-}
-
-h1 {
-    font-weight: 900;
-}
-
 h3 {
     font-size: .83rem;
+}
+
+p {
+    font-size: .67rem;
 }
 
 #header {
@@ -97,7 +94,7 @@ button#startButton {
     /* background-color: var(--green); */
     max-width: 100%;
     flex: 1 1 auto;
-    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer; 
+    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer;
     touch-action: manipulation; /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation and https://stackoverflow.com/a/53236027 */
 }
 
@@ -141,7 +138,7 @@ svg {
 }
 
 #newsBox {
-    /* background-color: var(--yellow); */
+    /* background-color: #fcc00077; */
     position: fixed;
     overflow: visible;
     bottom:0;
@@ -149,6 +146,7 @@ svg {
     margin-left: auto;
     margin-right: auto;
     width: calc(100% - 2rem);
+    height: 0;
     max-width: 60rem;
     padding: 1rem 0;
     text-align: center;
@@ -156,16 +154,19 @@ svg {
 
 #newsBox > #newsBoxContent {
     position: relative;
-    bottom: -100vh;
-    transition: bottom 300ms ease-in-out 0ms;
+    bottom: /* placeholder */ -100vh;
+    transition: bottom /* transition-duration = placeholder */300ms ease-in-out 0ms;
     background: rgba(255,255,255,.95);
-    padding: .5rem 3.5rem .5rem 1.5rem;
+    padding: 1rem 3.5rem .5rem 1.5rem;
     border: 1px solid black;
-    border-top: 5px solid black;
+    border-top: .67rem solid black;
     cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 8 8' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' xmlns:serif='http://www.serif.com/' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3E%3Ccircle cx='3.84' cy='3.84' r='3.84' style='fill:%23fff;' /%3E%3Cpath d='M3.84,0c2.119,0 3.84,1.721 3.84,3.84c0,2.119 -1.721,3.84 -3.84,3.84c-2.119,0 -3.84,-1.721 -3.84,-3.84c0,-2.119 1.721,-3.84 3.84,-3.84Zm0,0.5c1.843,0 3.34,1.497 3.34,3.34c0,1.843 -1.497,3.34 -3.34,3.34c-1.843,0 -3.34,-1.497 -3.34,-3.34c0,-1.843 1.497,-3.34 3.34,-3.34Z' /%3E%3Cpath d='M4.823,5.507l-0,0.625l-1.805,-0l0,-0.625l0.558,-0l-0,-2.318l-0.558,-0l0,-0.629l1.261,0l0,2.947l0.544,-0Z' /%3E%3Cpath d='M4.32,1.681c-0,0.115 -0.042,0.215 -0.126,0.299c-0.084,0.084 -0.183,0.126 -0.299,0.126c-0.115,-0 -0.214,-0.042 -0.296,-0.126c-0.081,-0.084 -0.122,-0.184 -0.122,-0.299c0,-0.116 0.041,-0.216 0.122,-0.299c0.082,-0.084 0.181,-0.126 0.296,-0.126c0.12,-0 0.221,0.041 0.303,0.122c0.081,0.082 0.122,0.183 0.122,0.303Z' /%3E%3C/svg%3E") 16 16, pointer;
+    width: calc(100vw - 2rem);
+    height: calc(100vh - 2rem);
 }
 
 #newsBox > #newsBoxContent > #dismissNewsBoxIcon {
+    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer; 
     position:absolute;
     width:3rem; height: 3rem;
     padding: 1rem;
