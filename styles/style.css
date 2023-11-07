@@ -65,12 +65,12 @@ ul li img {
 
 svg {
     background-color: #b9e873;
-    width : 100px;
-    height : 100px;
+    width : 67vh;
+    height : 67vh;
+    stroke : black;
+    fill :antiquewhite
 }
 
-svg rect {
-}
 
 button {
     background-color: #b9e873; 
