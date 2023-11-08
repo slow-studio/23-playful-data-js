@@ -1,5 +1,6 @@
 # todo
 
+[ ] add thumbnail for prototype/website using the opengraph protocol
 [ ] if the person's never clicked on the forest, inform them that they can
 [ ] [maybe not needed] if a person doesn't click on the forest for a long time, show a news story
 [ ] add positive news stories, which show up whenever the person saves the #forest
