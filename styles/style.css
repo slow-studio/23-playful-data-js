@@ -3,14 +3,14 @@
 
 :root {
     /* CSS variables */
-    --yellow: #ffcc00;
-    /* --autumn: #cc8833; */
-    --autumn: #b18425;
-    --green: #009977;
-    --protected: #00723b;
-    --wood: #994929;
-    --fire: #C95E38;
-    --firedarker: #c03300;
+    --yellow: hsl(48, 100%, 50%);
+    /* --autumn: hsl(33, 60%, 50%); */
+    --autumn: hsl(41, 65%, 42%);
+    --green: hsl(167, 100%, 30%);
+    --protected: hsl(151, 100%, 22%);
+    --wood: hsl(17, 58%, 38%);
+    --fire: hsl(16, 57%, 50%);
+    --firedarker: hsl(16, 100%, 38%);
     --treewidth: /* placeholder */ 100px; 
 }
 
