@@ -78,11 +78,14 @@ function getStylePropertyFromRoot(property) {
  */
 function randomiseHSLColour(c, rhby, rlby, blocker) {
     if(c.slice(0,3)=='var') {
-        c = c.slice(c.indexOf("(")+1,c.indexOf(")"))
+        if(blocker) return `var(${c})`
+        else c = c.slice(c.indexOf("(")+1,c.indexOf(")"))
     }
     if(c.slice(0,2)=='--') {
-        c = getStylePropertyFromRoot(c)
+        if(blocker) return `var(${c})`
+        else c = getStylePropertyFromRoot(c)
     }
+    if(blocker) return c
     let hsl = c.split(",")
     if(hsl[0].split("(")[0]!="hsl") {
         console.log(`supplied colour is not in HSL format. so, randomiseHSLColour() can not randomise colour. so: returning colour {string} as-is: ${c}.`)
@@ -555,9 +558,9 @@ startButton.addEventListener('click', function () {
         },
         orderly: {
             positionally: true,
-            maxZIndexDeviation: 2,
+            maxZIndexDeviation: 2, /* only relevant if ( positionally == false ) */
             shape: true,
-            colour: true
+            colour: false
         }
     }
 
@@ -646,7 +649,7 @@ startButton.addEventListener('click', function () {
                 }
             },
             dimensions: {
-                l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? ((Math.random() < 5 ? -1 : 1) * Math.random()*svgtree.dim.width/4) : 0),
+                l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
                 t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
                 w: svgtree.dim.width,
                 h: svgtree.dim.height,
