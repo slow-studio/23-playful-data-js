@@ -500,6 +500,15 @@ startButton.addEventListener('click', function () {
         }
     }
 
+    /** ensure that all the trees sit in the centre of the #forest div */
+    const maxWidthOfForest = forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r)
+    let widthOfTreesInRow = /* starting value */ svgtree.dim.width
+    while(widthOfTreesInRow + svgtree.dim.width <= maxWidthOfForest ) {
+        widthOfTreesInRow += forestSettings.spacing.h
+    }
+    forestSettings.padding.l += (maxWidthOfForest-widthOfTreesInRow)/2
+    forestSettings.padding.r += (maxWidthOfForest-widthOfTreesInRow)/2
+
     /** @type {number} keeps track of the highest z-index assigned to any tree */
     var highestZIndexOnTree = 0;
 
