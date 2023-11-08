@@ -554,7 +554,7 @@ startButton.addEventListener('click', function () {
             v: 37.5
         },
         orderly: {
-            positionally: false,
+            positionally: true,
             maxZIndexDeviation: 2,
             shape: true,
             colour: true
@@ -646,7 +646,7 @@ startButton.addEventListener('click', function () {
                 }
             },
             dimensions: {
-                l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)),
+                l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? ((Math.random() < 5 ? -1 : 1) * Math.random()*svgtree.dim.width/4) : 0),
                 t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
                 w: svgtree.dim.width,
                 h: svgtree.dim.height,
