@@ -7,7 +7,7 @@
     /* --autumn: #cc8833; */
     --autumn: #b18425;
     --green: #009977;
-    --protected: #00723b;
+    --protected: hsl(151, 100%, 22%);
     --wood: #994929;
     --fire: #C95E38;
     --firedarker: #c03300;
@@ -122,7 +122,7 @@ svg {
 #forest .tree svg path {
     fill:#fff;
     stroke:#000;
-    stroke-width:6px;
+    stroke-width:3px;
 }
 
 #forest .tree svg path.foliage {
