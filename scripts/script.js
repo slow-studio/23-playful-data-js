@@ -681,18 +681,17 @@ startButton.addEventListener('click', function () {
         // set id and class
         newDiv.setAttribute('class', tree[i].class)
         newDiv.setAttribute('id', tree[i].id)
-        // add tree-image into newDiv
-        newDiv.innerHTML = svgtree.src.starttag + tree[i].shape.foliage.now + tree[i].shape.stump.now + svgtree.src.endtag
 
-        // style the tree
-        const svgelement = newDiv.getElementsByTagName("svg")[0] // the first (and only) child is an <svg>
-        svgelement.classList.add(tree[i].state.now)
-        const foliages = svgelement.getElementsByClassName('foliage')
-        const wood = svgelement.getElementsByClassName('stump')
-        /** @ts-ignore */
-        for (const f of foliages) { f.style.fill = tree[i].colour.foliage.now }
-        /** @ts-ignore */
-        for (const w of wood) { w.style.fill = tree[i].colour.stump.now }
+        // add the placeholder svg-element into newDiv
+        newDiv.innerHTML = svgtree.src.starttag + svgtree.src.endtag
+        // then, grab the svg-element...
+        const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
+        // ... and, finally, draw and style the tree (within the svg-element):
+        //  — spawn all normal trees:
+        // updateTree(svgelement,"normal")
+        //  or
+        //  - spawn a more organic-looking forest:
+        updateTree(svgelement, Math.random()<.02?"charred":Math.random()<.03?"absent":"normal")
 
         // newDiv should be as large as the tree-image
         newDiv.style.width = tree[i].dimensions.w + 'px'
