@@ -640,8 +640,8 @@ xNewsBox.addEventListener('click', function () {
 function showBox(box) {
     newsBoxDisplayState = true
     setTimeout(function() {
-        box.style.bottom = "calc(100vh - 2rem)"
-        box.style.opacity = '1'
+        box.style.top = `calc(-${window.innerHeight}px + 1rem)`
+        box.style.height = `calc(${window.innerHeight}px - 2rem)`
     }, newsBoxTransitionDuration)
     newsSeenCounter++
     // console.log(`newsSeenCounter: ${newsSeenCounter}`)
@@ -649,8 +649,8 @@ function showBox(box) {
 
 function hideBox(box) {
     newsBoxDisplayState = false
-    box.style.bottom = "-100vh"
-    box.style.opacity = '0.5'
+    box.style.top = "10vh"
+    box.style.height = "0"
     seedDryTrees(Math.max(newsSeenCounter,1))
 }
 
