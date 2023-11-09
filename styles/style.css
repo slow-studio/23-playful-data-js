@@ -33,6 +33,10 @@ body {
     line-height: 1.15rem;
 }
 
+body * {
+    touch-action: manipulation; /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation, https://stackoverflow.com/a/53236027, and https://endtimes.dev/you-can-use-css-to-remove-the-double-tap-zoom-feature-on-ios/ */
+}
+
 h1, h2, h3, p {
     text-align: left;
 }
@@ -99,7 +103,6 @@ button#startButton {
     max-width: 100%;
     flex: 1 1 auto;
     cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer;
-    touch-action: manipulation; /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation and https://stackoverflow.com/a/53236027 */
 }
 
 svg {
