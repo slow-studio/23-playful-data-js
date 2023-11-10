@@ -295,169 +295,169 @@ const headlines = {
          */
         {
             "headline": "Solar Revolution Powers India's Green Future",
-            "byline": "India's Ministry of New and Renewable Energy, in collaboration with leading solar companies, has installed over 35 gigawatts of solar capacity across the nation. This ambitious initiative aims to reduce greenhouse gas emissions by 30% by 2030, helping combat climate change. The solar industry now employs over 300,000 people, providing a substantial boost to the economy while contributing to India's commitment to cleaner energy sources. This transition to solar power has already saved the country 55 million tons of CO2 emissions annually, making it a crucial step in India's commitment to environmental sustainability and a greener future.",
-            "source": "The Times of India",
+            "byline": "India's Ministry of New and Renewable Energy, in collaboration with leading solar companies, has installed over 35 gigawatts of solar capacity across the nation. This ambitious initiative aims to reduce greenhouse gas emissions by 30% in 10 years, helping combat climate change. The solar industry now employs over 300,000 people, providing a substantial boost to the economy while contributing to India's commitment to cleaner energy sources. This transition to solar power has already saved the country 55 million tons of CO2 emissions annually, making it a crucial step in India's commitment to environmental sustainability and a greener future.",
+            "source": "The Times of Bharat",
             "author": "Priya Sharma",
             "date": "Mar 15"
         },
         {
             "headline": "Urban Forests Thrive: London Plants One Million Trees",
-            "byline": "London's Mayor, Sadiq Khan, has launched a city-wide initiative to plant one million trees by 2025. These trees will capture an estimated 2,500 tons of CO2 annually and enhance urban biodiversity. The effort involves community engagement, schools, and partnerships with environmental organizations, demonstrating that cities can be part of the solution to climate change. London's urban forest initiative, which has already planted 500,000 trees, is expected to reduce the city's annual CO2 emissions by an impressive 150,000 tons, providing a greener and healthier future for its residents.",
-            "source": "The Guardian",
+            "byline": "London's Mayor, Boris Khan, has launched a city-wide initiative to plant one million trees within 5 years. These trees will capture an estimated 2,500 tons of CO2 annually and enhance urban biodiversity. The effort involves community engagement, schools, and partnerships with environmental organizations, demonstrating that cities can be part of the solution to climate change. London's urban forest initiative, which has already planted 500,000 trees, is expected to reduce the city's annual CO2 emissions by an impressive 150,000 tons, providing a greener and healthier future for its residents.",
+            "source": "The British Guardian",
             "author": "John Smith and Emma Wilson",
             "date": "Apr 22"
         },
         {
             "headline": "Electric Car Sales Soar, Norway Leads the Charge",
             "byline": "Norway has become a global leader in electric vehicle adoption, with 85% of new car sales being electric or hybrid vehicles. Government incentives, including tax breaks and toll exemptions, have encouraged this shift, reducing carbon emissions and air pollution. As a result, Norway's CO2 emissions from the transportation sector have significantly decreased. This transition to electric cars has led to a remarkable 40% reduction in urban air pollution levels, contributing to better public health and quality of life.",
-            "source": "Reuters",
+            "source": "Energy Watch",
             "author": "Maria Andersen",
             "date": "Jul 9"
         },
         {
             "headline": "Plastic Waste Declines as Global Cleanup Campaign Gains Traction",
             "byline": "Environmental organizations and companies worldwide have organized massive cleanup efforts, removing millions of tons of plastic waste from oceans and coastlines. The United Nations reports a 30% reduction in ocean plastic pollution, highlighting the success of these campaigns. This collective action has contributed to the protection of marine ecosystems and mitigated climate change impacts. The reduction in ocean plastic pollution has led to a 15% decrease in harm to marine wildlife, preserving fragile ecosystems and ensuring a healthier planet.",
-            "source": "National Geographic",
+            "source": "International Geographic",
             "author": "David Wilson",
             "date": "Oct 4"
         },
         {
             "headline": "Reforestation Boom in Brazil's Amazon Rainforest",
-            "byline": "Brazil's government, in partnership with international conservation organizations, is investing in large-scale reforestation projects in the Amazon. They aim to restore 100 million acres of rainforest by 2030, with a focus on preserving biodiversity and absorbing CO2. This effort is critical in combating deforestation and safeguarding the planet's vital carbon sinks. Reforestation in the Amazon is already showing results, with a 25% reduction in deforestation rates and the preservation of countless species in one of the world's most biodiverse regions.",
-            "source": "BBC News",
+            "byline": "Brazil's government, in partnership with international conservation organizations, is investing in large-scale reforestation projects in the Amazon. They aim to restore 100 million acres of rainforest in 10 years, with a focus on preserving biodiversity and absorbing CO2. This effort is critical in combating deforestation and safeguarding the planet's vital carbon sinks. Reforestation in the Amazon is already showing results, with a 25% reduction in deforestation rates and the preservation of countless species in one of the world's most biodiverse regions.",
+            "source": "BARC News",
             "author": "Maria Santos and Juan Hernandez",
             "date": "Nov 20"
         },
         {
             "headline": "Renewable Energy Surpasses Fossil Fuels in Germany",
-            "byline": "Germany has reached a milestone in its transition to clean energy. Renewable energy sources, including wind and solar, now produce more electricity than fossil fuels. This shift has significantly reduced carbon emissions and is a major step towards Germany's goal of becoming carbon-neutral by 2050. With renewable energy contributing to 52% of the country's electricity supply, Germany sets an example for a sustainable energy future.",
-            "source": "Der Spiegel",
+            "byline": "Germany has reached a milestone in its transition to clean energy. Renewable energy sources, including wind and solar, now produce more electricity than fossil fuels. This shift has significantly reduced carbon emissions and is a major step towards Germany's goal of becoming carbon-neutral within 25 years. With renewable energy contributing to 52% of the country's electricity supply, Germany sets an example for a sustainable energy future.",
+            "source": "Der Spiel",
             "author": "Hans Müller",
             "date": "May 8"
         },
         {
             "headline": "China's Green Belt Initiative Aims to Combat Desertification",
-            "byline": "China's Ministry of Ecology and Environment is leading a nationwide effort to combat desertification through its Green Belt initiative. By planting trees and vegetation in arid regions, the program aims to restore 50 million acres of land by 2030, reducing soil erosion and sequestering carbon. This initiative is crucial in the fight against desertification and its adverse effects on climate and agriculture.",
-            "source": "South China Morning Post",
+            "byline": "China's Ministry of Ecology and Environment is leading a nationwide effort to combat desertification through its Green Belt initiative. By planting trees and vegetation in arid regions, the program aims to restore 50 million acres of land in 10 years, reducing soil erosion and sequestering carbon. This initiative is crucial in the fight against desertification and its adverse effects on climate and agriculture.",
+            "source": "Southern Chinese Morning Post",
             "author": "Li Wei",
             "date": "Jun 14"
         },
         {
             "headline": "Netherlands Invests in Coastal Protection to Counter Rising Sea Levels",
             "byline": "The Netherlands is implementing an extensive coastal protection plan to adapt to rising sea levels. Investments in dikes, storm surge barriers, and beach nourishment aim to safeguard the low-lying country from the threats of climate change. These measures are part of the Dutch Delta Program, which is considered one of the world's most comprehensive strategies to address sea level rise and protect coastal communities.",
-            "source": "DutchNews.nl",
+            "source": "Scandinavian News Network",
             "author": "Sophie van der Meer",
             "date": "Aug 30"
         },
         {
             "headline": "Australia's Great Barrier Reef Shows Signs of Recovery",
             "byline": "Efforts to protect and restore Australia's Great Barrier Reef are showing progress. Coral restoration projects and reductions in pollution have led to an increase in coral cover. While challenges persist, including climate change impacts, these conservation initiatives provide hope for the world's largest coral reef system and the diverse marine life it supports.",
-            "source": "The Sydney Morning Herald",
+            "source": "The Sydney Morning Owl",
             "author": "James Cooper",
             "date": "Sep 12"
         },
         {
             "headline": "Kenya's Reforestation Efforts Combat Deforestation and Boost Economy",
-            "byline": "Kenya's government, in partnership with organizations and local communities, is planting millions of trees to combat deforestation and promote sustainable forestry. The initiative has led to increased forest cover, reduced soil erosion, and the creation of jobs in the forestry sector. By 2030, Kenya aims to restore 5.1 million acres of degraded land and enhance its natural carbon sequestration capacity.",
-            "source": "Daily Nation",
+            "byline": "Kenya's government, in partnership with organizations and local communities, is planting millions of trees to combat deforestation and promote sustainable forestry. The initiative has led to increased forest cover, reduced soil erosion, and the creation of jobs in the forestry sector. In 10 years, Kenya aims to restore 5.1 million acres of degraded land and enhance its natural carbon sequestration capacity.",
+            "source": "Press Office, UNAfrica",
             "author": "Alice Mwangi",
             "date": "Jul 27"
         },
         {
             "headline": "Green Buildings on the Rise Worldwide",
             "byline": "The construction industry is increasingly adopting sustainable building practices, with a growing number of green buildings and eco-friendly construction materials. This trend is reducing the carbon footprint of the built environment and improving energy efficiency. Green buildings not only help mitigate climate change but also offer cost savings and enhanced quality of life for occupants.",
-            "source": "Architectural Digest",
+            "source": "Green Architectural Digest",
             "author": "Michael Chen",
             "date": "Apr 5"
         },
         {
             "headline": "Sweden's Carbon Tax Encourages Emissions Reduction",
             "byline": "Sweden's carbon tax, introduced in the early 1990s, has played a significant role in curbing greenhouse gas emissions. The tax incentivizes businesses and individuals to reduce their carbon footprint by taxing emissions from fossil fuels. This policy has led to a substantial decrease in emissions and demonstrates the potential of carbon pricing as a tool to combat climate change.",
-            "source": "Swedish Times",
+            "source": "Swedish Fika Times",
             "author": "Eva Eriksson",
             "date": "Oct 19"
         },
         {
             "headline": "Eco-Friendly Agriculture Practices Flourish in India",
             "byline": "Indian farmers are embracing eco-friendly agriculture practices, including organic farming and sustainable crop rotation. These methods reduce the use of chemical pesticides and fertilizers, preserving soil health and biodiversity. Such practices contribute to mitigating the environmental impact of agriculture while promoting food security and sustainability.",
-            "source": "The Hindu",
+            "source": "The Non-Fascist Hindu",
             "author": "Rajesh Patel",
             "date": "Feb 11"
         },
         {
             "headline": "Costa Rica Achieves Carbon Neutrality and Sets New Goals",
             "byline": "Costa Rica has become one of the first countries to achieve carbon neutrality. This accomplishment was reached through a combination of renewable energy sources, reforestation efforts, and sustainable land use practices. The country's commitment to sustainability is evident in its plans to become fully fossil fuel-free and achieve even greater carbon neutrality in the coming years.",
-            "source": "Costa Rican Times",
+            "source": "CR Times",
             "author": "Ana Rodriguez",
             "date": "Nov 7"
         },
         {
             "headline": "Innovative Water Recycling Solutions Combat Drought in California",
             "byline": "California is tackling water scarcity and drought with innovative water recycling technologies. These systems purify wastewater to make it safe for drinking and irrigation, reducing the strain on traditional water sources. As California faces increasingly severe droughts due to climate change, these solutions are crucial for ensuring water sustainability in the state.",
-            "source": "Los Angeles Times",
+            "source": "The Greater Floridian Times",
             "author": "Daniel Martinez",
             "date": "Jun 3"
         },
         {
             "headline": "Green Transportation Initiatives Transform New York City",
             "byline": "New York City is undergoing a green transportation revolution, with expanded bike lanes, electric buses, and incentives for carpooling. These initiatives are reducing congestion, air pollution, and greenhouse gas emissions. New York City aims to create a more sustainable and accessible urban environment while mitigating the impacts of climate change.",
-            "source": "The New York Times",
+            "source": "The NNY Times",
             "author": "Jennifer Lee",
             "date": "Aug 9"
         },
         {
             "headline": "Indonesia's Mangrove Reforestation Fights Coastal Erosion",
             "byline": "Indonesia is investing in mangrove reforestation to combat coastal erosion and protect communities from rising sea levels. Mangrove forests act as natural buffers, absorbing wave energy and reducing the impact of storms. This effort not only helps mitigate climate change but also safeguards the livelihoods of coastal residents.",
-            "source": "Jakarta Post",
+            "source": "Djakarta News Network",
             "author": "Rizki Pratama",
             "date": "Sep 28"
         },
         {
             "headline": "South Africa's Renewable Energy Boom Reduces Coal Dependency",
             "byline": "South Africa is experiencing a renewable energy boom, with significant investments in wind and solar power. This transition reduces the country's dependency on coal and decreases carbon emissions. South Africa's commitment to green energy aligns with global efforts to combat climate change and transition to cleaner energy sources.",
-            "source": "South African Times",
+            "source": "The Times of South African",
             "author": "Lungelo Nkosi",
             "date": "Jul 17"
         },
         {
             "headline": "Ecuador's Yasuni-ITT Initiative Protects Amazon Rainforest",
             "byline": "Ecuador's Yasuni-ITT initiative pledges to keep oil reserves beneath the Amazon rainforest untapped, protecting one of the world's most biodiverse regions. This initiative aims to reduce carbon emissions by preserving the rainforest and preventing deforestation. By doing so, Ecuador contributes to global climate change mitigation and sets an example for conservation efforts worldwide.",
-            "source": "Ecuadorian Times",
+            "source": "The Ecuadorian Times",
             "author": "Carlos Lopez",
             "date": "Dec 2"
         },
         {
             "headline": "Efforts to Reduce Food Waste Gain Momentum Worldwide",
             "byline": "Efforts to reduce food waste are gaining momentum globally, with governments, businesses, and individuals taking action to prevent food loss. Reducing food waste not only conserves resources and reduces methane emissions from landfills but also addresses food insecurity and contributes to sustainability.",
-            "source": "World Food Journal",
+            "source": "World Foods Journal",
             "author": "Lucia Rodriguez",
             "date": "Mar 19"
         },
         {
             "headline": "Japan's Green Roofs Initiative Enhances Urban Biodiversity",
             "byline": "Japan's green roofs initiative promotes the installation of vegetation on rooftops, enhancing urban biodiversity and mitigating the urban heat island effect. These green roofs improve air quality, reduce energy consumption, and provide habitat for wildlife. Japan's efforts in urban greening align with global goals to create more sustainable cities.",
-            "source": "Tokyo Times",
+            "source": "So-so Tokyo",
             "author": "Yuki Nakamura",
             "date": "Jun 27"
         },
         {
             "headline": "Clean Energy Transforms Portugal into a Renewable Powerhouse",
             "byline": "Portugal has become a renewable energy powerhouse, with over 50% of its electricity coming from wind, solar, and hydropower. This transition has significantly reduced carbon emissions and made Portugal a leader in clean energy production. The country's efforts to transition to green energy are instrumental in mitigating climate change.",
-            "source": "Portuguese Gazette",
+            "source": "Portuguese e-Gazette",
             "author": "Carlos Silva",
             "date": "Oct 14"
         },
         {
             "headline": "Green Technology Spurs Sustainable Farming in the Netherlands",
             "byline": "The Netherlands is embracing green technology in agriculture, using precision farming, drones, and sustainable practices. These innovations reduce the environmental impact of farming, lower pesticide use, and enhance crop yields. The Netherlands sets an example for sustainable agriculture practices and climate-conscious farming.",
-            "source": "Dutch Agriculture Today",
+            "source": "Dutch Agriculturalists Today",
             "author": "Marta van den Berg",
             "date": "Apr 30"
         },
         {
             "headline": "Chile's Protected Marine Areas Preserve Ocean Ecosystems",
             "byline": "Chile is expanding its network of protected marine areas to safeguard ocean ecosystems and combat overfishing. These conservation efforts help maintain biodiversity and mitigate climate change by protecting vital marine habitats. Chile's commitment to marine preservation is vital for the health of the world's oceans.",
-            "source": "Chilean Coastal Guardian",
+            "source": "Associated Press Chile",
             "author": "Diego Rodriguez",
             "date": "Aug 16"
         }
@@ -484,14 +484,14 @@ const headlines = {
         },
         {
             "headline": "Southeast Asia's Rapid Urban Growth Intensifies Climate Challenges",
-            "byline": "In the face of unprecedented urban expansion, cities in Southeast Asia are grappling with the consequences. Climate experts, like Professor James Chen, highlight how the region's urban sprawl leads to habitat fragmentation, increased energy consumption, and heightened climate challenges. With urban populations set to reach 455 million by 2030, this rapid growth results in a 35% increase in carbon emissions.",
+            "byline": "In the face of unprecedented urban expansion, cities in Southeast Asia are grappling with the consequences. Climate experts, like Professor James Chen, highlight how the region's urban sprawl leads to habitat fragmentation, increased energy consumption, and heightened climate challenges. With urban populations set to reach 455 million in 10 years, this rapid growth results in a 35% increase in carbon emissions.",
             "source": "Urban Insights",
             "author": "Lisa Chang",
             "date": "Mar 5"
         },
         {
             "headline": "Emissions Surge Tied to Unregulated Chinese Industries",
-            "byline": "A recent study, led by climate scientist Dr. Li Wei, reveals the alarming role of unregulated industries in China. These sectors have contributed to a sharp rise in global emissions, accounting for 30% of the world's carbon footprint. Calls for international cooperation to mitigate climate change intensify. China's unregulated industries are responsible for a 40% increase in CO2 emissions since 2010.",
+            "byline": "A recent study, led by climate scientist Dr. Li Wei, reveals the alarming role of unregulated industries in China. These sectors have contributed to a sharp rise in global emissions, accounting for 30% of the world's carbon footprint. Calls for international cooperation to mitigate climate change intensify. China's unregulated industries are responsible for a 40% increase in CO2 emissions in the past 15 years.",
             "source": "Climate Impact Journal",
             "author": "David Wang and Emily Liu",
             "date": "Nov 14"
