@@ -623,6 +623,8 @@ const newsBox = document.getElementById('newsBoxContent')
 
 /** @type {boolean} tracks whether the newsBox is displayed or not */
 let newsBoxDisplayState = false
+/** @type {boolean} tracks whether current headline was good (true) or bad (false) */
+let goodnews = false
 
 const newsBoxTransitionDuration = 600
 updateStyle(newsBox,"transition-duration",newsBoxTransitionDuration+'ms')
@@ -651,7 +653,7 @@ function hideBox(box) {
     newsBoxDisplayState = false
     box.style.top = "10vh"
     box.style.height = "0"
-    seedDryTrees(Math.max(newsSeenCounter,1))
+    seedDryTrees(Math.round(Math.max(goodnews?newsSeenCounter/2:newsSeenCounter*1.5,1)))
 }
 
 /**
@@ -1029,11 +1031,12 @@ startButton.addEventListener('click', function () {
             let charreds = document.getElementsByClassName("charred")
 
             // if there are no dry/burning trees left (but there still are normal trees):
-            if (drys.length == 0 && burnings.length == 0 && (normals.length + protecteds.length >= 0)) {
+            if (drys.length == 0 && burnings.length == 0 && (normals.length + protecteds.length >= 0)){
                 // console.log(`no dry or burning trees (there are, however, normal trees).`)
                 if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {
                     if(!newsBoxDisplayState) {
-                        changeNews(newsBox,false)
+                        goodnews=Math.random()>.75?true:false
+                        changeNews(newsBox,goodnews)
                         showBox(newsBox)
                     }
                 }
