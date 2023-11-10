@@ -89,10 +89,13 @@ p {
 }
 
 #startButton {
+    background-color: var(--paper-light);
+    overflow:hidden;
     display: block;
     position: fixed;
     --startButtonWidth: 16rem;
-    bottom: 2rem;
+    bottom: /* placeholder */ -100vh;
+    transition: bottom /* transition-duration = placeholder */300ms ease-in-out 0ms;
     width: var(--startButtonWidth);
     max-width: 20rem;
     left: calc(50vw - (var(--startButtonWidth)/2));
