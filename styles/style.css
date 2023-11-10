@@ -29,6 +29,8 @@ html {
 }
 
 body {
+    --body-bg-colour-running: var(--paper-light);
+    --body-bg-colour-paused : var(--paper-dark) ;
     background-color: var(--paper-light);
     text-align: center;
     font-family: 'Merriweather', serif;

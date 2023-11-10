@@ -10,6 +10,37 @@
  *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
  */
 
+/** cheat code helpers */
+let pauseForestUpdate = false
+
+/**
+ * cheat codes
+ * @param {KeyboardEvent} e 
+ */
+function cheatcodes(e) {
+  let key = e.key;
+  console.log(`the ${key}-key was pressed on the keyboard.`)
+  switch(key) {
+    case ' ': 
+        pauseForestUpdate = !pauseForestUpdate
+        // offer visual feedback:
+        if(pauseForestUpdate) updateStyle(document.body,"background-color","var(--body-bg-colour-paused)") 
+        else updateStyle(document.body,"background-color","var(--body-bg-colour-running)") 
+        // write to console:
+        console.log(`pause forestUpdate: ${pauseForestUpdate}`)
+        break;
+    case 'b': 
+        goodnews = !goodnews
+        console.log(`show #newsBox.`)
+        changeNews(newsBox,goodnews)
+        showBox(newsBox, false)
+        break;
+    case 'B': 
+        console.log(`hide #newsBox.`)
+        hideBox(newsBox, false)
+        break;
+  }
+}
 
 const refreshRate = 10 // fps
 const refreshTime = 1000 / refreshRate // time in millisecond
@@ -627,15 +658,19 @@ updateStyle(newsBox,"transition-duration",newsBoxTransitionDuration+'ms')
 
 // sets the content and display-position of the newsBox at startup
 changeNews(newsBox, false)
-hideBox(newsBox)
+hideBox(newsBox, true)
 
 /** @type {HTMLElement} */
 const xNewsBox = document.getElementById('dismissNewsBoxIcon')
 xNewsBox.addEventListener('click', function () {
-    hideBox(newsBox)
+    hideBox(newsBox, true)
 })
 
-function showBox(box) {
+/**
+ * @param {*} box 
+ * @param {boolean} [count=true] - increment newsSeenCounter?
+ */
+function showBox(box, count) {
     newsBoxDisplayState = true
     setTimeout(function() {
         // sound:
@@ -645,15 +680,19 @@ function showBox(box) {
         box.style.top = `calc(-${window.innerHeight}px + 1rem)`
         box.style.height = `calc(${window.innerHeight}px - 2rem)`
     }, newsBoxTransitionDuration)
-    newsSeenCounter++
+    if(count) newsSeenCounter++
     // console.log(`newsSeenCounter: ${newsSeenCounter}`)
 }
 
-function hideBox(box) {
+/**
+ * @param {*} box 
+ * @param {boolean} [seed=true] - seedDryTrees when box closes?
+ */
+function hideBox(box, seed) {
     newsBoxDisplayState = false
     box.style.top = "10vh"
     box.style.height = "0"
-    seedDryTrees(Math.round(Math.max(goodnews?newsSeenCounter/2:newsSeenCounter*1.5,1)))
+    if(seed) seedDryTrees(Math.round(Math.max(goodnews?newsSeenCounter/2:newsSeenCounter*1.5,1)))
 }
 
 /**
@@ -1018,7 +1057,9 @@ startButton.addEventListener('click', function () {
 
         /* update visuals */
 
-        if (!newsBoxDisplayState) {
+        console.log(`newsBoxDisplayState: ${newsBoxDisplayState}\npauseForestUpdate: ${pauseForestUpdate}\ncheck evaluated to: ${! (newsBoxDisplayState || pauseForestUpdate)}`)
+
+        if (! (newsBoxDisplayState || pauseForestUpdate)) {
 
             // collect all trees by the states they are in
             let absents = document.getElementsByClassName("absent")
@@ -1037,7 +1078,7 @@ startButton.addEventListener('click', function () {
                     if(!newsBoxDisplayState) {
                         goodnews=Math.random()>.75?true:false
                         changeNews(newsBox,goodnews)
-                        showBox(newsBox)
+                        showBox(newsBox, true)
                     }
                 }
             }
