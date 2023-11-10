@@ -1,11 +1,14 @@
 # todo
 
+[ ] add instructions at the start.
+[ ] add "good news" and "bad news" explicitly at the top of each news article.
+[ ] design future/fiction narrative can get stronger.
+[ ] if the person's never clicked on the forest, inform them that they can
 [ ] news articles come from above, not below.
 [ ] add scrollability to the forest, so a person can go down and read the larger article. when a person scrolls, the forest stops.
 [ ] good news comes when the person is doing well. not randomly.
-[ ] add a (well-timed) conclusion or reward to the experience
+[ ] add a (well-timed) conclusion or reward to the experience. maybe also add some score system while people are playing it.
 
-[ ] if the person's never clicked on the forest, inform them that they can
 [ ] [maybe not needed] if a person doesn't click on the forest for a long time, show a news story
 
 [ ] modes: axe & water (click & drag ; click on tool buttons ; click & hold)
