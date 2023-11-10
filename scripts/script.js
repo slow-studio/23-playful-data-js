@@ -1080,13 +1080,14 @@ startButton.addEventListener('click', function () {
                 }
             }
 
-            /** make fires & dryness spread from one tree to its neighbours */
+            /** make fire, dryness, health spread from one tree to its neighbours */
 
             spreadInfection(burnings, "burning", .99, 1)
             spreadInfection(drys, "dry", .995, 1)
+            // spreadInfection(normals, "normal", .99995, 1)
 
             /**
-             * make fires & dryness spread from one tree to its neighbours
+             * fire, dryness, health can spread from one tree to its neighbours
              * @param {*} trees
              * @param {string} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
              * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
@@ -1113,28 +1114,42 @@ startButton.addEventListener('click', function () {
                                 setTimeout(function () {
                                     const neighbour = document.getElementById('tree-' + t)
                                     const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                                    if (
-                                        neighbourSvg.classList.contains("charred")
-                                        ||
-                                        neighbourSvg.classList.contains("absent")
-                                        ||
-                                        neighbourSvg.classList.contains("protected")
-                                    ) {
-                                        // can't do anything
+                                    if (state == "burning" || state == "dry") {
+                                        if (
+                                            neighbourSvg.classList.contains("charred")
+                                            ||
+                                            neighbourSvg.classList.contains("absent")
+                                            ||
+                                            neighbourSvg.classList.contains("protected")
+                                        ) {
+                                            // can't do anything
+                                        }
+                                        else if (
+                                            neighbourSvg.classList.contains("normal")
+                                        ) {
+                                            // console.log(`spreading dryness. making tree-${id} dry.`)
+                                            updateTree(neighbourSvg, "dry")
+                                        }
+                                        else if (
+                                            state == "burning"
+                                            &&
+                                            neighbourSvg.classList.contains("dry")
+                                        ) {
+                                            // console.log(`spreading fire. tree-${id} catches fire.`)
+                                            updateTree(neighbourSvg, "burning")
+                                        }
                                     }
-                                    else if (
-                                        neighbourSvg.classList.contains("normal")
-                                    ) {
-                                        // console.log(`spreading dryness. making tree-${id} dry.`)
-                                        updateTree(neighbourSvg, "dry")
-                                    }
-                                    else if (
-                                        state == "burning"
-                                        &&
-                                        neighbourSvg.classList.contains("dry")
-                                    ) {
-                                        // console.log(`spreading fire. tree-${id} catches fire.`)
-                                        updateTree(neighbourSvg, "burning")
+                                    else if (state == "normal") {
+                                        if (
+                                            neighbourSvg.classList.contains("absent")
+                                        ) {
+                                            updateTree(neighbourSvg, "normal")
+                                        }
+                                        else if (
+                                            neighbourSvg.classList.contains("charred")
+                                        ) {
+                                            updateTree(neighbourSvg, "absent")
+                                        }
                                     }
                                 }, refreshTime)
                             }
