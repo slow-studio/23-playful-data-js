@@ -1,6 +1,5 @@
 # todo
 
-[ ] remove potected sound.
 [ ] news articles come from above, not below.
 [ ] add scrollability to the forest, so a person can go down and read the larger article. when a person scrolls, the forest stops.
 [ ] good news comes when the person is doing well. not randomly.

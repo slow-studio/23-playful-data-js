@@ -252,13 +252,9 @@ function updateTree(svgelement, state) {
             p.style.fill = tree[id].colour.burned.now
         }
         // -- 3. sound feedback:
-        //      -- a. tree catches fire (i.e., was not burning before, but is now)
+        //      -- tree catches fire (i.e., was not burning before, but is now)
         if (tree[id].state.previous != "burning" && tree[id].state.now == "burning") {
             playSound(sCatchFire, volumeScaler.sCatchFire)
-        }
-        //      -- b. tree is protected
-        if (tree[id].state.previous != "protected" && tree[id].state.now == "protected") {
-            forcePlaySound(sMakeTreeSafe, volumeScaler.sMakeTreeSafe)
         }
 
         /*  state-specific behaviour:
@@ -642,6 +638,10 @@ xNewsBox.addEventListener('click', function () {
 function showBox(box) {
     newsBoxDisplayState = true
     setTimeout(function() {
+        // sound:
+        if(goodnews) forcePlaySound(sGoodNews, volumeScaler.sGoodNews) 
+        else if(!goodnews) forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
+        // visual:
         box.style.top = `calc(-${window.innerHeight}px + 1rem)`
         box.style.height = `calc(${window.innerHeight}px - 2rem)`
     }, newsBoxTransitionDuration)
@@ -1266,14 +1266,14 @@ startButton.addEventListener('click', function () {
 
 const soundsrc = "assets/sound/"
 let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
-let sMakeTreeSafe = new Audio(soundsrc + 'twinkle.mp3');
+let sGoodNews = new Audio(soundsrc + 'twinkle.mp3');
 let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
 let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
 let sEagle = new Audio(soundsrc + 'eagle.mp3');
 
 const volumeScaler = {
     sCatchFire: .03125,
-    sMakeTreeSafe: .0078125,
+    sGoodNews: .03125,
     sBurning: 1,
     sForest: 1,
     sEagle: .125
