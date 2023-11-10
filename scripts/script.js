@@ -1327,7 +1327,7 @@ const volumeScaler = {
     sCatchFire: .03125,
     sGoodNews: .03125,
     sBurning: 1,
-    sForest: 1,
+    sForest: .25,
     sEagle: .125
 }
 
