@@ -3,6 +3,8 @@
 
 :root {
     /* CSS variables */
+    --paper-light: hsl(46, 76%, 97%);
+    --paper-dark: hsl(44, 74%, 90%);
     --yellow: hsl(48, 100%, 50%);
     /* --autumn: hsl(33, 60%, 50%); */
     --autumn: hsl(41, 65%, 42%);
@@ -27,6 +29,7 @@ html {
 }
 
 body {
+    background-color: var(--paper-light);
     text-align: center;
     font-family: 'Merriweather', serif;
     font-weight: 300;
@@ -226,7 +229,9 @@ svg {
 
 #newsBoxContent #nb_author,
 #newsBoxContent #nb_source {
-    margin-left: 1.5rem; 
+    --leftmargin: 1.5rem;
+    margin-left: var(--leftmargin); 
+    width: calc(100% - var(--leftmargin));
     border-left: 1px solid black;
     padding: 0.03125rem .5rem;
 }
