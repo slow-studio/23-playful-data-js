@@ -1,5 +1,8 @@
 # todo
 
+[ ] organise code (into files or modules)
+[ ] disable double-tap-to-zoom on ios devices.
+
 [ ] add instructions at the start.
 [ ] add "good news" and "bad news" explicitly at the top of each news article.
 [ ] design future/fiction narrative can get stronger.
@@ -8,6 +11,8 @@
 [ ] add scrollability to the forest, so a person can go down and read the larger article. when a person scrolls, the forest stops.
 [ ] good news comes when the person is doing well. not randomly.
 [ ] add a (well-timed) conclusion or reward to the experience. maybe also add some score system while people are playing it.
+
+[ ] bug: sometimes (on slower devices/networks) the program draws trees without loading colour.
 
 [ ] [maybe not needed] if a person doesn't click on the forest for a long time, show a news story
 
