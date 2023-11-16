@@ -7,14 +7,25 @@ body {
     font-weight: 300;
     font-size: 1rem;
     line-height: 1.45rem;
+    /* background-color: #eeeeee; */
 
 }
 #container {
+    margin: 0;
     margin: 1rem auto;
     width: calc(100% - 2rem);
     max-width: 40rem;
-    text-align: left;
+    /* background-color: #aaaaaa; */
+    text-align: center;
+    border-bottom: 5px solid black;
 }
+
 h1 {
     font-weight: 900;
+}
+
+img {
+    /* background-color: #fff; */
+    position: relative;
+    top: 8px;
 }
