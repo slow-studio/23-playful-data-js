@@ -26,6 +26,7 @@ h1 {
 
 img {
     /* background-color: #fff; */
+    width: 25vw;
     position: relative;
     top: 8px;
 }

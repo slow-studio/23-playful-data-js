@@ -1,16 +1,18 @@
 /* placeholder javascript file */
 
 const treeLifecycle = [
-    "tree frames/01.png",
-    "tree frames/02.png",
-    "tree frames/03.png",
-    "tree frames/04.png",
-    "tree frames/05.png",
-    "tree frames/06.png",
-    "tree frames/07.png",
-    "tree frames/08.png",
-    "tree frames/09.png",
-    "tree frames/10.png",
+    "assets/treeFrames/1.svg",
+    // "assets/treeFrames/2.svg",
+    "assets/treeFrames/3.svg",
+    // "assets/treeFrames/4.svg",
+    "assets/treeFrames/5.svg",
+    // "assets/treeFrames/6.svg",
+    "assets/treeFrames/7.svg",
+    // "assets/treeFrames/8.svg",
+    "assets/treeFrames/9.svg",
+    // "assets/treeFrames/10.svg",
+    "assets/treeFrames/11.svg",
+    "assets/treeFrames/12.svg",
     ]  
     
 const time = [
