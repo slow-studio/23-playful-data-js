@@ -65,3 +65,11 @@ function interpolatecolour() {
     let b = 255-c
     return `rgb(${r}+${g}+${b})`
 }
+
+/*
+on mouse move, set timing based on x position
+in set interval function
+{
+    function e, interpolate color
+}(timing variable)
+*/
