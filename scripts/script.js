@@ -41,22 +41,26 @@ const treeLifecycle = [
 
 let cont = document.getElementById('container')
 let text = document.getElementById('filename')
-let f = 0
+let speed = 0
 let x = 0
 let c = 0 
-cont.innerHTML = head + treeLifecycle[f] + tail
 
-onmousemove = function(e){
+function runTree ()
+{
+    let i =1
+    for(i <= treeLifecycle.length; i++)
+    {
+        cont.innerHTML = head + treeLifecycle[i] + tail
+        text.innerHTML = ('i')
+    }   
+}
+
+onmousemove = function(e)
+{
     x = e.clientX
-    f = Math.floor(treeLifecycle.length * x/this.window.innerWidth)
+    speed = x*10
     c = Math.floor(255 * x/this.window.innerWidth)
-    /** @ts-ignore */
-    cont.innerHTML = head + treeLifecycle[f] + tail
-    /** @ts-ignore */
-    cont.firstChild.firstChild.style.fill = interpolatecolour()
-    /** @ts-ignore */
-    text.innerHTML = f+1
-    
+    cont.firstChild.firstChild.style.fill = interpolatecolour()  
 }
 
 function interpolatecolour() {
@@ -69,13 +73,10 @@ function interpolatecolour() {
 /*
 on mouse move, set timing based on x position
 in set interval function
-{
-    let i =1
-    for(i <= treeLifecycle.length +1, i++)
-        cont.innerHTML = head + treeLifecycle[i] + tail
 
-    function e, interpolate color
-}(timing variable)
+
+timing function-
+
 */
 
 
