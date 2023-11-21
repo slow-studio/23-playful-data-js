@@ -15,7 +15,7 @@ body {
     margin: 1rem auto;
     width: calc(100% - 2rem);
     max-width: 40rem;
-    /* background-color: #aaaaaa; */
+    background-color: #eee;
     text-align: center;
     border-bottom: 5px solid black;
 }
@@ -34,6 +34,18 @@ img {
 svg {
     width:100px;
     height:300px;
+}
+svg:nth-child(1) {
+    position: relative;
+    left: 50px;
+}
+svg:nth-child(2) {
+    position: relative;
+    left: 50px;
+}
+svg:nth-child(3) {
+    position: relative;
+    left: -100px;
 }
 svg path {
     fill: #4c8a40;

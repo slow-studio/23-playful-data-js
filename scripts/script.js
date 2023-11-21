@@ -42,41 +42,30 @@ const treeLifecycle = [
 let cont = document.getElementById('container')
 let text = document.getElementById('filename')
 let speed = 0
-let x = 0
-let c = 0 
+let x = 0, y=0
+let timeInterval = 1000
 
-function runTree ()
-{
-    let i =1
-    for(i <= treeLifecycle.length; i++)
-    {
-        cont.innerHTML = head + treeLifecycle[i] + tail
-        text.innerHTML = ('i')
-    }   
+let i = 0, j=1, k=12 // treeLifecycle index counter
+cont.innerHTML = head + treeLifecycle[i] + tail + head + treeLifecycle[j] + tail +head + treeLifecycle[k] + tail
+
+function cycleTree() {
+    i = ++i >= treeLifecycle.length ? 0 : i
+    j = ++j >= treeLifecycle.length ? 0 : j
+    k = ++k >= treeLifecycle.length ? 0 : k
+    cont.innerHTML = head + treeLifecycle[i] + tail + head + treeLifecycle[j] + tail + head + treeLifecycle[k] + tail
+
+}
+
+cont.addEventListener("mousemove", startafunction)
+let idForSetInterval = 0
+function startafunction() {
+    clearInterval(idForSetInterval)
+    idForSetInterval = setInterval(cycleTree, timeInterval)
 }
 
 onmousemove = function(e)
 {
     x = e.clientX
-    speed = x*10
-    c = Math.floor(255 * x/this.window.innerWidth)
-    cont.firstChild.firstChild.style.fill = interpolatecolour()  
+    timeInterval = (Math.floor(100 * x / window.innerWidth) + 1) * 10
+    text.innerHTML = `timeInterval = ${timeInterval}<br>totalTime = ${Math.floor(timeInterval*treeLifecycle.length/1000)} seconds`
 }
-
-function interpolatecolour() {
-    let r = 255-c
-    let g = 255
-    let b = 255-c
-    return `rgb(${r}+${g}+${b})`
-}
-
-/*
-on mouse move, set timing based on x position
-in set interval function
-
-
-timing function-
-
-*/
-
-
