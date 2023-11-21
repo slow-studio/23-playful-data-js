@@ -39,21 +39,21 @@ const treeLifecycle = [
     '<path class="cls-1" d="M23.92,147.26h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.82-.27,5.82.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44,5.73,5.73,0,0,0,6.83,1.79c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.15,4.15,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.25,4.25,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61a2.93,2.93,0,0,0-1.28-2.56c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15,2.13,2.13,0,0,0-1.69,1.74,3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22A4.17,4.17,0,0,0,13.14,78a4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.94c-.51,4.69,1.63,6.64,4.5,7.81-1.27.58-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3,4.11,4.11,0,0,0,3.66,5,7.13,7.13,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5,8.17,8.17,0,0,0,4.18,1.28C24.14,141.52,23.79,147.26,23.92,147.26Z"/>'
 ]
 
-let img = document.getElementById('container')
+let cont = document.getElementById('container')
 let text = document.getElementById('filename')
 let f = 0
 let x = 0
-let c = 0
-img.innerHTML = head + treeLifecycle[f] + tail
+let c = 0 
+cont.innerHTML = head + treeLifecycle[f] + tail
 
 onmousemove = function(e){
     x = e.clientX
     f = Math.floor(treeLifecycle.length * x/this.window.innerWidth)
     c = Math.floor(255 * x/this.window.innerWidth)
     /** @ts-ignore */
-    img.innerHTML = head + treeLifecycle[f] + tail
+    cont.innerHTML = head + treeLifecycle[f] + tail
     /** @ts-ignore */
-    img.firstChild.firstChild.style.fill = interpolatecolour()
+    cont.firstChild.firstChild.style.fill = interpolatecolour()
     /** @ts-ignore */
     text.innerHTML = f+1
     
@@ -70,6 +70,12 @@ function interpolatecolour() {
 on mouse move, set timing based on x position
 in set interval function
 {
+    let i =1
+    for(i <= treeLifecycle.length +1, i++)
+        cont.innerHTML = head + treeLifecycle[i] + tail
+
     function e, interpolate color
 }(timing variable)
 */
+
+
