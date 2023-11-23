@@ -48,6 +48,9 @@ const refreshTime = 1000 / refreshRate // time in millisecond
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
+/** @type {number} /*an arbitarily large number*/
+const TREELIMIT = 2500;
+
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
 
@@ -809,7 +812,7 @@ let loopRunner = true
 
 for (let i = 0; loopRunner; i++) {
     // sanity check
-    if (i > 1000 /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
+    if (i > TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
     // create new div
     /** @type {HTMLDivElement} */
     const newDiv = document.createElement("div")
