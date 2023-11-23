@@ -1075,7 +1075,8 @@ startButton.addEventListener('click', function () {
 
         /* update visuals */
 
-        console.log(`newsBoxDisplayState: ${newsBoxDisplayState}\npauseForestUpdate: ${pauseForestUpdate}\ncheck evaluated to: ${! (newsBoxDisplayState || pauseForestUpdate)}`)
+        // will the forest update?:
+        console.log(`newsBoxDisplayState: ${newsBoxDisplayState}\npauseForestUpdate:   ${pauseForestUpdate}\nupdate visuals:      ${! (newsBoxDisplayState || pauseForestUpdate)}`)
 
         if (! (newsBoxDisplayState || pauseForestUpdate)) {
 
