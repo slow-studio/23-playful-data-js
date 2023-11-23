@@ -172,29 +172,51 @@ setInterval(function () {
 function seedDryTrees(n) {
 
     /* if there's at-least 1 "normal"/"protected" tree in the forest... */
-    if (document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length > 0) {
+    let healthyTrees = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
+    if (healthyTrees > 0) {
+        
         /* ...then, select a random "normal"/"protected" tree to turn "dry". */
+        
+        // keep n within sensible bounds
+        if (n >= healthyTrees) n = Math.floor(Math.random() * healthyTrees)
         if (n <= 1) n = 1
-        // console.log("trying to seed " + n + " dry trees")
-        for (let i = 0; i < n; i++) {
-            updateTree(selectRandomTree(), "dry")
+
+        console.log("trying to seed " + n + " dry trees")
+
+        // fraction of trees to turn from normal/protected to dry
+        let fr = n / healthyTrees
+        
+        // collect all healthy trees (svg elements)
+        let allhealthytrees = []
+        let allnormaltrees = document.getElementsByClassName("normal"), 
+            allprotectedtrees = document.getElementsByClassName("protected") // HTMLCollection
+        let arrayofallnormaltrees = Array.from(allnormaltrees),
+            arrayofallprotectedtrees = Array.from(allprotectedtrees) // convert HTMLCollection to Array
+        allhealthytrees.push(...Array.from(arrayofallnormaltrees))
+        allhealthytrees.push(...Array.from(arrayofallprotectedtrees))
+        
+        // a counter which will track how many trees we do make dry
+        let conversioncounter = 0;
+
+        // for each healthy tree, decide whether it turns dry
+        for(let i=0 ; i<allhealthytrees.length ; i++) {
+            if(conversioncounter<n) {
+                if(Math.random()<fr) {
+                    updateTree(allhealthytrees[i], "dry")
+                    conversioncounter++
+                }
+            }
+            else break;
         }
 
-        function selectRandomTree() {
-            const treeid = (Math.floor(Math.random() * totalTreesInForest))
-            const treediv = document.getElementById('tree-' + treeid)
-            const svgelementintree = treediv.getElementsByTagName("svg")[0]
-            if (
-                svgelementintree.classList.contains("absent")
-                ||
-                svgelementintree.classList.contains("burning")
-                ||
-                svgelementintree.classList.contains("charred")
-            ) {
-                return selectRandomTree()
-            }
-            return svgelementintree
+        // if no trees were converted, forcibly convert one
+        if(conversioncounter==0) {
+            console.log(`forcibly seeding one tree.`)
+            let randomtreeindex = Math.floor(Math.random()*allhealthytrees.length)
+            updateTree(allhealthytrees[randomtreeindex], "dry")
         }
+
+        console.log(`successfully seeded ${Math.max(Math.min(n,conversioncounter),1)} dry trees.`)
     }
 }
 
@@ -747,7 +769,7 @@ function hideBox(box, seed) {
     newsBoxDisplayState = false
     box.style.top = "10vh"
     box.style.height = "0"
-    if(seed) seedDryTrees(Math.round(Math.max(goodnews?newsSeenCounter/2:newsSeenCounter*1.5,1)))
+    if(seed) seedDryTrees(gameState.newsSeenCounter)
 }
 
 /**
