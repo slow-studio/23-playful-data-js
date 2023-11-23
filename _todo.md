@@ -12,8 +12,6 @@
 [ ] good news comes when the person is doing well. not randomly.
 [ ] add a (well-timed) conclusion or reward to the experience. maybe also add some score system while people are playing it.
 
-[ ] bug: sometimes (on slower devices/networks) the program draws trees without loading colour.
-
 [ ] [maybe not needed] if a person doesn't click on the forest for a long time, show a news story
 
 [ ] modes: axe & water (click & drag ; click on tool buttons ; click & hold)

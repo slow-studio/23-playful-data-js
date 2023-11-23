@@ -81,7 +81,9 @@ function getStyleProperty(element, property) {
     if(property.slice(0,3)=='var') { 
         property = property.slice(property.indexOf("(")+1,property.indexOf(")"))
     }
-    return window.getComputedStyle(element).getPropertyValue(property).trim()
+    let val = window.getComputedStyle(element).getPropertyValue(property).trim()
+    if(!val) console.log(`property "${property}" not found in css style definitions for element "${element}"`)
+    return val
     /* note: trim() was used because: https://stackoverflow.com/questions/41725725/access-css-variable-from-javascript#comment107745427_41725782 */
 }
 /**
@@ -109,17 +111,17 @@ function getStylePropertyFromRoot(property) {
  */
 function randomiseHSLColour(c, rhby, rlby, blocker) {
     if(c.slice(0,3)=='var') {
-        if(blocker) return `var(${c})`
-        else c = c.slice(c.indexOf("(")+1,c.indexOf(")"))
+        if(blocker) return c
+        c = c.slice(c.indexOf("(")+1,c.indexOf(")"))
     }
     if(c.slice(0,2)=='--') {
         if(blocker) return `var(${c})`
-        else c = getStylePropertyFromRoot(c)
+        c = getStylePropertyFromRoot(`var(${c})`)
     }
     if(blocker) return c
     let hsl = c.split(",")
     if(hsl[0].split("(")[0]!="hsl") {
-        console.log(`supplied colour is not in HSL format. so, randomiseHSLColour() can not randomise colour. so: returning colour {string} as-is: ${c}.`)
+        console.log(`supplied colour "${c}" is not in HSL format. so, randomiseHSLColour() can not randomise colour. so: returning colour {string} as-is: ${c}.`)
         return c
     }
     let h = Number(hsl[0].split("(")[1])
