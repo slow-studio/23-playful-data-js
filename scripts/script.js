@@ -48,6 +48,17 @@ const refreshTime = 1000 / refreshRate // time in millisecond
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
+/**
+ * game state variables
+ */
+let gameState = {
+    startTime: new Date().getTime(),
+    starthealth: 1,
+    clicks: 0,
+    newsSeenCounter: 0,
+}
+// console.log(JSON.stringify(gameState, null, 2))
+
 /** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
 const TREELIMIT = 2500;
 
@@ -717,9 +728,6 @@ const headlines = {
     ]
 };
 
-/** @type {number} count the total number of times the newsBox has been shown so far */
-let newsSeenCounter = 0
-
 /** @type {HTMLElement} */
 const newsBox = document.getElementById('newsBox')
 
@@ -744,7 +752,7 @@ xNewsBox.addEventListener('click', function () {
 
 /**
  * @param {*} box 
- * @param {boolean} [count=true] - increment newsSeenCounter?
+ * @param {boolean} [count=true] - increment gameState.newsSeenCounter?
  * @param {boolean} [wait=false] - defer showBox for a short duration?
  */
 function showBox(box, count, wait) {
@@ -757,8 +765,8 @@ function showBox(box, count, wait) {
         box.style.top = `calc(-${window.innerHeight}px + 1rem)`
         box.style.height = `calc(${window.innerHeight}px - 2rem)`
     }, wait ? showBoxDelayDuration : 0)
-    if(count) newsSeenCounter++
-    // console.log(`newsSeenCounter: ${newsSeenCounter}`)
+    if(count) gameState.newsSeenCounter++
+    // console.log(`newsSeenCounter: ${gameState.newsSeenCounter}`)
 }
 
 /**
@@ -1113,6 +1121,11 @@ setInterval(function () { updateForest() }, refreshTime)
 
 function updateForest() {
 
+    /* print gameState */
+
+    gameState.state = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
+    console.log(JSON.stringify(gameState, null, 2))
+
     /* update sound */
 
     // update volume of ambient sounds
@@ -1280,15 +1293,12 @@ function updateForest() {
     if the person taps on the screen
     ------------------------------------------------------------  */
 
-let clickCounter = 0
-
-// whenever a click happens:
 document.addEventListener("click", handleClicks);
 
 /** @param {MouseEvent} e */
 function handleClicks(e) {
     // count the click
-    clickCounter++
+    gameState.clicks++
     // check if the click happened on a tree
     didClickHappenOnTree(e)
 }
