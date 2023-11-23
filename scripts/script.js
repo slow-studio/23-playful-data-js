@@ -48,7 +48,7 @@ const refreshTime = 1000 / refreshRate // time in millisecond
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
-/** @type {number} /*an arbitarily large number*/
+/** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
 const TREELIMIT = 2500;
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
