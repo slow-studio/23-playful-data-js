@@ -33,7 +33,7 @@ function cheatcodes(e) {
         goodnews = !goodnews
         console.log(`show #newsBox.`)
         changeNews(newsBox,goodnews)
-        showBox(newsBox, false)
+        showBox(newsBox, false, false)
         break;
     case 'B': 
         console.log(`hide #newsBox.`)
@@ -659,6 +659,7 @@ let newsBoxDisplayState = false
 let goodnews = false
 
 const newsBoxTransitionDuration = 600
+const showBoxDelayDuration = 600
 updateStyle(newsBox,"transition-duration",newsBoxTransitionDuration+'ms')
 
 // sets the content and display-position of the newsBox at startup
@@ -674,9 +675,10 @@ xNewsBox.addEventListener('click', function () {
 /**
  * @param {*} box 
  * @param {boolean} [count=true] - increment newsSeenCounter?
+ * @param {boolean} [wait=false] - defer showBox for a short duration?
  */
-function showBox(box, count) {
-    newsBoxDisplayState = true
+function showBox(box, count, wait) {
+    newsBoxDisplayState = true // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
     setTimeout(function() {
         // sound:
         if(goodnews) forcePlaySound(sGoodNews, volumeScaler.sGoodNews) 
@@ -684,7 +686,7 @@ function showBox(box, count) {
         // visual:
         box.style.top = `calc(-${window.innerHeight}px + 1rem)`
         box.style.height = `calc(${window.innerHeight}px - 2rem)`
-    }, newsBoxTransitionDuration)
+    }, wait ? showBoxDelayDuration : 0)
     if(count) newsSeenCounter++
     // console.log(`newsSeenCounter: ${newsSeenCounter}`)
 }
@@ -1094,7 +1096,7 @@ startButton.addEventListener('click', function () {
                     if(!newsBoxDisplayState) {
                         goodnews=Math.random()>.75?true:false
                         changeNews(newsBox,goodnews)
-                        showBox(newsBox, true)
+                        showBox(newsBox, true, true)
                     }
                 }
             }
