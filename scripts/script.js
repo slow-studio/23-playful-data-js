@@ -1144,8 +1144,8 @@ function updateForest() {
 
     /* update visuals */
 
-    // will the forest update?:
-    console.log(`newsBoxDisplayState: ${newsBoxDisplayState}\npauseForestUpdate:   ${pauseForestUpdate}\nupdate visuals:      ${! (newsBoxDisplayState || pauseForestUpdate)}`)
+    // will the forest update visuals?:
+    // console.log(`newsBoxDisplayState: ${newsBoxDisplayState}\npauseForestUpdate:   ${pauseForestUpdate}\nupdate visuals:      ${! (newsBoxDisplayState || pauseForestUpdate)}`)
 
     if (! (newsBoxDisplayState || pauseForestUpdate)) {
 
