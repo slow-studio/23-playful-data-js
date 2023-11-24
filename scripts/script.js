@@ -774,7 +774,7 @@ const forest = document.getElementById("forest")
 /** @type {SettingsObject} settings for the forest */
 const forestSettings = {
     padding: {
-        t: -50,
+        t: - svgtree.dim.height / 6,
         r: 0,
         b: 0,
         l: 0
