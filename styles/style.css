@@ -173,3 +173,8 @@ svg {
     border-left: 1px solid black;
     border-bottom: 1px solid black;
 }
+
+#newsBox p {
+    padding: 0 1rem;
+    font-size: 2rem;
+}
