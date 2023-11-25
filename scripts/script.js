@@ -1026,6 +1026,7 @@ const startButton = document.getElementById('startButton')
 updateStyle(startButton,"z-index",highestZIndexOnTree+1)
 updateStyle(startButton,"transition-duration",newsBoxTransitionDuration+'ms')
 updateStyle(startButton,"bottom","4rem")
+updateStyle(document.getElementById("essay"),"z-index",highestZIndexOnTree+2)
 
 /*  ------------------------------------------------------------
     start the experience.

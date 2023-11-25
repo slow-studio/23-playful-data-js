@@ -65,6 +65,15 @@ p {
     line-height: 135%;
 }
 
+p#essay {
+    width: 100%;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: white;
+    border-top:.5rem solid black;
+    position: relative; z-index: 10;
+}
+
 #container {
     margin: 1rem auto;
     width: calc(100% - 2rem);
