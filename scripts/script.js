@@ -451,7 +451,7 @@ function hideBox(box, seed) {
     newsBoxDisplayState = false
     box.style.top = "10vh"
     box.style.height = "0"
-    if(seed) seedDryTrees(gameState.newsSeenCounter)
+    if (seed) seedDryTrees(Math.max((gameState.newsSeenCounter*2),approx(totalTreesInForest * gameState.health * .015, 100/3)))
 }
 
 /**
