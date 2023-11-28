@@ -31,7 +31,7 @@ function cheatcodes(e) {
         break;
     case 'b': 
         console.log(`show #newsBox.`)
-        changeNews(newsBox,'i')
+        changeNews(newsBox,'c')
         showBox(newsBox, false, false)
         break;
     case 'B': 
@@ -60,6 +60,7 @@ let gameState = {
     shownMessageC: false,
     shownMessageI: false,
     newsSeenCounter: 0,
+    drySeedFactor: .05,
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
@@ -422,7 +423,7 @@ changeNews(newsBox, 'i')
 hideBox(newsBox, true)
 
 /** @type {HTMLElement} */
-const xNewsBox = document.getElementById('dismissNewsBoxIcon')
+const xNewsBox = document.getElementById('dismissNewsBox')
 xNewsBox.addEventListener('click', function () {
     hideBox(newsBox, true)
 })
@@ -436,8 +437,7 @@ function showBox(box, count, wait) {
     newsBoxDisplayState = true // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
     setTimeout(function() {
         // visual:
-        box.style.top = `calc(-${window.innerHeight}px + 1rem)`
-        box.style.height = `calc(${window.innerHeight}px - 2rem)`
+        box.style.bottom = `1rem`
     }, wait ? showBoxDelayDuration : 0)
     if(count) gameState.newsSeenCounter++
     // console.log(`newsSeenCounter: ${gameState.newsSeenCounter}`)
@@ -449,9 +449,16 @@ function showBox(box, count, wait) {
  */
 function hideBox(box, seed) {
     newsBoxDisplayState = false
-    box.style.top = "10vh"
-    box.style.height = "0"
-    if (seed) seedDryTrees(Math.max((gameState.newsSeenCounter*2),approx(totalTreesInForest * gameState.health * .015, 100/3)))
+    box.style.bottom = `-${2 * box.offsetHeight}px`
+    if (seed) {
+        const newsBoxContent = document.getElementById("newsBoxContent")
+        const newstype = newsBoxContent.getAttribute("newstype")
+        switch(newstype) {
+            case 'i': 
+                seedDryTrees(Math.max((gameState.newsSeenCounter*2),approx(totalTreesInForest * gameState.health * gameState.drySeedFactor, 100/3)))
+                break;
+        }
+    }
 }
 
 /**
@@ -462,20 +469,29 @@ function changeNews(box, newstype) {
     let newnews = ''
     switch(newstype) {
         case 'i': 
-            newnews = "please take care of your forest."
+            newnews = `
+                <p>your forest is beautiful, yet <em>fragile</em>.</p>
+                <p>sometimes, trees get suffer: they get dry, and can even catch fire.</p>
+                <p>so, when needed, please help your trees by tapping on them.</p>
+                `
             break;
         case 'c': 
-            newnews = "you can tap on dry/burning trees to save them!"
+            newnews = `<p>you can tap on dry/burning trees to save them!</p>`
             break;
-        case 'b': 
-            newnews = "unfortunately, bad things happened in the world. and this also affected your forest."
+        case 'g1': 
+            newnews = `<p>well done!</p>`
             break;
-        case 'g': 
-            newnews = "we're in luck! good things happened in the world"
+        case 'g2': 
+            newnews = `<p>without your help, the forest was, unfortunately, lost.</p>`
             break;
+        case 'g3': 
+        newnews = `<p>inspite of our efforts, the forest was unfortunately lost.</p>`
+        break;
     }
     // console.log(`changing news headline to: ${newnews}`)
-    box.getElementsByTagName("p")[0].innerHTML = newnews
+    const newsBoxContent = document.getElementById("newsBoxContent")
+    newsBoxContent.innerHTML = newnews
+    newsBoxContent.setAttribute("newstype", newstype)
 }
 
 /*  ------------------------------------------------------------
@@ -785,7 +801,7 @@ gameState.starthealth = (document.getElementsByClassName("protected").length + d
     ------------------------------------------------------------  */
 
 changeNews(newsBox, 'i')
-showBox(newsBox,false,false)
+showBox(newsBox,false,true)
 gameState.shownMessageI = true
 
 /*  ------------------------------------------------------------
@@ -847,19 +863,43 @@ function updateForest() {
         // if there are no dry/burning trees left (but there still are normal trees):
         if (drys.length == 0 && burnings.length == 0 && (normals.length + protecteds.length >= 0)){
             // console.log(`no dry or burning trees (there are, however, normal trees).`)
-            if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {
-                if(!newsBoxDisplayState) {
-                    // console.log("forest saved. showing new news.")
-                    changeNews(newsBox,'b')
-                    showBox(newsBox, true, true)
-                }
+            if(gameState.clicksonsicktrees >= totalTreesInForest) {
+                // console.log("forest saved. congratulating the person.")
+                changeNews(newsBox,'g1')
+                showBox(newsBox, true, true)
+                // reset this value:
+                gameState.drySeedFactor=0.025
+            }
+            else {
+                // console.log("forest saved (temporarily). continuing to seed more dry trees.")
+                gameState.drySeedFactor+=0.025
+                seedDryTrees(Math.max((gameState.newsSeenCounter*2),approx(totalTreesInForest * gameState.health * gameState.drySeedFactor, 100/3)))
+            }
+        }
+
+        // if there are very few normal/protected trees left:
+        if ((drys.length + burnings.length <= .1 * totalTreesInForest * gameState.starthealth) && (normals.length + protecteds.length <= .1 * gameState.starthealth * totalTreesInForest)) {
+            // if the person didn't really try to save the forest
+            if(gameState.clicksonsicktrees <= 10) {
+                // console.log("forest lost. person didn't try saving it.")
+                changeNews(newsBox,'g2')
+                showBox(newsBox, true, true)
+                // reset this value:
+                gameState.drySeedFactor=0.05
+            }
+            else {
+                // console.log("forest lost, even though the person tried saving it.")
+                changeNews(newsBox,'g3')
+                showBox(newsBox, true, true)
+                // reset this value:
+                gameState.drySeedFactor=0.05
             }
         }
 
         // update forest health
         gameState.health = (normals.length + protecteds.length) / totalTreesInForest
         // if the health is low, but the person hasn't clicked yet
-        if ((gameState.health < gameState.starthealth * .8333) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessageC==false)) {
+        if ((gameState.health < gameState.starthealth * .5) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessageC==false)) {
             gameState.shownMessageC = true
             console.log("please click to save trees!")
             changeNews(newsBox,'c')
@@ -994,8 +1034,10 @@ document.addEventListener("click", handleClicks);
 function handleClicks(e) {
     // count the click
     gameState.clicks++
-    // check if the click happened on a tree
-    didClickHappenOnTree(e)
+    
+    if(!newsBoxDisplayState)
+        // check if the click happened on a tree
+        didClickHappenOnTree(e)
 }
 
 /*  ------------------------------------------------------------
@@ -1020,7 +1062,7 @@ function didClickHappenOnTree(e) {
     // check if the click happened on #newsBox
     let clickedOnNewsBox = false;
     for (let i = 0; i < c.length; i++) {
-        if (c[i].id === 'newsBox' || c[i].id === 'dismissNewsBoxIcon') {
+        if (c[i].id === 'newsBox' || c[i].id === 'dismissNewsBox') {
             clickedOnNewsBox = true
             console.log(`clicked on #${c[i].id} | did not click on #forest`)
             break;
