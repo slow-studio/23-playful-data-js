@@ -812,7 +812,7 @@ let loopRunner = true
 
 for (let i = 0; loopRunner; i++) {
     // sanity check
-    if (i > TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
+    if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
     // create new div
     /** @type {HTMLDivElement} */
     const newDiv = document.createElement("div")
