@@ -531,7 +531,7 @@ const forest = document.getElementById("forest")
 /** @type {SettingsObject} settings for the forest */
 const forestSettings = {
     padding: {
-        t: -50,
+        t: - svgtree.dim.height / 6,
         r: 0,
         b: 0,
         l: 0
@@ -569,7 +569,7 @@ let loopRunner = true
 
 for (let i = 0; loopRunner; i++) {
     // sanity check
-    if (i > TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
+    if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
     // create new div
     /** @type {HTMLDivElement} */
     const newDiv = document.createElement("div")
