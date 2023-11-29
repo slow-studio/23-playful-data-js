@@ -860,8 +860,8 @@ function updateForest() {
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
 
-        // if there are no dry/burning trees left (but there still are normal trees):
-        if (drys.length == 0 && burnings.length == 0 && (normals.length + protecteds.length >= 0)){
+        // if there are very few dry/burning trees left (but there still are normal trees):
+        if ((drys.length <= 2) && (burnings.length <= 1) && (normals.length + protecteds.length >= 0)){
             // console.log(`no dry or burning trees (there are, however, normal trees).`)
             if(gameState.clicksonsicktrees >= totalTreesInForest) {
                 // console.log("forest saved. congratulating the person.")
