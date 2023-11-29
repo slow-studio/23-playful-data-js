@@ -41,6 +41,7 @@ function cheatcodes(e) {
         break;
   }
 }
+document.body.setAttribute('onkeydown','cheatcodes(event)')
 
 const refreshRate = 10 // fps
 const refreshTime = 1000 / refreshRate // time in millisecond
