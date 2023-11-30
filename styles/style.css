@@ -3,6 +3,7 @@
 
 :root {
     /* CSS variables */
+    --blackish: hsl(0, 0%, 10%);
     --paper-light: hsl(46, 76%, 97%);
     --paper-dark: hsl(44, 74%, 90%);
     --yellow: hsl(48, 100%, 50%);
@@ -36,6 +37,7 @@ body {
     font-family: 'Merriweather', serif;
     font-weight: 300;
     line-height: 1.15rem;
+    color: var(--blackish);
 }
 
 body * {
@@ -64,6 +66,9 @@ p {
     font-size: .67rem;
     line-height: 135%;
 }
+a {
+    color: var(--blackish);
+}
 
 #container {
     margin: 1rem auto;
@@ -85,17 +90,17 @@ p {
     flex: 0 1 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
 }
 
-#startButton {
+#startinfo {
     background-color: var(--paper-light);
     overflow:hidden;
     display: block;
     position: fixed;
-    --startButtonWidth: 16rem;
+    --infoWidth: 16rem;
     bottom: /* placeholder */ -100vh;
     transition: bottom /* transition-duration = placeholder */300ms ease-in-out 0ms;
-    width: var(--startButtonWidth);
+    width: var(--infoWidth);
     max-width: 20rem;
-    left: calc(50vw - (var(--startButtonWidth)/2));
+    left: calc(50vw - (var(--infoWidth)/2));
     /* border-radius: 1rem; */
     --borderwidth: 2px;
     border: var(--borderwidth) solid black;
@@ -103,22 +108,22 @@ p {
     text-align: center;
     color:black;
 }
-#startButton > h3,
-#startButton > p {
+#startinfo > h3,
+#startinfo > p {
     text-align: left;
     width:calc(100% - 2rem - (2*var(--borderwidth)));
     margin-left: auto;
     margin-right: auto;
 }
-#startButton > p {
+#startinfo > p {
     font-style: italic;
 }
-#startButton hr {
+#startinfo hr {
     border: none;
     border-bottom: calc(var(--borderwidth)/2) solid black;
     margin: 1rem 0 0;
 }
-#startButton button {
+#startinfo button {
     padding: .25rem 1rem;
     border-radius: .5rem;
     box-shadow: none;
@@ -178,25 +183,27 @@ svg {
     /* fill: var(--fire); */
 }
 
-#newsBox {
+#info {
+    --infoWidth: 16rem;
     /* background-color: #fcc00077; */
     position: fixed;
     overflow: visible;
     bottom:0;
     /* top:calc(100vh - 5rem); */
-    width: calc(100% - 2rem);
+    width: var(--infoWidth);
+    left: calc(50vw - var(--infoWidth)/2);
     height: 0;
     margin: 0 auto;
-    max-width: 60rem;
     padding: 0;
     text-align: center;
 }
 
-#newsBoxContent {
-    position: relative;
-    top: /* placeholder */ 0;
+#infoBox {
+    position: absolute;
+    width: var(--infoWidth);
+    bottom: /* placeholder */ -100vh;
     height: /* placeholder */ calc(100vh - 2rem);
-    width: calc(100vw - 2rem);
+    overflow: hidden;
     opacity: /* placeholder */ 1;
     transition: all /* transition-duration = placeholder */300ms ease-in-out 0ms;
     background: rgba(255,255,255,.95);
@@ -205,57 +212,55 @@ svg {
     border-top: .67rem solid black;
     cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 8 8' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' xmlns:serif='http://www.serif.com/' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3E%3Ccircle cx='3.84' cy='3.84' r='3.84' style='fill:%23fff;' /%3E%3Cpath d='M3.84,0c2.119,0 3.84,1.721 3.84,3.84c0,2.119 -1.721,3.84 -3.84,3.84c-2.119,0 -3.84,-1.721 -3.84,-3.84c0,-2.119 1.721,-3.84 3.84,-3.84Zm0,0.5c1.843,0 3.34,1.497 3.34,3.34c0,1.843 -1.497,3.34 -3.34,3.34c-1.843,0 -3.34,-1.497 -3.34,-3.34c0,-1.843 1.497,-3.34 3.34,-3.34Z' /%3E%3Cpath d='M4.823,5.507l-0,0.625l-1.805,-0l0,-0.625l0.558,-0l-0,-2.318l-0.558,-0l0,-0.629l1.261,0l0,2.947l0.544,-0Z' /%3E%3Cpath d='M4.32,1.681c-0,0.115 -0.042,0.215 -0.126,0.299c-0.084,0.084 -0.183,0.126 -0.299,0.126c-0.115,-0 -0.214,-0.042 -0.296,-0.126c-0.081,-0.084 -0.122,-0.184 -0.122,-0.299c0,-0.116 0.041,-0.216 0.122,-0.299c0.082,-0.084 0.181,-0.126 0.296,-0.126c0.12,-0 0.221,0.041 0.303,0.122c0.081,0.082 0.122,0.183 0.122,0.303Z' /%3E%3C/svg%3E") 16 16, pointer;
 }
-#newsBoxContent.bad {
-    background-color: var(--fire);
+#infoBox[infotype='1'] {
+    background-color: var(--paper-light);
 }
-#newsBoxContent.good {
+#infoBox[infotype='2'] {
+    background-color: var(--paper-light);
+}
+#infoBox[infotype='3'] {
     background-color: var(--green);
 }
-
-#newsBoxContent p,
-#newsBoxContent h3 {
+#infoBox[infotype='4'] {
+    background-color: var(--fire);
+}
+#infoBox[infotype='0'] {
+    background-color: var(--paper-dark);
+}
+#infoBox p,
+#infoBox h3 {
     padding: 0 1.5rem;
 }
-
-#newsBoxContent #nb_date {
-    height: 2.5rem;
-    margin: 0;
-    padding-right: 2.5rem;
-    padding-top: 1.125rem;
-    border-bottom: 1px solid black;
-}
-
-#newsBoxContent #nb_headline {
+#infoBox *.headline {
     /* background-color: lightblue; */
     margin: .75rem auto auto;
+    font-weight: bold;
 }
-
-#newsBoxContent #nb_author,
-#newsBoxContent #nb_source {
+#infoBox *.quote {
     --leftmargin: 1.5rem;
     margin-left: var(--leftmargin); 
     width: calc(100% - var(--leftmargin));
     border-left: 1px solid black;
     padding: 0.03125rem .5rem;
 }
-#newsBoxContent #nb_author {
-    padding-top: .25rem;
-    margin-bottom: 0;
-}
-#newsBoxContent #nb_source {
-    font-weight: bold;
-    margin-top: 0;
-    padding-bottom: .25rem;
+#infoBox *.date {
+    font-style: italic;
 }
 
-#newsBoxContent #dismissNewsBoxIcon {
+#infoBox button#dismissInfoBoxIcon {
     cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer; 
-    position:absolute;
-    width:  2.5rem; 
-    height: 2.5rem;
-    padding:.75rem;
-    top: 0; right: 0;
-    margin:0;
-    border-left: 1px solid black;
-    border-bottom: 1px solid black;
+    padding: .25rem 1rem;
+    border-radius: .5rem;
+    box-shadow: none;
+    width:calc(100% - 3rem);
+    background-color: inherit;
+    margin: 1rem auto;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    /* font-style: italic; */
+    border: 1px solid black;
+}
+#infoBox button#dismissInfoBoxIcon p {
+    padding: 0;
 }
