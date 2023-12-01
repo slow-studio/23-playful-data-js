@@ -84,7 +84,7 @@ p#essay {
     width: calc(100% - 2rem);
     max-width: 60rem;
     display: flex; 
-    flex-flow: column;
+    flex-direction: column;
     height: calc(100vh - 2rem);
 }
 
