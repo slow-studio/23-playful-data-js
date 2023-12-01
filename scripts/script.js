@@ -1309,7 +1309,7 @@ function updateForest() {
         // instruct them to click on trees!
         if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessageC==false)) {
             console.log("encourage person to tap on trees.")
-            setInfo(infoBox, 9)
+            setInfo(infoBox, 2)
             gameState.shownMessageC = true
             showBox(infoBox, false)
         }
