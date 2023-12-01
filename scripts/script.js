@@ -91,7 +91,7 @@ let gameState = {
     clicksonsicktrees: 0,
     infoBoxSeenCounter: 0,
     goodNewsCounter: 0,
-    shownMessageC: false
+    shownMessage2: false
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
@@ -100,6 +100,9 @@ const TREELIMIT = 2500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 180000 * IDEALREFRESHRATE / refreshRate // e.g. 180000 ms = 3 min
+
+/** @type {number} if the infoBox is shown these many times, we offer a button to show #content */
+const INFOBOXCOUNTLIMIT = 0
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
@@ -195,6 +198,25 @@ function updateStyle(e, p, v) {
     if (e == 'root') e = document.documentElement
     return e.style.setProperty(p, v)
 }
+
+/**
+ * show or hide #content div
+ * @param {boolean} show 
+ */
+function showcontent(show) {
+    const contentdiv = document.getElementById('content')
+    updateStyle(contentdiv, 'border-top', show ? '.5rem solid black' : 'none')
+    updateStyle(contentdiv, 'height', show ? 'fit-content' : 0)
+    updateStyle(contentdiv, 'padding', show ? '1rem' : 0)
+    updateStyle(contentdiv, 'overflow', show ? 'visible' : 'hidden')
+    window.scroll({
+        top: show ? window.innerHeight * 4 / 5 : 0,
+        left: 0,
+        behavior: "smooth",
+    });
+}
+// don't show #content at the start : show the #playarea (and #forest) only.
+showcontent(false)
 
 /** make fires crackle */
 const fireCrackleTime = 600
@@ -801,36 +823,31 @@ function fetchHeadline(infotype) {
 function setInfo(box, infotype) {
     box.setAttribute('infotype', infotype)
     // first, empty-out the box
-    infoBox.innerHTML = ``
+    box.innerHTML = ``
     // populate the box
     switch(infotype) {
         case 1:
             // add info
-            let i1 = document.createElement("h3")
+            let i1 = addChildTag("h3")
             i1.innerHTML = `our world is like a forest.<br>what we do in our world,<br>we do to the forest too.`
-            infoBox.appendChild(i1)
-            let i2 = document.createElement("p")
+            let i2 = addChildTag("p")
             i2.innerHTML = `when needed, please nurture a tree by tapping on it.`
-            infoBox.appendChild(i2)
             break;
         case 2:
             // add instructions
-            let p1 = document.createElement("h3")
+            let p1 = addChildTag("h3")
             p1.innerHTML = `you can save the forest.`
-            infoBox.appendChild(p1)
-            let p2 = document.createElement("p")
+            let p2 = addChildTag("p")
             p2.innerHTML = `please tap on a dry or burning tree to save it.`
-            infoBox.appendChild(p2)
             break;
         case 3:
         case 4:
             // add message
-            let message = document.createElement("h3")
+            let message = addChildTag('h3')
             message.innerHTML = `this news, just in!`
-            infoBox.appendChild(message)
             // add news
             let newHeadline = fetchHeadline(infotype)
-            let headline = document.createElement("p")
+            let headline = addChildTag('p')
             headline.classList.add('quote')
             let date = newHeadline.date + ", " + (Number((new Date()).getFullYear()) + gameState.infoBoxSeenCounter + 1)
             headline.innerHTML = `
@@ -842,24 +859,45 @@ function setInfo(box, infotype) {
                 <br>
                 <span class="date">${date}</span>
             `
-            infoBox.appendChild(headline)
             break;
         case 0:
             // add info
-            let c1 = document.createElement("h3")
+            let c1 = addChildTag('h3')
             c1.innerHTML = `thank you for playing.`
-            infoBox.appendChild(c1)
-            let c2 = document.createElement("p")
+            let c2 = addChildTag('p')
             c2.innerHTML = `please read about why we made this.`
-            infoBox.appendChild(c2)
             break;
     }
-    // add close-button
-    let button = document.createElement("button")
-    button.setAttribute('id', 'dismissInfoBoxIcon')
-    button.innerHTML = '<p>understood.</p>'
-    infoBox.appendChild(button)
-    button.addEventListener('click', () => hideBox(infoBox, true) )
+    // add close-button to dismiss box
+    if(infotype!=0) {
+        let closeBtn = addChildTag('button')
+        closeBtn.innerHTML = '<p>return to the forest.</p>'
+        closeBtn.setAttribute('id', 'closeInfoBox')
+        closeBtn.addEventListener('click', () => {
+            hideBox(infoBox, true)
+            showcontent(false)
+        })
+    }
+    // add button to reveal article
+    if(
+        infotype==0 
+        || infotype==1 
+        || (gameState.infoBoxSeenCounter>=INFOBOXCOUNTLIMIT && gameState.playTime>=1000*60)
+    ) {
+        let readBtn = addChildTag('button')
+        readBtn.innerHTML = '<p>read about this project.</p>'
+        readBtn.setAttribute('id', 'read')
+        readBtn.addEventListener('click', () => showcontent(true))
+    }
+
+    /** 
+     * @param {string} tag  
+     */
+    function addChildTag(tag) {
+        let child = document.createElement(tag)
+        box.appendChild(child)
+        return child
+    }
 }
 
 /**
@@ -935,7 +973,7 @@ function hideBox(box, seed) {
 
 const svgtree = {
     src: {
-        starttag: '<svg width="100%" height="100%" viewBox="0 0 134 382">',
+        starttag: '<svg width="100%" height="100%" viewBox="0 0 134 382" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve">',
         foliage: [
             /* default */ '<path class="foliage" d="M40.695,345.956c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-95.673 21.939,-166.478c1.993,-14.2 14.902,-76.508 28.401,-76.508c13.498,0 19.325,56.249 27.506,126.547c6.551,56.295 16.154,87.73 16.154,116.124c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
             /* sway left */ '<path class="foliage" d="M40.695,345.956c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-90.003 21.939,-160.808c1.993,-14.2 6.398,-82.178 19.897,-82.178c13.498,0 27.829,53.415 36.01,123.713c6.551,56.295 16.154,90.564 16.154,118.958c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
@@ -1242,7 +1280,7 @@ showBox(infoBox,false)
     start the experience.
     ------------------------------------------------------------  */
 
-let closeinfobox = document.getElementById('dismissInfoBoxIcon')
+let closeinfobox = document.getElementById('closeInfoBox')
 closeinfobox.addEventListener('click', () => {
 
     hideBox(infoBox, true)
@@ -1307,10 +1345,10 @@ function updateForest() {
 
         // if the health is low, but the person hasn't clicked yet...
         // instruct them to click on trees!
-        if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessageC==false)) {
+        if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessage2==false)) {
             console.log("encourage person to tap on trees.")
             setInfo(infoBox, 2)
-            gameState.shownMessageC = true
+            gameState.shownMessage2 = true
             showBox(infoBox, false)
         }
 
@@ -1464,8 +1502,11 @@ document.addEventListener("click", handleClicks);
 function handleClicks(e) {
     // count the click
     gameState.clicks++
-    // check if the click happened on a tree
-    didClickHappenOnTree(e)
+    // if the forest is allowed to update, then...
+    if (! (boxDisplayAttrIs(infoBox))) {
+        // ...check if the click happened on a tree
+        didClickHappenOnTree(e)
+    }
 }
 
 /*  ------------------------------------------------------------
@@ -1490,7 +1531,7 @@ function didClickHappenOnTree(e) {
     // check if the click happened on #infoBox
     let clickedOnInfosBox = false;
     for (let i = 0; i < c.length; i++) {
-        if (c[i].id === 'infoBox' || c[i].id === 'dismissInfoBoxIcon') {
+        if (c[i].id === 'infoBox' || c[i].id === 'closeInfoBox') {
             clickedOnInfosBox = true
             console.log(`clicked on #${c[i].id} | did not click on #forest`)
             break;
