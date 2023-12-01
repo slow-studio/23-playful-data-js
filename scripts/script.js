@@ -101,6 +101,9 @@ const TREELIMIT = 2500;
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 180000 * IDEALREFRESHRATE / refreshRate // e.g. 180000 ms = 3 min
 
+/** @type {number} if the infoBox is shown these many times, we offer a button to show #content */
+const INFOBOXCOUNTLIMIT = 0
+
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
 
@@ -873,17 +876,16 @@ function setInfo(box, infotype) {
         hideBox(infoBox, true)
         showcontent(false)
     })
-    switch (infotype) {
-        case 1:
-        case 0:
-            // add button to reveal article
-            let readBtn = addChildTag('button')
-            readBtn.innerHTML = '<p>read about this project.</p>'
-            readBtn.setAttribute('id', 'read')
-            readBtn.addEventListener('click', () => showcontent(true))
-            break;
-        default:
-            break;
+    // add button to reveal article
+    if(
+        infotype==0 
+        || infotype==1 
+        || (gameState.infoBoxSeenCounter>=INFOBOXCOUNTLIMIT && gameState.playTime>=1000*60)
+    ) {
+        let readBtn = addChildTag('button')
+        readBtn.innerHTML = '<p>read about this project.</p>'
+        readBtn.setAttribute('id', 'read')
+        readBtn.addEventListener('click', () => showcontent(true))
     }
 
     /** 
