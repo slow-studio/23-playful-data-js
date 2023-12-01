@@ -29,27 +29,77 @@ function cheatcodes(e) {
         // write to console:
         console.log(`pause forestUpdate: ${pauseForestUpdate}`)
         break;
-    case 'b': 
-        goodnews = !goodnews
-        console.log(`show #newsBox.`)
-        changeNews(newsBox,goodnews)
-        showBox(newsBox, false)
+    case '1':
+        console.log(`update infoBox content: set introductory info.`)
+        setInfo(infoBox, 1)
+        console.log(`show #infoBox.`)
+        showBox(infoBox, false)
         break;
-    case 'B': 
-        console.log(`hide #newsBox.`)
-        hideBox(newsBox, false)
+    case '3':
+        console.log(`update infoBox content: set 'good' news.`)
+        setInfo(infoBox, 3)
+        console.log(`show #infoBox.`)
+        showBox(infoBox, false)
+        break;
+    case '4':
+        console.log(`update infoBox content: set 'bad' news.`)
+        setInfo(infoBox, 4)
+        console.log(`show #infoBox.`)
+        showBox(infoBox, false)
+        break;
+    case '2':
+        console.log(`update infoBox content: nudging person to tap the screen.`)
+        setInfo(infoBox, 2)
+        console.log(`show #infoBox.`)
+        showBox(infoBox, false)
+        break;
+    case '0':
+        console.log(`update infoBox content: conclusion.`)
+        setInfo(infoBox, 0)
+        console.log(`show #infoBox.`)
+        showBox(infoBox, false)
+        break;
+    case 'z': 
+        console.log(`show #infoBox.`)
+        showBox(infoBox, false)
+        break;
+    case 'x': 
+        console.log(`hide #infoBox.`)
+        hideBox(infoBox, false)
         break;
   }
 }
+document.body.setAttribute('onkeydown','cheatcodes(event)')
 
+const IDEALREFRESHRATE = 10
 const refreshRate = 10 // fps
 const refreshTime = 1000 / refreshRate // time in millisecond
 
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
-/** @type {number} /*an arbitarily large number*/
+/**
+ * game state variables
+ */
+let gameState = {
+    startTime: new Date().getTime(),
+    playTime: 0,
+    starthealth: 1,
+    health: 1,
+    clicks: 0,
+    clicksontrees: 0,
+    clicksonsicktrees: 0,
+    infoBoxSeenCounter: 0,
+    goodNewsCounter: 0,
+    shownMessageC: false
+}
+// console.log(JSON.stringify(gameState, null, 2))
+
+/** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
 const TREELIMIT = 2500;
+
+/** @type {number} time (in millisecond) after which the conclusion wants to show up */
+const PLAYTIMELIMIT = 180000 * IDEALREFRESHRATE / refreshRate // e.g. 180000 ms = 3 min
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
@@ -171,30 +221,55 @@ setInterval(function () {
  */
 function seedDryTrees(n) {
 
+    console.log(`seedDryTrees(${n}) was called`)
+
     /* if there's at-least 1 "normal"/"protected" tree in the forest... */
-    if (document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length > 0) {
+    let healthyTrees = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
+    console.log(`before seeding dry trees, healthyTrees = ${healthyTrees}`)
+    if (healthyTrees > 0) {
+        
         /* ...then, select a random "normal"/"protected" tree to turn "dry". */
+        
+        // keep n within sensible bounds
+        if (n >= healthyTrees) n = Math.floor(Math.random() * healthyTrees)
         if (n <= 1) n = 1
-        // console.log("trying to seed " + n + " dry trees")
-        for (let i = 0; i < n; i++) {
-            updateTree(selectRandomTree(), "dry")
+
+        console.log("trying to seed " + n + " dry trees...")
+
+        // fraction of trees to turn from normal/protected to dry
+        let fr = n / healthyTrees
+        
+        // collect all healthy trees (svg elements)
+        let allhealthytrees = []
+        let allnormaltrees = document.getElementsByClassName("normal"), 
+            allprotectedtrees = document.getElementsByClassName("protected") // HTMLCollection
+        let arrayofallnormaltrees = Array.from(allnormaltrees),
+            arrayofallprotectedtrees = Array.from(allprotectedtrees) // convert HTMLCollection to Array
+        allhealthytrees.push(...Array.from(arrayofallnormaltrees))
+        allhealthytrees.push(...Array.from(arrayofallprotectedtrees))
+        
+        // a counter which will track how many trees we do make dry
+        let conversioncounter = 0;
+
+        // for each healthy tree, decide whether it turns dry
+        for(let i=0 ; i<allhealthytrees.length ; i++) {
+            if(conversioncounter<n) {
+                if(Math.random()<fr) {
+                    updateTree(allhealthytrees[i], "dry")
+                    conversioncounter++
+                }
+            }
+            else break;
         }
 
-        function selectRandomTree() {
-            const treeid = (Math.floor(Math.random() * totalTreesInForest))
-            const treediv = document.getElementById('tree-' + treeid)
-            const svgelementintree = treediv.getElementsByTagName("svg")[0]
-            if (
-                svgelementintree.classList.contains("absent")
-                ||
-                svgelementintree.classList.contains("burning")
-                ||
-                svgelementintree.classList.contains("charred")
-            ) {
-                return selectRandomTree()
-            }
-            return svgelementintree
+        // if no trees were converted, forcibly convert one
+        if(conversioncounter==0) {
+            console.log(`no trees were seeded. so: forcibly seeding dryness in one tree.`)
+            let randomtreeindex = Math.floor(Math.random()*allhealthytrees.length)
+            updateTree(allhealthytrees[randomtreeindex], "dry")
         }
+
+        console.log(`seeding report: successfully seeded ${Math.max(Math.min(n,conversioncounter),1)} dry trees.`)
     }
 }
 
@@ -319,7 +394,55 @@ function updateTree(svgelement, state) {
 }
 
 /*  ------------------------------------------------------------
-    newsBox
+    sound
+    ------------------------------------------------------------  */
+
+const soundsrc = "assets/sound/"
+let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
+let sGoodNews = new Audio(soundsrc + 'twinkle.mp3');
+let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
+let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
+let sEagle = new Audio(soundsrc + 'eagle.mp3');
+
+const volumeScaler = {
+    sCatchFire: .03125,
+    sGoodNews: .03125,
+    sBurning: 1,
+    sForest: .25,
+    sEagle: .125
+}
+
+// count the number of trees in any particular state
+/** @param {string} state */
+function percentageOfTrees(state) {
+    let trees = document.getElementsByClassName(state)
+    return Number(trees.length / totalTreesInForest)
+}
+
+/**
+ * even if the sound is currently playing, stop it and play it again.
+ * @param {*} sound 
+ * @param {number} [volume=1] 
+ */
+function forcePlaySound(sound, volume) {
+    sound.currentTime = 0
+    playSound(sound, volume)
+}
+
+/**
+ * @param {*} sound 
+ * @param {number} [volume=1] 
+ */
+function playSound(sound, volume) {
+    // if(sound.ended) {
+    // sound.currentTime = 0
+    sound.volume = volume
+    sound.play()
+    // }
+}
+
+/*  ------------------------------------------------------------
+    infoBox
     ------------------------------------------------------------  */
 
 const headlines = {
@@ -647,46 +770,133 @@ const headlines = {
     ]
 };
 
-/** @type {number} count the total number of times the newsBox has been shown so far */
-let newsSeenCounter = 0
-
 /** @type {HTMLElement} */
-const newsBox = document.getElementById('newsBoxContent')
+const infoBox = document.getElementById('infoBox')
 
-/** @type {boolean} tracks whether the newsBox is displayed or not */
-let newsBoxDisplayState = false
-/** @type {boolean} tracks whether current headline was good (true) or bad (false) */
-let goodnews = false
+const infoBoxTransitionDuration = 600
+const showBoxDelayDuration = 600
+updateStyle(infoBox,"transition-duration",infoBoxTransitionDuration+'ms')
 
-const newsBoxTransitionDuration = 600
-updateStyle(newsBox,"transition-duration",newsBoxTransitionDuration+'ms')
+// sets the content and display-position of the infoBox at startup
+setInfo(infoBox, 0)
+hideBox(infoBox, true)
 
-// sets the content and display-position of the newsBox at startup
-changeNews(newsBox, false)
-hideBox(newsBox, true)
+/** 
+ * @returns {object} 
+ * @param {number} infotype
+*/
+function fetchHeadline(infotype) {
+    let newstype = /* placeholder */ ""
+    switch(infotype) {
+        case 3: newstype = "good"; break;
+        case 4: newstype = "bad"; break;
+    }
+    return headlines[newstype][Math.floor(headlines[newstype].length * Math.random())]
+}
 
-/** @type {HTMLElement} */
-const xNewsBox = document.getElementById('dismissNewsBoxIcon')
-xNewsBox.addEventListener('click', function () {
-    hideBox(newsBox, true)
-})
+/**
+ * @param {*} box
+ * @param {number} infotype - 1: intro | 2: instructions to tap | 3: good news | 4: bad news | 0: conclusion
+ */
+function setInfo(box, infotype) {
+    box.setAttribute('infotype', infotype)
+    // first, empty-out the box
+    infoBox.innerHTML = ``
+    // populate the box
+    switch(infotype) {
+        case 1:
+            // add info
+            let i1 = document.createElement("h3")
+            i1.innerHTML = `our world is like a forest.<br>what we do in our world,<br>we do to the forest too.`
+            infoBox.appendChild(i1)
+            let i2 = document.createElement("p")
+            i2.innerHTML = `when needed, please nurture a tree by tapping on it.`
+            infoBox.appendChild(i2)
+            break;
+        case 2:
+            // add instructions
+            let p1 = document.createElement("h3")
+            p1.innerHTML = `you can save the forest.`
+            infoBox.appendChild(p1)
+            let p2 = document.createElement("p")
+            p2.innerHTML = `please tap on a dry or burning tree to save it.`
+            infoBox.appendChild(p2)
+            break;
+        case 3:
+        case 4:
+            // add message
+            let message = document.createElement("h3")
+            message.innerHTML = `this news, just in!`
+            infoBox.appendChild(message)
+            // add news
+            let newHeadline = fetchHeadline(infotype)
+            let headline = document.createElement("p")
+            headline.classList.add('quote')
+            let date = newHeadline.date + ", " + (Number((new Date()).getFullYear()) + gameState.infoBoxSeenCounter + 1)
+            headline.innerHTML = `
+                <span class="headline">
+                    ${newHeadline.headline}
+                </span> 
+                <br>
+                ${newHeadline.source} 
+                <br>
+                <span class="date">${date}</span>
+            `
+            infoBox.appendChild(headline)
+            break;
+        case 0:
+            // add info
+            let c1 = document.createElement("h3")
+            c1.innerHTML = `thank you for playing.`
+            infoBox.appendChild(c1)
+            let c2 = document.createElement("p")
+            c2.innerHTML = `please read about why we made this.`
+            infoBox.appendChild(c2)
+            break;
+    }
+    // add close-button
+    let button = document.createElement("button")
+    button.setAttribute('id', 'dismissInfoBoxIcon')
+    button.innerHTML = '<p>understood.</p>'
+    infoBox.appendChild(button)
+    button.addEventListener('click', () => hideBox(infoBox, true) )
+}
+
+/**
+ * @returns {boolean} tracks whether the element is displayed or not 
+ * @param {*} box
+ */
+function boxDisplayAttrIs(box) {
+    const attr = box.getAttribute('display')
+    switch(attr) {
+        case "true": return true;
+        case "false": return false;
+    }
+}
 
 /**
  * @param {*} box 
- * @param {boolean} [count=true] - increment newsSeenCounter?
+ * @param {boolean} [count=true] - increment gameState.infoBoxSeenCounter?
  */
 function showBox(box, count) {
-    newsBoxDisplayState = true
+    box.setAttribute('display', true) // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
+    const infotype = Number(box.getAttribute('infotype'))
     setTimeout(function() {
         // sound:
-        if(goodnews) forcePlaySound(sGoodNews, volumeScaler.sGoodNews) 
-        else if(!goodnews) forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
+        switch(infotype) {
+            case 0: 
+            case 3: 
+                forcePlaySound(sGoodNews, volumeScaler.sGoodNews); 
+                break;
+            case 4: forcePlaySound(sCatchFire, volumeScaler.sCatchFire); break;
+        }
         // visual:
-        box.style.top = `calc(-${window.innerHeight}px + 1rem)`
-        box.style.height = `calc(${window.innerHeight}px - 2rem)`
-    }, newsBoxTransitionDuration)
-    if(count) newsSeenCounter++
-    // console.log(`newsSeenCounter: ${newsSeenCounter}`)
+        box.style.height = `fit-content`
+        box.style.height = `${box.offsetHeight}px` //`calc(100vh - 2rem)`
+        box.style.bottom = `1rem` //`calc(100vh - 1rem)`
+    }, showBoxDelayDuration)
+    if(count) gameState.infoBoxSeenCounter++
+    // console.log(`infoBoxSeenCounter: ${gameState.infoBoxSeenCounter}`)
 }
 
 /**
@@ -694,31 +904,29 @@ function showBox(box, count) {
  * @param {boolean} [seed=true] - seedDryTrees when box closes?
  */
 function hideBox(box, seed) {
-    newsBoxDisplayState = false
-    box.style.top = "10vh"
+    box.setAttribute('display', false)
+    console.log(`hiding infoBox.`)
+    box.style.bottom = `-100vh`
     box.style.height = "0"
-    if(seed) seedDryTrees(Math.round(Math.max(goodnews?newsSeenCounter/2:newsSeenCounter*1.5,1)))
-}
-
-/**
- * @param {*} box
- * @param {boolean} goodnews - "true": show good news | "false": show bad news
- */
-function changeNews(box, goodnews) {
-    const newHeadline = fetchHeadline(goodnews)
-    // console.log(`changing news headline to: ${content}`)
-    box.setAttribute("class", goodnews?"good":"bad")
-    document.getElementById('nb_headline').innerHTML = newHeadline.headline
-    document.getElementById('nb_author').innerHTML = newHeadline.author
-    document.getElementById('nb_source').innerHTML = newHeadline.source
-    document.getElementById('nb_date').innerHTML = newHeadline.date + ", " + (Number((new Date()).getFullYear()) + newsSeenCounter + 1)
-    document.getElementById('nb_byline').innerHTML = newHeadline.byline
-}
-
-/** @returns {object} */
-function fetchHeadline(goodnews) {
-    const newstype = goodnews ? "good" : "bad"
-    return headlines[newstype][Math.floor(headlines[newstype].length * Math.random())]
+    if (seed) {
+        let seeds = 1
+        const infotype = Number(box.getAttribute('infotype'))
+        switch (infotype) {
+            case 3: // good news
+                seeds = Math.round(gameState.infoBoxSeenCounter / 2)
+                console.log(`good news. will now call seedDryTrees(${seeds})`)
+                seedDryTrees(Math.max(seeds, 1))
+                break;
+            case 4: // bad news
+                seeds = Math.round(gameState.infoBoxSeenCounter * 1.5)
+                console.log(`bad news. will now call seedDryTrees(${seeds})`)
+                seedDryTrees(Math.max(seeds, 1))
+                break;
+            default:
+                console.log(`neither good nor bad news. will *not* seed dry trees.`)
+                break;
+        }
+    } else console.log(`dry-trees will *not* be seeded.`)
 }
 
 /*  ------------------------------------------------------------
@@ -812,7 +1020,7 @@ let loopRunner = true
 
 for (let i = 0; loopRunner; i++) {
     // sanity check
-    if (i > TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
+    if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
     // create new div
     /** @type {HTMLDivElement} */
     const newDiv = document.createElement("div")
@@ -982,7 +1190,7 @@ for (let i = 0; loopRunner; i++) {
     // updateTree(svgelement,"normal")
     //  or
     //  - spawn a more organic-looking forest:
-    updateTree(svgelement, Math.random()<.05?"charred":Math.random()<.03?"absent":"normal")
+    updateTree(svgelement, Math.random()<.1?"charred":Math.random()<.15?"absent":"normal")
 
     // newDiv should be as large as the tree-image
     newDiv.style.width = tree[i].dimensions.w + 'px'
@@ -1018,350 +1226,328 @@ for (let i = 0; loopRunner; i++) {
 
 console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
 
+/** #infoBox should have a z-index higher than all spawned trees */
+updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
+
+gameState.starthealth = (document.getElementsByClassName("protected").length + document.getElementsByClassName("normal").length) / totalTreesInForest
+
 /*  ------------------------------------------------------------
     show instructions.
     ------------------------------------------------------------  */
 
-const startButton = document.getElementById('startButton')
-updateStyle(startButton,"z-index",highestZIndexOnTree+1)
-updateStyle(startButton,"transition-duration",newsBoxTransitionDuration+'ms')
-updateStyle(startButton,"bottom","4rem")
-updateStyle(document.getElementById("essay"),"z-index",highestZIndexOnTree+2)
+setInfo(infoBox, 1)
+showBox(infoBox,false)
+updateStyle(document.getElementById("essay"), "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 2)
 
 /*  ------------------------------------------------------------
     start the experience.
     ------------------------------------------------------------  */
 
-startButton.addEventListener('click', function () {
+let closeinfobox = document.getElementById('dismissInfoBoxIcon')
+closeinfobox.addEventListener('click', () => {
 
-    updateStyle(startButton,"bottom","-100vh")
-    setTimeout(function(){
-        updateStyle(startButton,"display","none")
-    },newsBoxTransitionDuration)
+    hideBox(infoBox, true)
     
-    // start playing sounds, on loop, but muted.
-    sBurning.volume = 0
+    // start playing sounds, on loop
     sBurning.loop = true
-    sBurning.play()
-    sForest.volume = 1
+    playSound(sBurning, 0)
     sForest.loop = true
-    sForest.play()
+    playSound(sForest, 1)
 
-    /*  ------------------------------------------------------------
-        update the forest.
-        ------------------------------------------------------------  */
-
+    // update the forest.
     setInterval(function () { updateForest() }, refreshTime)
+})
 
-    function updateForest() {
+/*  ------------------------------------------------------------
+    update the forest.
+    ------------------------------------------------------------  */
 
-        /* update sound */
+function updateForest() {
 
-        // update volume of ambient sounds
+    /* print gameState */
 
-        sBurning.volume = percentageOfTrees("burning") * volumeScaler.sBurning
-        // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
-        sForest.volume = percentageOfTrees("normal") * volumeScaler.sForest
-        // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
-    
-        // randomly play a random-sound from the forest
+    gameState.state = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
+    console.log(JSON.stringify(gameState, null, 2))
 
-        const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
-        if (Math.random() < 1 / (refreshRate * secondses)) {
-            sEagle.volume = Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle
-            sEagle.play();
-        } 
+    /* update sound */
 
-        /* update visuals */
+    // update volume of ambient sounds
 
-        console.log(`newsBoxDisplayState: ${newsBoxDisplayState}\npauseForestUpdate: ${pauseForestUpdate}\ncheck evaluated to: ${! (newsBoxDisplayState || pauseForestUpdate)}`)
+    sBurning.volume = percentageOfTrees("burning") * volumeScaler.sBurning
+    // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
+    sForest.volume = percentageOfTrees("normal") * volumeScaler.sForest
+    // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
 
-        if (! (newsBoxDisplayState || pauseForestUpdate)) {
+    // randomly play a random-sound from the forest
 
-            // collect all trees by the states they are in
-            let absents = document.getElementsByClassName("absent")
-            let protecteds = document.getElementsByClassName("protected")
-            let normals = document.getElementsByClassName("normal")
-            /** @type {*} */
-            let drys = document.getElementsByClassName("dry")
-            /** @type {*} */
-            let burnings = document.getElementsByClassName("burning")
-            let charreds = document.getElementsByClassName("charred")
+    const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
+    if (Math.random() < 1 / (refreshRate * secondses)) {
+        playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
+    } 
 
-            // if there are no dry/burning trees left (but there still are normal trees):
-            if (drys.length == 0 && burnings.length == 0 && (normals.length + protecteds.length >= 0)){
-                // console.log(`no dry or burning trees (there are, however, normal trees).`)
-                if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {
-                    if(!newsBoxDisplayState) {
-                        goodnews=Math.random()>.75?true:false
-                        changeNews(newsBox,goodnews)
-                        showBox(newsBox, true)
-                    }
+    /* update visuals */
+
+    // will the forest update its visuals?:
+    // console.log(`infoBox displayState: ${Boolean(boxDisplayAttrIs(infoBox))}\npauseForestUpdate:    ${pauseForestUpdate}\nupdate visuals:       ${!(Boolean(boxDisplayAttrIs(infoBox)) || pauseForestUpdate)}`)
+
+    if (! (boxDisplayAttrIs(infoBox) || pauseForestUpdate)) {
+
+        // collect all trees by the states they are in
+        let absents = document.getElementsByClassName("absent")
+        let protecteds = document.getElementsByClassName("protected")
+        let normals = document.getElementsByClassName("normal")
+        /** @type {*} */
+        let drys = document.getElementsByClassName("dry")
+        /** @type {*} */
+        let burnings = document.getElementsByClassName("burning")
+        let charreds = document.getElementsByClassName("charred")
+
+        // update game state object
+        gameState.health = (normals.length + protecteds.length) / totalTreesInForest
+        gameState.playTime = new Date().getTime() - gameState.startTime
+
+        // if the health is low, but the person hasn't clicked yet...
+        // instruct them to click on trees!
+        if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessageC==false)) {
+            console.log("encourage person to tap on trees.")
+            setInfo(infoBox, 2)
+            gameState.shownMessageC = true
+            showBox(infoBox, false)
+        }
+
+        // if there are no dry/burning trees left (but there still are normal trees):
+        if ((drys.length == 0) && (burnings.length == 0) && (normals.length + protecteds.length >= 0)){
+            // console.log(`no dry or burning trees (there are, however, normal trees).`)
+
+            // conclude the experience
+            if(gameState.clicksonsicktrees > totalTreesInForest * gameState.starthealth || gameState.playTime > PLAYTIMELIMIT) {
+                setInfo(infoBox,0)
+                showBox(infoBox, true)
+            }
+
+            // or keep the experience going
+            else if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {
+                if(!boxDisplayAttrIs(infoBox)) {
+                    console.log("forest saved. showing new news.")
+                    const infotype = Math.random() > gameState.health ? 3 /* good news */ : 4 /* bad news */
+                    console.log(`${infotype==3?"good":"bad"} news selected.`)
+                    setInfo(infoBox,infotype)
+                    showBox(infoBox, true)
                 }
             }
+        }
 
-            // dry -> burning
-            for (let i = 0; i < drys.length; i++) {
-                if (Math.random() > .9995)
-                    updateTree(drys[i], "burning")
-            }
+        // dry -> burning
+        for (let i = 0; i < drys.length; i++) {
+            if (Math.random() > .999)
+                updateTree(drys[i], "burning")
+        }
 
-            // burning -> charred
-            for (let i = 0; i < burnings.length; i++) {
-                if (Math.random() > .983)
-                    updateTree(burnings[i], "charred")
-            }
+        // burning -> charred
+        for (let i = 0; i < burnings.length; i++) {
+            if (Math.random() > .983)
+                updateTree(burnings[i], "charred")
+        }
 
-            // charred -> absent
-            for (let i = 0; i < charreds.length; i++) {
-                if (Math.random() > .9999)
+        // charred -> absent
+        for (let i = 0; i < charreds.length; i++) {
+            if (Math.random() > .9999)
+                updateTree(charreds[i], "absent")
+        }
+        for (let i = 0; i < charreds.length; i++) {
+            if ((protecteds.length + normals.length + drys.length) < 1)
+                if (Math.random() > .95)
                     updateTree(charreds[i], "absent")
-            }
-            for (let i = 0; i < charreds.length; i++) {
-                if ((protecteds.length + normals.length + drys.length) < 1)
-                    if (Math.random() > .95)
-                        updateTree(charreds[i], "absent")
-            }
+        }
 
-            // absent -> new forest
-            for (let i = 0; i < absents.length; i++) {
-                if (
-                    ((protecteds.length + normals.length + drys.length) < (.1 * totalTreesInForest))
-                    &&
-                    (absents.length >= .8 * totalTreesInForest)
-                ) {
-                    if (Math.random() < .67) {
-                        setTimeout(function () {
-                            updateTree(absents[i], "normal")
-                        }, Math.random() * 5000)
-                    }
+        // absent -> new forest
+        for (let i = 0; i < absents.length; i++) {
+            if (
+                ((protecteds.length + normals.length + drys.length) < (.1 * totalTreesInForest))
+                &&
+                (absents.length >= .8 * totalTreesInForest)
+            ) {
+                if (Math.random() < .67) {
+                    setTimeout(function () {
+                        updateTree(absents[i], "normal")
+                    }, Math.random() * 5000)
                 }
             }
+        }
 
-            /** make fire, dryness, health spread from one tree to its neighbours */
+        /** make fire, dryness, health spread from one tree to its neighbours */
 
-            spreadInfection(burnings, "burning", .99, 1)
-            spreadInfection(drys, "dry", .995, 1)
-            // spreadInfection(normals, "normal", .99995, 1)
+        spreadInfection(burnings, "burning", .99, 1)
+        spreadInfection(drys, "dry", .995, 1)
+        // spreadInfection(normals, "normal", .99995, 1)
 
-            /**
-             * fire, dryness, health can spread from one tree to its neighbours
-             * @param {*} trees
-             * @param {string} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
-             * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
-             * @param {number} spreadDistance
-             */
-            function spreadInfection(trees, state, immunity, spreadDistance) {
-                for (let i = 0; i < trees.length; i++) {
-                    const id = Number(trees[i].parentNode.id.substring("tree-".length, trees[i].parentNode.id.length))
-                    const _x = tree[id].positionInForestGrid.x
-                    const _y = tree[id].positionInForestGrid.y
-                    for (let t = 0; t < totalTreesInForest; t++) {
-                        if (
-                            true
-                            && tree[t].positionInForestGrid.x >= 0
-                            && tree[t].positionInForestGrid.y >= 0
-                            && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                            && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                            && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                            && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                            && tree[t].id
-                        ) {
-                            if (Math.random() > immunity) {
-                                // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
-                                setTimeout(function () {
-                                    const neighbour = document.getElementById('tree-' + t)
-                                    const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                                    if (state == "burning" || state == "dry") {
-                                        if (
-                                            neighbourSvg.classList.contains("charred")
-                                            ||
-                                            neighbourSvg.classList.contains("absent")
-                                            ||
-                                            neighbourSvg.classList.contains("protected")
-                                        ) {
-                                            // can't do anything
-                                        }
-                                        else if (
-                                            neighbourSvg.classList.contains("normal")
-                                        ) {
-                                            // console.log(`spreading dryness. making tree-${id} dry.`)
-                                            updateTree(neighbourSvg, "dry")
-                                        }
-                                        else if (
-                                            state == "burning"
-                                            &&
-                                            neighbourSvg.classList.contains("dry")
-                                        ) {
-                                            // console.log(`spreading fire. tree-${id} catches fire.`)
-                                            updateTree(neighbourSvg, "burning")
-                                        }
+        /**
+         * fire, dryness, health can spread from one tree to its neighbours
+         * @param {*} trees
+         * @param {string} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
+         * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
+         * @param {number} spreadDistance
+         */
+        function spreadInfection(trees, state, immunity, spreadDistance) {
+            for (let i = 0; i < trees.length; i++) {
+                const id = Number(trees[i].parentNode.id.substring("tree-".length, trees[i].parentNode.id.length))
+                const _x = tree[id].positionInForestGrid.x
+                const _y = tree[id].positionInForestGrid.y
+                for (let t = 0; t < totalTreesInForest; t++) {
+                    if (
+                        true
+                        && tree[t].positionInForestGrid.x >= 0
+                        && tree[t].positionInForestGrid.y >= 0
+                        && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                        && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                        && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                        && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                        && tree[t].id
+                    ) {
+                        if (Math.random() > immunity) {
+                            // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                            setTimeout(function () {
+                                const neighbour = document.getElementById('tree-' + t)
+                                const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                                if (state == "burning" || state == "dry") {
+                                    if (
+                                        neighbourSvg.classList.contains("charred")
+                                        ||
+                                        neighbourSvg.classList.contains("absent")
+                                        ||
+                                        neighbourSvg.classList.contains("protected")
+                                    ) {
+                                        // can't do anything
                                     }
-                                    else if (state == "normal") {
-                                        if (
-                                            neighbourSvg.classList.contains("absent")
-                                        ) {
-                                            updateTree(neighbourSvg, "normal")
-                                        }
-                                        else if (
-                                            neighbourSvg.classList.contains("charred")
-                                        ) {
-                                            updateTree(neighbourSvg, "absent")
-                                        }
+                                    else if (
+                                        neighbourSvg.classList.contains("normal")
+                                    ) {
+                                        // console.log(`spreading dryness. making tree-${id} dry.`)
+                                        updateTree(neighbourSvg, "dry")
                                     }
-                                }, refreshTime)
-                            }
+                                    else if (
+                                        state == "burning"
+                                        &&
+                                        neighbourSvg.classList.contains("dry")
+                                    ) {
+                                        // console.log(`spreading fire. tree-${id} catches fire.`)
+                                        updateTree(neighbourSvg, "burning")
+                                    }
+                                }
+                                else if (state == "normal") {
+                                    if (
+                                        neighbourSvg.classList.contains("absent")
+                                    ) {
+                                        updateTree(neighbourSvg, "normal")
+                                    }
+                                    else if (
+                                        neighbourSvg.classList.contains("charred")
+                                    ) {
+                                        updateTree(neighbourSvg, "absent")
+                                    }
+                                }
+                            }, refreshTime)
                         }
                     }
                 }
             }
         }
     }
-
-    /*  ------------------------------------------------------------
-        if the person taps on the screen
-        ------------------------------------------------------------  */
-
-    let clickCounter = 0
-
-    // whenever a click happens:
-    document.addEventListener("click", handleClicks);
-
-    /** @param {MouseEvent} e */
-    function handleClicks(e) {
-        // count the click
-        clickCounter++
-        // check if the click happened on a tree
-        didClickHappenOnTree(e)
-    }
-
-    /*  ------------------------------------------------------------
-        if the click happened on a tree...
-        ------------------------------------------------------------  */
-
-    /** @param {MouseEvent} e */
-    function didClickHappenOnTree(e) {
-
-        // get coordinates of mouseclick
-        const x = e.clientX
-        const y = e.clientY
-        // console.log("clicked on: (" + x + ", " + y + ")")
-
-        // get array of all elements that are present where the mouseclick happened ...
-        /** @type {*} */
-        let c = []
-        c = document.elementsFromPoint(x, y)
-        // console.log("here are all clicked-on elements:")
-        // console.log(c)
-
-        // check if the click happened on #newsBoxContent
-        let clickedOnNewsBoxContent = false;
-        for (let i = 0; i < c.length; i++) {
-            if (c[i].id === 'newsBoxContent' || c[i].id === 'dismissNewsBoxIcon') {
-                clickedOnNewsBoxContent = true
-                console.log(`clicked on #${c[i].id} | did not click on #forest`)
-                break;
-            }
-        }
-
-        // if we didn't click on the #newsBox, then we may continue checking whether the click happened on a tree in the #forest:
-        if (clickedOnNewsBoxContent == false) {
-
-            // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
-            c = c.map(function (x) {
-                if (
-                    x.constructor.toString().indexOf("SVGPathElement()") > -1
-                    // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-                )
-                    // return <path>'s parent (which is an <svg>)
-                    return x.parentNode
-                else return -1
-            });
-            // console.log("gathered parent svg-nodes for path elements:")
-            // console.log(c)
-
-            // filter out all non-svg elements (which we'd already replaced with -1)
-            c = c.filter(function (e) { return e != -1; })
-            // console.log("removed -1's:")
-            // console.log(c)
-
-            // ensure that all elements in the array are unique
-            c = c.filter(function (x, i, a) { return a.indexOf(x) == i })
-            // console.log("removed duplicates:")
-            // console.log(c)
-
-            // now, we instruct each (clicked-)tree to change
-            for (const i in c) {
-                const SVGElementOfClickedTree = c[i]
-                if (SVGElementOfClickedTree.classList.contains("burning")) {
-                    // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: burning -> dry`)
-                    updateTree(SVGElementOfClickedTree, "dry")
-                }
-                else if (SVGElementOfClickedTree.classList.contains("dry")) {
-                    // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: dry -> normal`)
-                    updateTree(SVGElementOfClickedTree, "normal")
-                }
-                else if (SVGElementOfClickedTree.classList.contains("normal")) {
-                    // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: normal -> protected`)
-                    updateTree(SVGElementOfClickedTree, "protected")
-                }
-                else if (SVGElementOfClickedTree.classList.contains("protected")) {
-                    // console.log(`click on tree-${SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)}: classList.contains("${SVGElementOfClickedTree.classList}") • isProtected=${tree[SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)].stateSettings.protected.isProtected}`)
-                    updateTree(SVGElementOfClickedTree, "protected")
-                }
-            }
-        }
-    }
-
-    /** #newsBox should have a z-index higher than all spawned trees */
-    updateStyle(document.getElementById("newsBox"), "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
-
-})
+}
 
 /*  ------------------------------------------------------------
-    sound
+    if the person taps on the screen
     ------------------------------------------------------------  */
 
-const soundsrc = "assets/sound/"
-let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
-let sGoodNews = new Audio(soundsrc + 'twinkle.mp3');
-let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
-let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
-let sEagle = new Audio(soundsrc + 'eagle.mp3');
+document.addEventListener("click", handleClicks);
 
-const volumeScaler = {
-    sCatchFire: .03125,
-    sGoodNews: .03125,
-    sBurning: 1,
-    sForest: .25,
-    sEagle: .125
+/** @param {MouseEvent} e */
+function handleClicks(e) {
+    // count the click
+    gameState.clicks++
+    // check if the click happened on a tree
+    didClickHappenOnTree(e)
 }
 
-// count the number of trees in any particular state
-/** @param {string} state */
-function percentageOfTrees(state) {
-    let trees = document.getElementsByClassName(state)
-    return Number(trees.length / totalTreesInForest)
-}
+/*  ------------------------------------------------------------
+    if the click happened on a tree...
+    ------------------------------------------------------------  */
 
-/**
- * even if the sound is currently playing, stop it and play it again.
- * @param {*} sound 
- * @param {number} [volume=1] 
- */
-function forcePlaySound(sound, volume) {
-    sound.currentTime = 0
-    playSound(sound, volume)
-}
+/** @param {MouseEvent} e */
+function didClickHappenOnTree(e) {
 
-/**
- * @param {*} sound 
- * @param {number} [volume=1] 
- */
-function playSound(sound, volume) {
-    // if(sound.ended) {
-    // sound.currentTime = 0
-    sound.volume = volume
-    sound.play()
-    // }
+    // get coordinates of mouseclick
+    const x = e.clientX
+    const y = e.clientY
+    // console.log("clicked on: (" + x + ", " + y + ")")
+
+    // get array of all elements that are present where the mouseclick happened ...
+    /** @type {*} */
+    let c = []
+    c = document.elementsFromPoint(x, y)
+    // console.log("here are all clicked-on elements:")
+    // console.log(c)
+
+    // check if the click happened on #infoBox
+    let clickedOnInfosBox = false;
+    for (let i = 0; i < c.length; i++) {
+        if (c[i].id === 'infoBox' || c[i].id === 'dismissInfoBoxIcon') {
+            clickedOnInfosBox = true
+            console.log(`clicked on #${c[i].id} | did not click on #forest`)
+            break;
+        }
+    }
+
+    // if we didn't click on the #infoBox, then we may continue checking whether the click happened on a tree in the #forest:
+    if (clickedOnInfosBox == false) {
+
+        // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
+        c = c.map(function (x) {
+            if (
+                x.constructor.toString().indexOf("SVGPathElement()") > -1
+                // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
+            )
+                // return <path>'s parent (which is an <svg>)
+                return x.parentNode
+            else return -1
+        });
+        // console.log("gathered parent svg-nodes for path elements:")
+        // console.log(c)
+
+        // filter out all non-svg elements (which we'd already replaced with -1)
+        c = c.filter(function (e) { return e != -1; })
+        // console.log("removed -1's:")
+        // console.log(c)
+
+        // ensure that all elements in the array are unique
+        c = c.filter(function (x, i, a) { return a.indexOf(x) == i })
+        // console.log("removed duplicates:")
+        // console.log(c)
+
+        // count the click
+        if(c.length>0) gameState.clicksontrees++
+
+        // now, we instruct each (clicked-)tree to change
+        for (const i in c) {
+            const SVGElementOfClickedTree = c[i]
+            if (SVGElementOfClickedTree.classList.contains("burning")) {
+                gameState.clicksonsicktrees++
+                // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: burning -> dry`)
+                updateTree(SVGElementOfClickedTree, "dry")
+            }
+            else if (SVGElementOfClickedTree.classList.contains("dry")) {
+                gameState.clicksonsicktrees++
+                // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: dry -> normal`)
+                updateTree(SVGElementOfClickedTree, "normal")
+            }
+            else if (SVGElementOfClickedTree.classList.contains("normal")) {
+                // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: normal -> protected`)
+                updateTree(SVGElementOfClickedTree, "protected")
+            }
+            else if (SVGElementOfClickedTree.classList.contains("protected")) {
+                // console.log(`click on tree-${SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)}: classList.contains("${SVGElementOfClickedTree.classList}") • isProtected=${tree[SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)].stateSettings.protected.isProtected}`)
+                updateTree(SVGElementOfClickedTree, "protected")
+            }
+        }
+    }
 }
