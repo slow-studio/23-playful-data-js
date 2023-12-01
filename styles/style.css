@@ -99,6 +99,11 @@ p#essay {
     flex: 0 1 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
 }
 
+#footer {
+    border-top: .1rem solid black;
+    margin-top: 1rem;
+}
+
 #forest {
     /* background-color: var(--green); */
     max-width: 100%;
