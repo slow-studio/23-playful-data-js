@@ -196,6 +196,25 @@ function updateStyle(e, p, v) {
     return e.style.setProperty(p, v)
 }
 
+/**
+ * show or hide #content div
+ * @param {boolean} show 
+ */
+function showcontent(show) {
+    const contentdiv = document.getElementById('content')
+    updateStyle(contentdiv, 'border-top', show ? '.5rem solid black' : 'none')
+    updateStyle(contentdiv, 'height', show ? 'fit-content' : 0)
+    updateStyle(contentdiv, 'padding', show ? '1rem' : 0)
+    updateStyle(contentdiv, 'overflow', show ? 'visible' : 'hidden')
+    window.scroll({
+        top: show ? window.innerHeight * 4 / 5 : 0,
+        left: 0,
+        behavior: "smooth",
+    });
+}
+// don't show #content at the start : show the #playarea (and #forest) only.
+showcontent(false)
+
 /** make fires crackle */
 const fireCrackleTime = 600
 setInterval(function () {
@@ -847,10 +866,25 @@ function setInfo(box, infotype) {
             break;
     }
     // add close-button
-    let button = addChildTag('button')
-    button.innerHTML = '<p>understood.</p>'
-    button.setAttribute('id', 'dismissInfoBoxIcon')
-    button.addEventListener('click', () => hideBox(infoBox, true) )
+    let closeBtn = addChildTag('button')
+    closeBtn.innerHTML = '<p>dismiss this box.</p>'
+    closeBtn.setAttribute('id', 'closeInfoBox')
+    closeBtn.addEventListener('click', () => {
+        hideBox(infoBox, true)
+        showcontent(false)
+    })
+    switch (infotype) {
+        case 1:
+        case 0:
+            // add button to reveal article
+            let readBtn = addChildTag('button')
+            readBtn.innerHTML = '<p>read about this project.</p>'
+            readBtn.setAttribute('id', 'read')
+            readBtn.addEventListener('click', () => showcontent(true))
+            break;
+        default:
+            break;
+    }
 
     /** 
      * @param {string} tag  
@@ -1242,7 +1276,7 @@ showBox(infoBox,false)
     start the experience.
     ------------------------------------------------------------  */
 
-let closeinfobox = document.getElementById('dismissInfoBoxIcon')
+let closeinfobox = document.getElementById('closeInfoBox')
 closeinfobox.addEventListener('click', () => {
 
     hideBox(infoBox, true)
@@ -1490,7 +1524,7 @@ function didClickHappenOnTree(e) {
     // check if the click happened on #infoBox
     let clickedOnInfosBox = false;
     for (let i = 0; i < c.length; i++) {
-        if (c[i].id === 'infoBox' || c[i].id === 'dismissInfoBoxIcon') {
+        if (c[i].id === 'infoBox' || c[i].id === 'closeInfoBox') {
             clickedOnInfosBox = true
             console.log(`clicked on #${c[i].id} | did not click on #forest`)
             break;
