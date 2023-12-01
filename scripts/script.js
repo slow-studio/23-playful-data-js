@@ -871,7 +871,7 @@ function setInfo(box, infotype) {
     // add close-button to dismiss box
     if(infotype!=0) {
         let closeBtn = addChildTag('button')
-        closeBtn.innerHTML = '<p>return to the forest.</p>'
+        closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
         closeBtn.setAttribute('id', 'closeInfoBox')
         closeBtn.addEventListener('click', () => {
             hideBox(infoBox, true)
