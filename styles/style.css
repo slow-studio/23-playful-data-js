@@ -99,53 +99,6 @@ p#essay {
     flex: 0 1 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
 }
 
-#startinfo {
-    background-color: var(--paper-light);
-    overflow:hidden;
-    display: block;
-    position: fixed;
-    --infoWidth: 16rem;
-    bottom: /* placeholder */ -100vh;
-    transition: bottom /* transition-duration = placeholder */300ms ease-in-out 0ms;
-    width: var(--infoWidth);
-    max-width: 20rem;
-    left: calc(50vw - (var(--infoWidth)/2));
-    /* border-radius: 1rem; */
-    --borderwidth: 2px;
-    border: var(--borderwidth) solid black;
-    /* background-color: var(--green); */
-    text-align: center;
-    color:black;
-}
-#startinfo > h3,
-#startinfo > p {
-    text-align: left;
-    width:calc(100% - 2rem - (2*var(--borderwidth)));
-    margin-left: auto;
-    margin-right: auto;
-}
-#startinfo > p {
-    font-style: italic;
-}
-#startinfo hr {
-    border: none;
-    border-bottom: calc(var(--borderwidth)/2) solid black;
-    margin: 1rem 0 0;
-}
-#startinfo button {
-    padding: .25rem 1rem;
-    border-radius: .5rem;
-    box-shadow: none;
-    width:calc(100% - 2rem);
-    background-color: var(--green);
-    margin: 1rem auto;
-    text-align: center;
-    color: black;
-    font-weight: bold;
-    font-style: italic;
-    border: 1px solid black;
-}
-
 #forest {
     /* background-color: var(--green); */
     max-width: 100%;
