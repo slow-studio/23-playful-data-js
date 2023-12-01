@@ -869,13 +869,15 @@ function setInfo(box, infotype) {
             break;
     }
     // add close-button
-    let closeBtn = addChildTag('button')
-    closeBtn.innerHTML = '<p>dismiss this box.</p>'
-    closeBtn.setAttribute('id', 'closeInfoBox')
-    closeBtn.addEventListener('click', () => {
-        hideBox(infoBox, true)
-        showcontent(false)
-    })
+    if(infotype!=0) {
+        let closeBtn = addChildTag('button')
+        closeBtn.innerHTML = '<p>dismiss this box.</p>'
+        closeBtn.setAttribute('id', 'closeInfoBox')
+        closeBtn.addEventListener('click', () => {
+            hideBox(infoBox, true)
+            showcontent(false)
+        })
+    }
     // add button to reveal article
     if(
         infotype==0 
@@ -1500,8 +1502,11 @@ document.addEventListener("click", handleClicks);
 function handleClicks(e) {
     // count the click
     gameState.clicks++
-    // check if the click happened on a tree
-    didClickHappenOnTree(e)
+    // if the forest is allowed to update, then...
+    if (! (boxDisplayAttrIs(infoBox))) {
+        // ...check if the click happened on a tree
+        didClickHappenOnTree(e)
+    }
 }
 
 /*  ------------------------------------------------------------
