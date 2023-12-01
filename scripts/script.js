@@ -868,7 +868,7 @@ function setInfo(box, infotype) {
             c2.innerHTML = `please read about why we made this.`
             break;
     }
-    // add close-button
+    // add close-button to dismiss box
     if(infotype!=0) {
         let closeBtn = addChildTag('button')
         closeBtn.innerHTML = '<p>dismiss this box.</p>'
