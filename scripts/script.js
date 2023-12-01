@@ -801,36 +801,31 @@ function fetchHeadline(infotype) {
 function setInfo(box, infotype) {
     box.setAttribute('infotype', infotype)
     // first, empty-out the box
-    infoBox.innerHTML = ``
+    box.innerHTML = ``
     // populate the box
     switch(infotype) {
         case 1:
             // add info
-            let i1 = document.createElement("h3")
+            let i1 = addChildTag("h3")
             i1.innerHTML = `our world is like a forest.<br>what we do in our world,<br>we do to the forest too.`
-            infoBox.appendChild(i1)
-            let i2 = document.createElement("p")
+            let i2 = addChildTag("p")
             i2.innerHTML = `when needed, please nurture a tree by tapping on it.`
-            infoBox.appendChild(i2)
             break;
         case 2:
             // add instructions
-            let p1 = document.createElement("h3")
+            let p1 = addChildTag("h3")
             p1.innerHTML = `you can save the forest.`
-            infoBox.appendChild(p1)
-            let p2 = document.createElement("p")
+            let p2 = addChildTag("p")
             p2.innerHTML = `please tap on a dry or burning tree to save it.`
-            infoBox.appendChild(p2)
             break;
         case 3:
         case 4:
             // add message
-            let message = document.createElement("h3")
+            let message = addChildTag('h3')
             message.innerHTML = `this news, just in!`
-            infoBox.appendChild(message)
             // add news
             let newHeadline = fetchHeadline(infotype)
-            let headline = document.createElement("p")
+            let headline = addChildTag('p')
             headline.classList.add('quote')
             let date = newHeadline.date + ", " + (Number((new Date()).getFullYear()) + gameState.infoBoxSeenCounter + 1)
             headline.innerHTML = `
@@ -842,24 +837,29 @@ function setInfo(box, infotype) {
                 <br>
                 <span class="date">${date}</span>
             `
-            infoBox.appendChild(headline)
             break;
         case 0:
             // add info
-            let c1 = document.createElement("h3")
+            let c1 = addChildTag('h3')
             c1.innerHTML = `thank you for playing.`
-            infoBox.appendChild(c1)
-            let c2 = document.createElement("p")
+            let c2 = addChildTag('p')
             c2.innerHTML = `please read about why we made this.`
-            infoBox.appendChild(c2)
             break;
     }
     // add close-button
-    let button = document.createElement("button")
-    button.setAttribute('id', 'dismissInfoBoxIcon')
+    let button = addChildTag('button')
     button.innerHTML = '<p>understood.</p>'
-    infoBox.appendChild(button)
+    button.setAttribute('id', 'dismissInfoBoxIcon')
     button.addEventListener('click', () => hideBox(infoBox, true) )
+
+    /** 
+     * @param {string} tag  
+     */
+    function addChildTag(tag) {
+        let child = document.createElement(tag)
+        box.appendChild(child)
+        return child
+    }
 }
 
 /**
