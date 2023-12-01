@@ -91,7 +91,7 @@ let gameState = {
     clicksonsicktrees: 0,
     infoBoxSeenCounter: 0,
     goodNewsCounter: 0,
-    shownMessageC: false
+    shownMessage2: false
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
@@ -1308,10 +1308,10 @@ function updateForest() {
 
         // if the health is low, but the person hasn't clicked yet...
         // instruct them to click on trees!
-        if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessageC==false)) {
+        if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessage2==false)) {
             console.log("encourage person to tap on trees.")
             setInfo(infoBox, 2)
-            gameState.shownMessageC = true
+            gameState.shownMessage2 = true
             showBox(infoBox, false)
         }
 
