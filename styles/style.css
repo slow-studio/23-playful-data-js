@@ -3,7 +3,8 @@
 
 :root {
     /* CSS variables */
-    --blackish: hsl(0, 0%, 10%);
+    --fontscale: 2/3;
+    --blackish: hsl(45, 22%, 10%);
     --paper-light: hsl(46, 76%, 97%);
     --paper-dark: hsl(44, 74%, 90%);
     --yellow: hsl(48, 100%, 50%);
@@ -15,6 +16,16 @@
     --fire: hsl(16, 57%, 50%);
     --firedarker: hsl(16, 100%, 38%);
     --treewidth: /* placeholder */ 100px; 
+}
+
+@media (min-width: 24rem) {
+    :root {
+        --fontscale: 5/6;
+    }
+}
+
+strong {
+    font-weight: bold;
 }
 
 html, body {
@@ -48,55 +59,67 @@ h1, h2, h3, p {
     text-align: left;
 }
 
-h1 {
-    font-size: 1.5rem;
+h1, h2, h3 {
     font-weight: 900;
 }
 
+h1 {
+    font-size: calc(var(--fontscale) * 2.25rem);
+    line-height: 110%;
+}
+
 h2 {
-    font-size: 1.25rem;
+    font-size: calc(var(--fontscale) * 1.875rem);
+    line-height: 112.5%;
 }
 
 h3 {
-    font-size: 1rem;
+    font-size: calc(var(--fontscale) * 1.5rem);
     line-height: 115%
 }
 
 p {
-    font-size: .67rem;
-    line-height: 135%;
-}
-a {
-    color: var(--blackish);
+    font-size: calc(var(--fontscale) * 1rem);
+    line-height: 145%;
 }
 
-p#essay {
-    width: 100%;
-    margin: 1rem 0;
-    padding: 1rem;
-    background: white;
-    border-top:.5rem solid black;
-    position: relative; z-index: 10;
-}
-
-#container {
-    margin: 1rem auto;
-    width: calc(100% - 2rem);
-    max-width: 60rem;
+#playarea {
+    margin: 0; 
+    padding: 0;
+    width: 100vw; 
+    max-width: 100vh; margin-left: auto; margin-right: auto;
+    height: 100vh;
+    overflow:hidden;
     display: flex; 
     flex-direction: column;
-    height: calc(100vh - 2rem);
+    z-index: 0; /* z-index for #playarea should be lower than for #content */ position: relative; /* ∵ z-index can not have an effect if position is 'static'. */
 }
 
-#container * {
+#playarea * {
     width: 100%;
-    max-width: 40rem;
+    max-width: calc(var(--fontscale) * 40rem);
     margin-left: auto;
     margin-right: auto;
 }
 
-#header {
-    flex: 0 1 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
+#content {
+    width: 100%;
+    background-color: var(--paper-light);
+    display: flex; flex-direction: column; align-items: center;
+    height: fit-content; 
+    padding: 1rem; 
+    border-top:.5rem solid black; 
+    overflow: visible; 
+    z-index: 1; /* z-index for #content should be higher than for #playarea */ position: relative; /* ∵ z-index can not have an effect if position is 'static'. */
+    /* enable the line below to hide #content */
+    /* padding:0; border-top: none; height: 0; overflow: hidden;  */
+}
+
+#content > * {
+    flex: 0 0 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
+    width: 100%;
+    max-width: calc(var(--fontscale) * 40rem);
+    text-align: left;
 }
 
 #footer {
@@ -125,7 +148,7 @@ svg {
     /* border: 1px solid black; */
     width: /* placeholder */ var(--treewidth);
     height:fit-content;
-    position: fixed; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
+    position: absolute; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
 }
 
 #forest .tree svg {
@@ -151,7 +174,7 @@ svg {
 }
 
 #info {
-    --infoWidth: 16rem;
+    --infoWidth: calc(var(--fontscale) * 24rem);
     /* background-color: #fcc00077; */
     position: fixed;
     overflow: visible;

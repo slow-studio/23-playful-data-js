@@ -1237,7 +1237,6 @@ gameState.starthealth = (document.getElementsByClassName("protected").length + d
 
 setInfo(infoBox, 1)
 showBox(infoBox,false)
-updateStyle(document.getElementById("essay"), "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 2)
 
 /*  ------------------------------------------------------------
     start the experience.
