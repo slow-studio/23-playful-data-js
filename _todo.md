@@ -6,14 +6,18 @@ environment:
 [ ] barren or charred trees regenerate when clicked on
 [ ] trees regenerate in an area that's burned down totally
 
+content
+[ ] content should be different depending on the person's behaviour: { played at all, clicked at all, saved the forest well, did poorly, played for long, etc }.
+[ ] add links to actual "good news" articles
+
 play:
-[ ] opening-box and conclusion-boxe show "read article" buttons.
-[ ] improve criteria for triggering game-conclusion (i.e., infoBox-0)
-[ ] when conclusion (or any news) is shown, buttons should allow us to re-play or scroll down to read an article.
-[ ] different messaging depending on the gamestate/timed-conclusion of the playful experience. eg: good news comes when the person is doing well, and not randomly.
+[ ] remove "conclusion"? (and show some kind of stats in every #infoBox)
+[ ] improve criteria for triggering game-conclusion (infoBox-0)
+[ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
+[ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. eg: good news comes when the person is doing well, and not randomly.
 [ ] strengthen design future/fiction narrative.
-[ ] add a (well-timed) conclusion or reward to the experience. maybe also display some scores ("trees saved", etc).
-[ ] a gamestate bar, showing a combined stat about the quality of gameplay (incl. health of forest, activity by person, etc). maybe it is "climate change vs you".
+[ ] add a (well-timed) conclusion or reward to the experience. maybe also display some scores ("trees saved", etc) in the concluding message (infoBox-0)
+[ ] a gamestate bar, showing a combined stat about the quality of gameplay (incl. health of forest, activity by person, etc). maybe it is "climate change vs you" or just "trees saved".
 
 tiy
 [ ] replace setInterval with requestAnmationFrame(callback)
