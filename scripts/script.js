@@ -1020,10 +1020,10 @@ const forest = document.getElementById("forest")
 /** @type {SettingsObject} settings for the forest */
 const forestSettings = {
     padding: {
-        t: - svgtree.dim.height / 6,
-        r: 0,
-        b: 0,
-        l: 0
+        t: 20 - svgtree.dim.height / 6,
+        r: 20,
+        b: 20,
+        l: 20
     },
     spacing: {
         h: svgtree.dim.width * 2 / 3,
