@@ -7,8 +7,8 @@
 </head>
 <body>
   
-
-<h1>Lorem Ipsum</h1>
+<div  id="men">
+<h1>Men Lorem Ipsum</h1>
 <h4>"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit..."</h4>
 <h5>"There is no one who loves pain itself, who seeks after it and wants to have it, simply because it is pain..."</h5>
 
@@ -37,6 +37,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus massa metus, la
 <p>
 Vivamus commodo, quam sagittis finibus mattis, diam ante suscipit sem, et posuere erat eros vel ipsum. Nullam consectetur, est laoreet ultrices mattis, massa velit vestibulum lorem, sed vehicula est justo nec est. Integer congue odio ut magna dapibus volutpat. Donec vehicula dolor vel nisi lacinia, eu gravida sapien iaculis. Nulla quis lorem massa. Pellentesque hendrerit arcu sit amet porta facilisis. Phasellus ac ipsum pretium felis aliquet ornare a lobortis lorem. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nulla vulputate mattis arcu, non egestas ligula cursus eu.
 </p>
+
+</div>
+<hr>
+
+<div id="women">
+<h1>Women Lorem Ipsum</h1>
+
 <p>
 Suspendisse erat ante, lobortis sed vehicula ac, venenatis at lectus. Cras hendrerit est nisi, quis semper est convallis in. Cras finibus quam eu sagittis cursus. Aliquam venenatis tincidunt odio sed tincidunt. Sed dapibus elit in ante laoreet efficitur. Sed at sagittis massa. Nullam et turpis in sapien malesuada interdum sit amet et nibh. Maecenas at massa at neque venenatis tristique in a tortor. Nullam dapibus magna tellus, in faucibus tortor finibus ac. Aenean semper lacinia massa at lacinia.
 </p>
@@ -61,20 +68,31 @@ Nulla facilisis suscipit accumsan. Phasellus faucibus nisi erat, vel malesuada p
 <p>
 Quisque sit amet turpis rutrum, vulputate urna lobortis, sollicitudin tortor. Sed dignissim enim enim, rhoncus pellentesque enim feugiat id. Sed ultricies sit amet massa vitae volutpat. Pellentesque tortor ipsum, facilisis efficitur efficitur posuere, porta id massa. Donec malesuada, est non vulputate tristique, nulla mi dignissim ex, at placerat nibh ipsum sed erat. Suspendisse scelerisque fermentum quam, id sodales mauris feugiat vel. Nam finibus purus eu bibendum congue. Quisque dignissim sit amet augue nec tincidunt. Nam augue erat, accumsan sed dolor vel, bibendum tristique justo. Nunc sollicitudin, nulla vitae aliquam egestas, purus ligula sollicitudin risus, sit amet bibendum eros mi porttitor lacus. Quisque at vulputate ante, non scelerisque nisl.
 </p>
+</div>
 
 <script>
-  // left: 37, up: 38, right: 39, down: 40,
-  // spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
-  var keys = {37: 1, 38: 1, 39: 1, 40: 1};
 
   const scrollFactor = 0.01;
+  console.log(scrollFactor)
 
+  /* function to define custom scroll-behaviour on mouse/tap events */
   function preventDefault(e) {
-    e.preventDefault();
-
-    window.scrollBy({ top: e.deltaY * scrollFactor, behavior: 'smooth' });
+    if (
+      // if the #women div comes into view:
+      document.getElementById("women").getBoundingClientRect().y - innerHeight < 0
+    ) {
+      // then: prevent default scrolling 
+      e.preventDefault();
+      // and: scroll slowly (reduced by the scrollFactor variable)
+      window.scrollBy({ top: e.deltaY * scrollFactor, behavior: 'smooth' });
+    }
   }
 
+  // left: 37, up: 38, right: 39, down: 40,
+  // spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
+  var keys = { 32: 1, 37: 1, 38: 1, 39: 1, 40: 1 };
+
+  /* function to define custom scroll-behaviour (when keyboard keys are pressed) */
   function preventDefaultForScrollKeys(e) {
     if (keys[e.keyCode]) {
       preventDefault(e);
@@ -82,18 +100,28 @@ Quisque sit amet turpis rutrum, vulputate urna lobortis, sollicitudin tortor. Se
     }
   }
 
-  // modern Chrome requires { passive: false } when adding event
+  // (not sure, but we think this) checks if the current browser is a Chrome browser.
+  // ∵ modern Chrome requires { passive: false } when adding event
   var supportsPassive = false;
   try {
     window.addEventListener("test", null, Object.defineProperty({}, 'passive', {
-      get: function () { supportsPassive = true; } 
+      get: function () { supportsPassive = true; }
     }));
-  } catch(e) {}
+  } catch (e) { }
 
   var wheelOpt = supportsPassive ? { passive: false } : false;
   var wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel';
 
-  // call this to Disable
+  // call this to Enable
+  function enableScroll() {
+    window.removeEventListener('DOMMouseScroll', preventDefault, false);
+    window.removeEventListener(wheelEvent, preventDefault, wheelOpt);
+    window.removeEventListener('touchmove', preventDefault, wheelOpt);
+    window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
+  }
+
+  /* this function attached eventListeners to the window. whenever a scroll (or similar) event is detected, these eventListeners call the preventDefault() funtion.
+  */
   function disableScroll() {
     window.addEventListener('DOMMouseScroll', preventDefault, false); // older FF
     window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
@@ -101,15 +129,9 @@ Quisque sit amet turpis rutrum, vulputate urna lobortis, sollicitudin tortor. Se
     window.addEventListener('keydown', preventDefaultForScrollKeys, false);
   }
 
-  // call this to Enable
-  function enableScroll() {
-    window.removeEventListener('DOMMouseScroll', preventDefault, false);
-    window.removeEventListener(wheelEvent, preventDefault, wheelOpt); 
-    window.removeEventListener('touchmove', preventDefault, wheelOpt);
-    window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
-  }
-
+  // when the script loads, call the disableScroll() function
   disableScroll();
+
 </script>
 
 </body>
