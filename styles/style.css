@@ -17,4 +17,10 @@ body {
 }
 h1 {
     font-weight: 900;
+    line-height: 1.2;
+}
+
+h2 {
+    font-weight: 500;
+    line-height: 1.2;
 }
