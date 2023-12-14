@@ -245,54 +245,54 @@ function seedDryTrees(n) {
 
     console.log(`seedDryTrees(${n}) was called`)
 
-    /* if there's at-least 1 "normal"/"protected" tree in the forest... */
-    let healthyTrees = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
-    console.log(`before seeding dry trees, healthyTrees = ${healthyTrees}`)
-    if (healthyTrees > 0) {
+    // /* if there's at-least 1 "normal"/"protected" tree in the forest... */
+    // let healthyTrees = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
+    // console.log(`before seeding dry trees, healthyTrees = ${healthyTrees}`)
+    // if (healthyTrees > 0) {
         
-        /* ...then, select a random "normal"/"protected" tree to turn "dry". */
+    //     /* ...then, select a random "normal"/"protected" tree to turn "dry". */
         
-        // keep n within sensible bounds
-        if (n >= healthyTrees) n = Math.floor(Math.random() * healthyTrees)
-        if (n <= 1) n = 1
+    //     // keep n within sensible bounds
+    //     if (n >= healthyTrees) n = Math.floor(Math.random() * healthyTrees)
+    //     if (n <= 1) n = 1
 
-        console.log("trying to seed " + n + " dry trees...")
+    //     console.log("trying to seed " + n + " dry trees...")
 
-        // fraction of trees to turn from normal/protected to dry
-        let fr = n / healthyTrees
+    //     // fraction of trees to turn from normal/protected to dry
+    //     let fr = n / healthyTrees
         
-        // collect all healthy trees (svg elements)
-        let allhealthytrees = []
-        let allnormaltrees = document.getElementsByClassName("normal"), 
-            allprotectedtrees = document.getElementsByClassName("protected") // HTMLCollection
-        let arrayofallnormaltrees = Array.from(allnormaltrees),
-            arrayofallprotectedtrees = Array.from(allprotectedtrees) // convert HTMLCollection to Array
-        allhealthytrees.push(...Array.from(arrayofallnormaltrees))
-        allhealthytrees.push(...Array.from(arrayofallprotectedtrees))
+    //     // collect all healthy trees (svg elements)
+    //     let allhealthytrees = []
+    //     let allnormaltrees = document.getElementsByClassName("normal"), 
+    //         allprotectedtrees = document.getElementsByClassName("protected") // HTMLCollection
+    //     let arrayofallnormaltrees = Array.from(allnormaltrees),
+    //         arrayofallprotectedtrees = Array.from(allprotectedtrees) // convert HTMLCollection to Array
+    //     allhealthytrees.push(...Array.from(arrayofallnormaltrees))
+    //     allhealthytrees.push(...Array.from(arrayofallprotectedtrees))
         
-        // a counter which will track how many trees we do make dry
-        let conversioncounter = 0;
+    //     // a counter which will track how many trees we do make dry
+    //     let conversioncounter = 0;
 
-        // for each healthy tree, decide whether it turns dry
-        for(let i=0 ; i<allhealthytrees.length ; i++) {
-            if(conversioncounter<n) {
-                if(Math.random()<fr) {
-                    updateTree(allhealthytrees[i], "dry")
-                    conversioncounter++
-                }
-            }
-            else break;
-        }
+    //     // for each healthy tree, decide whether it turns dry
+    //     for(let i=0 ; i<allhealthytrees.length ; i++) {
+    //         if(conversioncounter<n) {
+    //             if(Math.random()<fr) {
+    //                 updateTree(allhealthytrees[i], "dry")
+    //                 conversioncounter++
+    //             }
+    //         }
+    //         else break;
+    //     }
 
-        // if no trees were converted, forcibly convert one
-        if(conversioncounter==0) {
-            console.log(`no trees were seeded. so: forcibly seeding dryness in one tree.`)
-            let randomtreeindex = Math.floor(Math.random()*allhealthytrees.length)
-            updateTree(allhealthytrees[randomtreeindex], "dry")
-        }
+    //     // if no trees were converted, forcibly convert one
+    //     if(conversioncounter==0) {
+    //         console.log(`no trees were seeded. so: forcibly seeding dryness in one tree.`)
+    //         let randomtreeindex = Math.floor(Math.random()*allhealthytrees.length)
+    //         updateTree(allhealthytrees[randomtreeindex], "dry")
+    //     }
 
-        console.log(`seeding report: successfully seeded ${Math.max(Math.min(n,conversioncounter),1)} dry trees.`)
-    }
+    //     console.log(`seeding report: successfully seeded ${Math.max(Math.min(n,conversioncounter),1)} dry trees.`)
+    // }
 }
 
 /**
