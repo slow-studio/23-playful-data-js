@@ -1414,8 +1414,8 @@ function updateForest() {
 
         /** make fire, dryness, health spread from one tree to its neighbours */
 
-        spreadInfection(burnings, "burning", .99, 1)
-        spreadInfection(drys, "dry", .995, 1)
+        // spreadInfection(burnings, "burning", .99, 1)
+        // spreadInfection(drys, "dry", .995, 1)
         // spreadInfection(normals, "normal", .99995, 1)
 
         /**
