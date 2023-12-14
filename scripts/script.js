@@ -1274,7 +1274,7 @@ gameState.starthealth = (document.getElementsByClassName("protected").length + d
     ------------------------------------------------------------  */
 
 setInfo(infoBox, 1)
-showBox(infoBox,false)
+// showBox(infoBox,false)
 
 /*  ------------------------------------------------------------
     start the experience.
@@ -1343,36 +1343,36 @@ function updateForest() {
         gameState.health = (normals.length + protecteds.length) / totalTreesInForest
         gameState.playTime = new Date().getTime() - gameState.startTime
 
-        // if the health is low, but the person hasn't clicked yet...
-        // instruct them to click on trees!
-        if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessage2==false)) {
-            console.log("encourage person to tap on trees.")
-            setInfo(infoBox, 2)
-            gameState.shownMessage2 = true
-            showBox(infoBox, false)
-        }
+        // // if the health is low, but the person hasn't clicked yet...
+        // // instruct them to click on trees!
+        // if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessage2==false)) {
+        //     console.log("encourage person to tap on trees.")
+        //     setInfo(infoBox, 2)
+        //     gameState.shownMessage2 = true
+        //     showBox(infoBox, false)
+        // }
 
-        // if there are no dry/burning trees left (but there still are normal trees):
-        if ((drys.length == 0) && (burnings.length == 0) && (normals.length + protecteds.length >= 0)){
-            // console.log(`no dry or burning trees (there are, however, normal trees).`)
+        // // if there are no dry/burning trees left (but there still are normal trees):
+        // if ((drys.length == 0) && (burnings.length == 0) && (normals.length + protecteds.length >= 0)){
+        //     // console.log(`no dry or burning trees (there are, however, normal trees).`)
 
-            // conclude the experience
-            if(gameState.clicksonsicktrees > totalTreesInForest * gameState.starthealth || gameState.playTime > PLAYTIMELIMIT) {
-                setInfo(infoBox,0)
-                showBox(infoBox, true)
-            }
+        //     // conclude the experience
+        //     if(gameState.clicksonsicktrees > totalTreesInForest * gameState.starthealth || gameState.playTime > PLAYTIMELIMIT) {
+        //         setInfo(infoBox,0)
+        //         showBox(infoBox, true)
+        //     }
 
-            // or keep the experience going
-            else if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {
-                if(!boxDisplayAttrIs(infoBox)) {
-                    console.log("forest saved. showing new news.")
-                    const infotype = Math.random() > gameState.health ? 3 /* good news */ : 4 /* bad news */
-                    console.log(`${infotype==3?"good":"bad"} news selected.`)
-                    setInfo(infoBox,infotype)
-                    showBox(infoBox, true)
-                }
-            }
-        }
+        //     // or keep the experience going
+        //     else if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {
+        //         if(!boxDisplayAttrIs(infoBox)) {
+        //             console.log("forest saved. showing new news.")
+        //             const infotype = Math.random() > gameState.health ? 3 /* good news */ : 4 /* bad news */
+        //             console.log(`${infotype==3?"good":"bad"} news selected.`)
+        //             setInfo(infoBox,infotype)
+        //             showBox(infoBox, true)
+        //         }
+        //     }
+        // }
 
         // dry -> burning
         for (let i = 0; i < drys.length; i++) {
