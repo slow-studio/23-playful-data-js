@@ -1374,43 +1374,43 @@ function updateForest() {
         //     }
         // }
 
-        // dry -> burning
-        for (let i = 0; i < drys.length; i++) {
-            if (Math.random() > .999)
-                updateTree(drys[i], "burning")
-        }
+        // // dry -> burning
+        // for (let i = 0; i < drys.length; i++) {
+        //     if (Math.random() > .999)
+        //         updateTree(drys[i], "burning")
+        // }
 
-        // burning -> charred
-        for (let i = 0; i < burnings.length; i++) {
-            if (Math.random() > .983)
-                updateTree(burnings[i], "charred")
-        }
+        // // burning -> charred
+        // for (let i = 0; i < burnings.length; i++) {
+        //     if (Math.random() > .983)
+        //         updateTree(burnings[i], "charred")
+        // }
 
-        // charred -> absent
-        for (let i = 0; i < charreds.length; i++) {
-            if (Math.random() > .9999)
-                updateTree(charreds[i], "absent")
-        }
-        for (let i = 0; i < charreds.length; i++) {
-            if ((protecteds.length + normals.length + drys.length) < 1)
-                if (Math.random() > .95)
-                    updateTree(charreds[i], "absent")
-        }
+        // // charred -> absent
+        // for (let i = 0; i < charreds.length; i++) {
+        //     if (Math.random() > .9999)
+        //         updateTree(charreds[i], "absent")
+        // }
+        // for (let i = 0; i < charreds.length; i++) {
+        //     if ((protecteds.length + normals.length + drys.length) < 1)
+        //         if (Math.random() > .95)
+        //             updateTree(charreds[i], "absent")
+        // }
 
-        // absent -> new forest
-        for (let i = 0; i < absents.length; i++) {
-            if (
-                ((protecteds.length + normals.length + drys.length) < (.1 * totalTreesInForest))
-                &&
-                (absents.length >= .8 * totalTreesInForest)
-            ) {
-                if (Math.random() < .67) {
-                    setTimeout(function () {
-                        updateTree(absents[i], "normal")
-                    }, Math.random() * 5000)
-                }
-            }
-        }
+        // // absent -> new forest
+        // for (let i = 0; i < absents.length; i++) {
+        //     if (
+        //         ((protecteds.length + normals.length + drys.length) < (.1 * totalTreesInForest))
+        //         &&
+        //         (absents.length >= .8 * totalTreesInForest)
+        //     ) {
+        //         if (Math.random() < .67) {
+        //             setTimeout(function () {
+        //                 updateTree(absents[i], "normal")
+        //             }, Math.random() * 5000)
+        //         }
+        //     }
+        // }
 
         /** make fire, dryness, health spread from one tree to its neighbours */
 
