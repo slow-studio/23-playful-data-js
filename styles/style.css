@@ -54,3 +54,8 @@ svg path {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
+
+.cls-2 {
+    fill: rgb(255, 141, 1);
+    stroke:rgb(255, 69, 1);
+}
