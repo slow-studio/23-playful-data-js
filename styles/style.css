@@ -47,7 +47,9 @@ svg:nth-child(3) {
     position: relative;
     left: -100px;
 }
-svg path {
+svg path,
+svg polyline,
+svg polygon {
     fill: #4c8a40;
     stroke: #221f1f;
     stroke-width: 2px;
