@@ -296,21 +296,6 @@ function seedDryTrees(n) {
 }
 
 /**
- * tree changes as instructed
- * @typedef {Object} TreeChangeSettings
- * @property {object} shape
- * @property {string|boolean} [shape.foliage=false] 
- * @property {string|boolean} [shape.stump=false] 
- * @property {string|boolean} [shape.fire=false] 
- * @property {string|boolean} [shape.burned=false] 
- * @property {object} colour
- * @property {string|boolean} [colour.outline=false] 
- * @property {string|boolean} [colour.foliage=false] 
- * @property {string|boolean} [colour.stump=false] 
- * @property {string|boolean} [colour.fire=false] 
- * @property {string|boolean} [colour.burned=false] 
- */
-/**
  * @param {*} svgelement 
  * @param {string} state - the state of the tree
  */
