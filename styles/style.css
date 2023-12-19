@@ -154,22 +154,32 @@ svg {
     height:fit-content;
 }
 
-#forest .tree svg path {
-    fill:#fff;
+#forest .tree svg path,
+#forest .tree svg polyline,
+#forest .tree svg polygon {
+    fill:#000;
     stroke:#000;
-    stroke-width:6px;
+    stroke-width:2px;
 }
 
-#forest .tree svg path.foliage {
-    /* fill: var(--autumn); */
+#forest .tree svg .foliage {
+    fill: var(--green);
 }
-
-#forest .tree svg path.stump {
-    /* fill: var(--wood); */
+#forest .tree svg.normal .foliage {
+    fill: var(--green);
 }
-
-#forest .tree svg path.fire {
-    /* fill: var(--fire); */
+#forest .tree svg.dry .foliage {
+    fill: var(--autumn);
+}
+#forest .tree svg.burning .foliage {
+    fill: var(--autumn);
+}
+#forest .tree svg .fire {
+    fill: var(--fire);
+    opacity: .8333;
+}
+#forest .tree svg .stump {
+    fill: var(--blackish);
 }
 
 #info {
