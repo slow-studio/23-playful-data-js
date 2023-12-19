@@ -50,11 +50,14 @@ svg:nth-child(3) {
 svg path,
 svg polyline,
 svg polygon {
-    fill: #4c8a40;
     stroke: #221f1f;
-    stroke-width: 2px;
+    stroke-width: 1.5px;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.cls-1 {
+    fill: #4c8a40;
 }
 
 .cls-2 {
