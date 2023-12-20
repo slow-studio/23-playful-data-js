@@ -4,6 +4,6 @@
     "noEmit": true,
     "allowJs": true,
     "checkJs": true,
-    "lib": ["es2015", "DOM"]
+    "lib": ["es2016", "DOM"]
   }
 }
