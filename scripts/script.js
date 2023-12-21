@@ -218,25 +218,6 @@ function showcontent(show) {
 // don't show #content at the start : show the #playarea (and #forest) only.
 showcontent(false)
 
-/** make fires crackle */
-const fireCrackleTime = 600
-setInterval(function () {
-    /** @type {any} */
-    let fires = document.getElementsByClassName("fire")
-    for (let i = 0; i < fires.length; i++) {
-        if (fires[i]) {
-            fires[i].style.fill = randomiseHSLColour('--firedarker', 0, 5),
-            // console.log("fire gets darker")
-            setTimeout(function () {
-                if (fires[i]) {
-                    fires[i].style.fill = randomiseHSLColour('--fire', 0, 5)
-                    // console.log("fire gets less dark") 
-                }
-            }, approx(fireCrackleTime, 50));
-        }
-    }
-}, fireCrackleTime);
-
 /**
  * randomly convert some "normal" trees to their "dry" state
  * @param {number} [n=1] - number of trees to seed
@@ -297,106 +278,86 @@ function seedDryTrees(n) {
 
 /**
  * @param {*} svgelement 
- * @param {string} state - the state of the tree
  */
-function updateTree(svgelement, state) {
+function updateTree(svgelement) {
 
     // helper variables
-    const id = Number(svgelement.parentNode.id.substring("tree-".length, svgelement.parentNode.id.length))
-    const foliages = svgelement.getElementsByClassName('foliage')
-    const wood = svgelement.getElementsByClassName('stump')
-    const fires = svgelement.getElementsByClassName('fire')
-    const burnedses = svgelement.getElementsByClassName('burned')
+    const id = Number(svgelement.getAttribute('tree-id'))
 
-    if (tree[id].stateSettings.protected.isProtected == true) {
-        // if the tree is protected, we can do nothing
-    } else {
-        /* tree memorises its present state */
-        tree[id].state.previous = tree[id].state.now
-        tree[id].shape.foliage.previous = tree[id].shape.foliage.now
-        tree[id].shape.stump.previous = tree[id].shape.stump.now
-        tree[id].shape.fire.previous = tree[id].shape.fire.now
-        tree[id].shape.burned.previous = tree[id].shape.burned.now
-        tree[id].colour.outline.previous = tree[id].colour.outline.now
-        tree[id].colour.foliage.previous = tree[id].colour.foliage.now
-        tree[id].colour.stump.previous = tree[id].colour.stump.now
-        tree[id].colour.fire.previous = tree[id].colour.fire.now
-        tree[id].colour.burned.previous = tree[id].colour.burned.now
+    /* tree memorises its previous state */
+    tree[id].state.previous = tree[id].state.now
 
-        /* tree decides what its new appearance will be */
-        tree[id].state.now = state
-        // console.log(`updateTree # ${id}: ${tree[id].state.previous} -> ${tree[id].state.now}`)
-        const classes = svgelement.classList
-        for (let i = 0; i < classes.length; i++) {
-            svgelement.classList.remove(classes[i])
-        }
-        svgelement.classList.add(tree[id].state.now)
-        const settings = tree[id].stateSettings[state]
-        tree[id].shape.foliage.now = settings.shape.foliage
-        tree[id].shape.stump.now = settings.shape.stump
-        tree[id].shape.fire.now = settings.shape.fire 
-        tree[id].shape.burned.now = settings.shape.burned 
-        tree[id].colour.outline.now = settings.colour.outline 
-        tree[id].colour.foliage.now = settings.colour.foliage 
-        tree[id].colour.stump.now = settings.colour.stump 
-        tree[id].colour.fire.now = settings.colour.fire 
-        tree[id].colour.burned.now = settings.colour.burned 
-
-        // console.log("change t# " + id)
-        // console.log(tree[id])
-
-        /* tree changes appearance: */
-        // -- 1. it updates its svg shape
-        svgelement.innerHTML =
-            tree[id].shape.foliage.now
-            + tree[id].shape.stump.now
-            + tree[id].shape.fire.now
-            + tree[id].shape.burned.now
-        // -- 2. it sets the colour for those svg-shapes
-        for (const p of foliages) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.foliage.now
-        }
-        for (const p of wood) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.stump.now
-        }
-        for (const p of fires) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.fire.now
-        }
-        for (const p of burnedses) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.burned.now
-        }
-        // -- 3. sound feedback:
-        //      -- tree catches fire (i.e., was not burning before, but is now)
-        if (tree[id].state.previous != "burning" && tree[id].state.now == "burning") {
-            playSound(sCatchFire, volumeScaler.sCatchFire)
-        }
-
-        /*  state-specific behaviour:
-            if the tree just got protected...
-            */
-        if (tree[id].state.previous != "protected" && tree[id].state.now == "protected") {
-            tree[id].stateSettings.protected.isProtected = true
-            // remains protected for 'protectionDuration' time
-            setTimeout(function () {
-                // console.log(`protected tree-${id} is preparing to become "normal" (automatically).\n(protectionDuration: ${protectionDuration}ms)\nchecking status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
-                if (tree[id].stateSettings.protected.isProtected = true) {
-                    tree[id].stateSettings.protected.isProtected = false
-                    // console.log(`protected tree-${id} is now ready to become "normal" (automatically).\nupdating status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
-                    updateTree(svgelement, "normal")
-                }
-            }, approx(protectionDuration, 20))
-        }
+    /* tree calculates what its new appearance will be */
+    // tree was asked not to change...
+    if (tree[id].behaviour==0) 
+        // but it was at an interim state (i.e., not a keystate)...
+        if (!svgtree.keyStates.includes(tree[id].state.now)) 
+            // so: we ask it to change, so that it eventually arrives at a keystate
+            tree[id].behaviour = 1
+        // but if it is at a keystate, it needs to progress forward
+        if(tree[id].state.now == svgtree.keyStates[0] 
+            || tree[id].state.now == svgtree.keyStates[1] 
+            || tree[id].state.now == svgtree.keyStates[3]
+        ) {
+            if(Math.random()>.99) // allows the tree to spend some time at the current keystate
+                tree[id].behaviour = 1
+        } else if (svgtree.keyStates.includes(tree[id].state.now)) tree[id].behaviour = 1
+    // tree calculates new state
+    tree[id].state.now += tree[id].behaviour
+    // handling edge-cases
+    if(tree[id].state.now >= TREESTAGECOUNT) tree[id].state.now = 0
+    const totalkeystates = svgtree.keyStates.length
+    for ( let i=0 ; i<totalkeystates ; i++) {
+        if(tree[id].state.now == svgtree.keyStates[i]) 
+            tree[id].behaviour = 0
     }
 
-    // let protecteds = document.getElementsByClassName("protected")
+    // (to the tree's html-element) erase all previous classes
+    const classes = svgelement.classList
+    for (let i = 0; i < classes.length; i++) {
+        svgelement.classList.remove(classes[i])
+    }
+    // (to the tree's html-element) add a class specifying the tree's newly assigned state
+    let classs = ""
+    if (tree[id].state.now == svgtree.keyStates[0]) classs = "absent"
+    else if (tree[id].state.now <= svgtree.keyStates[1]) classs = "normal"
+    else if (tree[id].state.now <= svgtree.keyStates[2]) classs = "burning"
+    else if (tree[id].state.now >= svgtree.keyStates[3]) classs = "charred"
+    if(classs.length>0) svgelement.classList.add(classs)
 
-    // just to be extra careful...
-    if (tree[id].state.now != "protected") {
-        tree[id].stateSettings.protected.isProtected = false
+    // console.log("change t# " + id)
+    // console.log(tree[id])
+
+    /* tree changes appearance: */
+    // -- 1. it updates its svg shape
+    svgelement.innerHTML = svgtree.src.innerhtml[tree[id].state.now]
+    // -- 2. it sets the colour for those svg-shapes
+
+    // -- 3. sound feedback:
+    //      -- tree catches fire (i.e., was not burning before, but is now)
+    if (tree[id].state.previous != "burning" && tree[id].state.now == "burning") {
+        playSound(sCatchFire, volumeScaler.sCatchFire)
+    }
+
+    /*  state-specific behaviour:
+        if the tree just got protected...
+        */
+    if (tree[id].isProtected.previous == false && tree[id].isProtected.now == true) {
+
+    }
+
+    /*  state-specific behaviour:
+        if the tree is on fire, make the fire crackle (visually)
+        */
+    const fireCrackleTime = 600
+    /** @type {any} */
+    let fires = svgelement.getElementsByClassName("fire")
+    for (let i = 0; i < fires.length; i++) {
+        if((new Date()).getMilliseconds()%2==(id%2))
+            // fire gets darker
+            fires[i].style.fill = randomiseHSLColour('--firedarker', 0, 5)
+        else // fire gets less dark
+            fires[i].style.fill = randomiseHSLColour('--fire', 0, 5)
     }
 }
 
@@ -959,7 +920,8 @@ function hideBox(box, seed) {
 const svgtree = {
     src: {
         starttag: '<svg viewBox="0 0 50 150">',
-        foliage: [
+        innerhtml: [
+            /* dead 10 */ '<polygon class="stump" points="24.89 147.04 25.21 145.96 25.87 146.15 26.94 147.34 24.02 147.34 24.89 147.04"/>',
             /* 1: shoot */ '<path class="foliage" d="M24.91,149.48c-2.72,0-4-1.44-4.08-3.5-.08-1.81,1.4-1.75,2.66-1.45a14.89,14.89,0,0,1-.94-5c.09-1.93,1-3.23,1.67-3.15s1.21.86,1.42,6.55c.37-.51,1.28-2.32,2.36-2,1.53.46.07,2.5-.51,3.18a3,3,0,0,1,1.42,2C29.22,147.58,27,149.48,24.91,149.48Z"/>',
             /* 2 */ '<path class="foliage" d="M24.76,144.4l0,2.89.33,0v-2.88a3.1,3.1,0,0,0,2.55-1.25,3.46,3.46,0,0,0,.31-2.55A1.72,1.72,0,0,0,29,138.72a1.67,1.67,0,0,0-1.34-1.27c1.05-.51,2.23-2.81,1.4-3.45-1.23-.95-2,.64-2.74,1.21,0-2.52.19-4.27-1.53-4.27-2,0-1.76,4.11-1.22,5.68,0,0-2.36-.19-2.68,1.53A2.86,2.86,0,0,0,22,141.09c.16.06-.58,1.18-.16,2.13S23.66,144.4,24.76,144.4Z"/>',
             /* 3 */ '<path class="foliage" d="M21.07,141a2.66,2.66,0,0,1,2-2.08c-1.46-1.09-2.65-2.08-2.53-3.64a3.84,3.84,0,0,1,1.9-2.74c-1.79-2.17-1.23-3.51-.6-3.92s2.28.41,2.51.6c-.51-4.07-.58-5.8.64-5.92,2-.19,1.83,1.92,1.4,6.13,1.47-2,2.6-3.38,3.45-2.09.36.56-.58,1.88-2.34,4.56,1.06.11,2.13.4,2.47,1.22.5,1.24-.13,2.93-2.13,4.37a2,2,0,0,1,1,2.24,1.4,1.4,0,0,1-1.17,1.15,2,2,0,0,1,.08,2.29c-.48.75-1.59.91-2.62,1v3.45l-.48,0,0-3.53C22.55,143.5,20.9,142.3,21.07,141Z"/>',
@@ -996,10 +958,16 @@ const svgtree = {
             /* dead 07 */ '<path class="stump" d="M18.3,147.21l1.53-.51L22,144.6c1.76-2.08,2.34-2.6,3.1-2.59,1.65,0,2.1,1.09,3.16,2.46l1.59,1.72,3.26,1Z"/><polygon class="stump" points="16.83 147.37 16.06 147.37 16.45 147.05 16.83 147.37"/><polygon class="stump" points="23.75 140.29 24.2 140.51 24.81 139.65 23.75 140.29"/><polygon class="stump" points="25.35 136.17 25.54 136.94 26.11 136.33 25.35 136.17"/><path class="stump" d="M25.73,134.41l.2.26Z"/><polygon class="stump" points="24.81 130.62 24.81 131.03 25.83 130.2 24.81 130.62"/><polygon class="stump" points="24.01 128.35 24.28 128.35 24.15 128.03 24.01 128.35"/><polygon class="stump" points="24.81 124.9 24.81 125.51 25.32 125.51 25 124.9 24.81 124.9"/><path class="stump" d="M25.06,121.71l.26.35Z"/><path class="stump" d="M24.46,119.83h0Z"/><path class="stump" d="M25.19,114.56l.13.2Z"/>',
             /* dead 08 */ '<polygon class="stump" points="20.19 146.51 22.55 145.81 24.09 143.7 25.23 141.91 26.06 142.23 27.98 144.6 29.51 146.13 30.72 147.02 30.72 147.34 32.57 147.34 18.18 147.34 19.97 147.18 20.19 146.51"/><path class="stump" d="M16.11,147l.32.22Z"/><path class="stump" d="M35.54,147.34h0Z"/>',
             /* dead 09 */ '<path class="stump" d="M22.7,147.09l.32-.77,1.66-.22.95-1a.58.58,0,0,1,.91.1l.61,1,.83.7.32.45-1.61-.46-3.18.46H21.34Z"/><path class="stump" d="M29.89,147h0Z"/><path class="stump" d="M17.32,147.34h0Z"/><path class="stump" d="M31.55,147.34h0Z"/>',
-            /* dead 10 */ '<polygon class="stump" points="24.89 147.04 25.21 145.96 25.87 146.15 26.94 147.34 24.02 147.34 24.89 147.04"/>'
+            /* dead 10 */ '<polygon class="stump" points="24.89 147.04 25.21 145.96 25.87 146.15 26.94 147.34 24.02 147.34 24.89 147.04"/>',
         ],
         endtag: '</svg>'
     },
+    keyStates: [
+        /* ash (fertile earth) */ 0,
+        /* fully grown */ 20,
+        /* last stage of burning */ 27,
+        /* charred */ 28,
+    ],
     dim: {
         // these are known to us, from when we created the svg
         width: 50,
@@ -1007,7 +975,8 @@ const svgtree = {
     }
 }
 
-const TREESTAGECOUNT = svgtree.src.foliage.length
+const TREESTAGECOUNT = svgtree.src.innerhtml.length
+console.log(`total stages in a tree's lifecycle: ${TREESTAGECOUNT}`)
 
 /** updates :root definitions in the stylesheet */
 updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width + 'px')
@@ -1090,55 +1059,6 @@ for (let i = 0; loopRunner; i++) {
         },
         class: 'tree',
         zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
-        shape: {
-            foliage: {
-                default: svgtree.src.foliage[0],
-                previous: '',
-                now: ''
-            },
-            stump: {
-                default: svgtree.src.stump,
-                previous: '',
-                now: ''
-            },
-            fire: {
-                default: svgtree.src.fire,
-                previous: '',
-                now: ''
-            },
-            burned: {
-                default: svgtree.src.burned,
-                previous: '',
-                now: ''
-            },
-        },
-        colour: {
-            outline: {
-                default: 'black',
-                previous: '',
-                now: ''
-            },
-            foliage: {
-                default: 'white',
-                previous: '',
-                now: ''
-            },
-            stump: {
-                default: 'white',
-                previous: '',
-                now: ''
-            },
-            fire: {
-                default: 'white',
-                previous: '',
-                now: ''
-            },
-            burned: {
-                default: 'black',
-                previous: '',
-                now: ''
-            }
-        },
         dimensions: {
             l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
             t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
@@ -1152,85 +1072,17 @@ for (let i = 0; loopRunner; i++) {
             }
         },
         state: {
-            default: 'normal',
-            previous: '',
-            now: 'normal'
+            default: 0,
+            previous: 0,
+            now: 0
+            // Math.floor(Math.random()*svgtree.src.innerhtml.length) 
+            // svgtree.keyStates[Math.floor(Math.random()*svgtree.keyStates.length)]
         },
-        stateSettings: {
-            absent: {
-                shape: {
-                    // stump: svgtree.src.stump
-                },
-                colour: {
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            protected: {
-                isProtected: false,
-                shape: {
-                    foliage: forestSettings.orderly.shape ? svgtree.src.foliage[0] : (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: false,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--protected', 3, 10, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            normal: {
-                shape: {
-                    foliage: forestSettings.orderly.shape ? svgtree.src.foliage[0] : (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: false,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--green', 3, 10, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            dry: {
-                shape: {
-                    foliage: (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: false,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--autumn', 10, 20, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            burning: {
-                shape: {
-                    foliage: (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: svgtree.src.fire,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--autumn', 10, 20, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour),
-                    fire: randomiseHSLColour('--fire', 0, 5),
-                }
-            },
-            charred: {
-                shape: {
-                    foliage: false,
-                    stump: false,
-                    fire: false,
-                    burned: svgtree.src.burned
-                },
-                colour: {
-                    outline: 'black',
-                    burned: 'black'
-                }
-            }
+        behaviour: 1, // -1: move backward | 0: stay as-is | 1: move forward 
+        isProtected: {
+            default: false,
+            previous: false,
+            now: false
         }
     }
     // set id and class
@@ -1241,12 +1093,9 @@ for (let i = 0; loopRunner; i++) {
     newDiv.innerHTML = svgtree.src.starttag + svgtree.src.endtag
     // then, grab the svg-element...
     const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
-    // ... and, finally, draw and style the tree (within the svg-element):
-    //  — spawn all normal trees:
-    // updateTree(svgelement,"normal")
-    //  or
-    //  - spawn a more organic-looking forest:
-    updateTree(svgelement, Math.random()<.1?"charred":Math.random()<.15?"absent":"normal")
+    svgelement.setAttribute('tree-id',`${i}`)
+    // ... and, finally, draw the tree (within the svg-element):
+    updateTree(svgelement)
 
     // newDiv should be as large as the tree-image
     newDiv.style.width = tree[i].dimensions.w + 'px'
@@ -1271,11 +1120,11 @@ for (let i = 0; loopRunner; i++) {
     // keep track of the highest z-index assigned to any tree
     if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
     // the tree is not displayed when it is spawned (because we plan to make it appear _organically_ a few seconds later)
-    newDiv.style.visibility = 'hidden'
+    // newDiv.style.visibility = 'hidden'
     // finally, make the div a child of #forest
     forest.appendChild(newDiv)
     // the tree appears:
-    setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
+    // setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
     // update the value for total number of trees spawned in the forest
     totalTreesInForest += 1
 }
@@ -1313,6 +1162,10 @@ closeinfobox.addEventListener('click', () => {
     setInterval(function () { updateForest() }, refreshTime)
 })
 
+
+// update the forest.
+setInterval(function () { updateForest() }, refreshTime)
+
 /*  ------------------------------------------------------------
     update the forest.
     ------------------------------------------------------------  */
@@ -1322,7 +1175,7 @@ function updateForest() {
     /* print gameState */
 
     gameState.state = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
-    console.log(JSON.stringify(gameState, null, 2))
+    // console.log(JSON.stringify(gameState, null, 2))
 
     /* update sound */
 
@@ -1348,6 +1201,7 @@ function updateForest() {
     if (! (boxDisplayAttrIs(infoBox) || pauseForestUpdate)) {
 
         // collect all trees by the states they are in
+        let alltrees = document.getElementsByClassName("tree")
         let absents = document.getElementsByClassName("absent")
         let protecteds = document.getElementsByClassName("protected")
         let normals = document.getElementsByClassName("normal")
@@ -1360,6 +1214,11 @@ function updateForest() {
         // update game state object
         gameState.health = (normals.length + protecteds.length) / totalTreesInForest
         gameState.playTime = new Date().getTime() - gameState.startTime
+
+        // update each tree
+        for(let i=0 ; i<alltrees.length ; i++) {
+            updateTree(alltrees[i].getElementsByTagName("svg")[0])
+        }
 
         // // if the health is low, but the person hasn't clicked yet...
         // // instruct them to click on trees!
@@ -1438,10 +1297,10 @@ function updateForest() {
 
         /**
          * fire, dryness, health can spread from one tree to its neighbours
-         * @param {*} trees
+         * @param {*} trees - a collection of trees-svg's
          * @param {string} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
          * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
-         * @param {number} spreadDistance
+         * @param {number} [spreadDistance=1]
          */
         function spreadInfection(trees, state, immunity, spreadDistance) {
             for (let i = 0; i < trees.length; i++) {
@@ -1478,7 +1337,7 @@ function updateForest() {
                                         neighbourSvg.classList.contains("normal")
                                     ) {
                                         // console.log(`spreading dryness. making tree-${id} dry.`)
-                                        updateTree(neighbourSvg, "dry")
+                                        tree[t].behaviour = 1
                                     }
                                     else if (
                                         state == "burning"
@@ -1486,19 +1345,19 @@ function updateForest() {
                                         neighbourSvg.classList.contains("dry")
                                     ) {
                                         // console.log(`spreading fire. tree-${id} catches fire.`)
-                                        updateTree(neighbourSvg, "burning")
+                                        tree[t].behaviour = 1
                                     }
                                 }
                                 else if (state == "normal") {
                                     if (
                                         neighbourSvg.classList.contains("absent")
                                     ) {
-                                        updateTree(neighbourSvg, "normal")
+                                        tree[t].behaviour = 1
                                     }
                                     else if (
                                         neighbourSvg.classList.contains("charred")
                                     ) {
-                                        updateTree(neighbourSvg, "absent")
+                                        tree[t].behaviour = 1
                                     }
                                 }
                             }, refreshTime)
@@ -1559,10 +1418,12 @@ function didClickHappenOnTree(e) {
     // if we didn't click on the #infoBox, then we may continue checking whether the click happened on a tree in the #forest:
     if (clickedOnInfosBox == false) {
 
-        // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
+        // in the array, we are checking which element is an "SVG Path/Polyline/Polygon Element" (i.e., is a <path>, <polyline> or <polygon>).
         c = c.map(function (x) {
             if (
                 x.constructor.toString().indexOf("SVGPathElement()") > -1
+                || x.constructor.toString().indexOf("SVGPolylineElement()") > -1
+                || x.constructor.toString().indexOf("SVGPolygonElement()") > -1
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
             )
                 // return <path>'s parent (which is an <svg>)
@@ -1580,7 +1441,7 @@ function didClickHappenOnTree(e) {
         // ensure that all elements in the array are unique
         c = c.filter(function (x, i, a) { return a.indexOf(x) == i })
         // console.log("removed duplicates:")
-        // console.log(c)
+        console.log(c)
 
         // count the click
         if(c.length>0) gameState.clicksontrees++
@@ -1588,23 +1449,30 @@ function didClickHappenOnTree(e) {
         // now, we instruct each (clicked-)tree to change
         for (const i in c) {
             const SVGElementOfClickedTree = c[i]
+            const treeid = Number(SVGElementOfClickedTree.getAttribute('tree-id'))
             if (SVGElementOfClickedTree.classList.contains("burning")) {
                 gameState.clicksonsicktrees++
                 // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: burning -> dry`)
-                updateTree(SVGElementOfClickedTree, "dry")
+                tree[treeid].behaviour = -1
             }
             else if (SVGElementOfClickedTree.classList.contains("dry")) {
                 gameState.clicksonsicktrees++
                 // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: dry -> normal`)
-                updateTree(SVGElementOfClickedTree, "normal")
+                tree[treeid].behaviour = -1
             }
             else if (SVGElementOfClickedTree.classList.contains("normal")) {
                 // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: normal -> protected`)
-                updateTree(SVGElementOfClickedTree, "protected")
+                tree[treeid].behaviour = 0
+                tree[treeid].isProtected.previous = false
+                tree[treeid].isProtected.now = true
             }
             else if (SVGElementOfClickedTree.classList.contains("protected")) {
                 // console.log(`click on tree-${SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)}: classList.contains("${SVGElementOfClickedTree.classList}") • isProtected=${tree[SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)].stateSettings.protected.isProtected}`)
-                updateTree(SVGElementOfClickedTree, "protected")
+                tree[treeid].behaviour = 0
+                tree[treeid].isProtected.now = true
+            }
+            else if (SVGElementOfClickedTree.classList.contains("charred")) {
+                tree[treeid].behaviour = 1
             }
         }
     }
