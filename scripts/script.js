@@ -297,7 +297,8 @@ function updateTree(svgelement) {
     const id = Number(svgelement.getAttribute('tree-id'))
 
     /* tree memorises its previous state */
-    tree[id].state.previous = tree[id].state.now
+    tree[id].state.previous[0] = tree[id].state.now[0]
+    tree[id].state.previous[1] = tree[id].state.now[1]
 
     /*  handle protection */
     if (
@@ -381,7 +382,8 @@ function updateTree(svgelement) {
             else // if (tree[id].state.now[1] == svgtree.src.innerhtml[5].length - 1) 
             {
                 // ...it should become an absent tree (i.e., a fertile mound of ash-rich soil).
-                tree[id].state.now = [0,0]
+                tree[id].state.now[0] = 0
+                tree[id].state.now[1] = 0
             }
             break;
     }
@@ -506,7 +508,7 @@ function updateTree(svgelement) {
 
     // -- 3. sound feedback:
     //      -- tree catches fire (i.e., was not burning before, but is now)
-    if (tree[id].state.previous != 3 && tree[id].state.now == 3) {
+    if (tree[id].state.previous[0] != 3 && tree[id].state.now[0] == 3) { 
         playSound(sCatchFire, volumeScaler.sCatchFire)
     }
 
