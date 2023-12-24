@@ -299,7 +299,44 @@ function updateTree(svgelement) {
     /* tree memorises its previous state */
     tree[id].state.previous = tree[id].state.now
 
+    /*  handle protection */
+    if (
+        // tree has been marked as to-be-protected
+        tree[id].isProtected == true 
+        && 
+        // but it is not currently "protected"
+        svgelement.classList.contains("protected") == false
+    ) // this means that it just got protected.
+    {
+        // console.log(`protecting tree-${id}`)
+        // playSound(sGoodNews, volumeScaler.sGoodNews)
+        svgelement.classList.add("protected")
+        // it remains protected for 'protectionDuration' time only
+        setTimeout(function() {
+            // console.log(`un-protecting tree-${id}`)
+            if(tree[id].isProtected == true) {
+                tree[id].isProtected = false
+                svgelement.classList.remove("protected")
+            }
+        }, approx(protectionDuration,20))
+    }
+    if (
+        // tree has been marked as not-to-be-protected
+        (tree[id].isProtected == false) 
+        && 
+        // but it is currently in a "protected" state
+        svgelement.classList.contains("protected")
+    ) // this means that it's going to lose its protection now
+    {
+        svgelement.classList.remove("protected")
+    }
+
+
     /* tree calculates what its new appearance will be */
+
+    // 0. protected trees don't change their state
+    if (svgelement.classList.contains("protected") || tree[id].isProtected == true) 
+        tree[id].behaviour = 0
     
     // 1. cycle within a state:
     switch(tree[id].state.now[0]) {
@@ -424,32 +461,32 @@ function updateTree(svgelement) {
         svgelement.classList.remove(classes[i])
     }
     // 2. add a class specifying the tree's newly assigned state:
-    let classs = ""
+    let classs =[]
     switch (tree[id].state.now[0]) {
         case 0:
-            classs = "absent"
+            classs.push("absent")
             break;
         case 1:
-            classs = "normal"
+            classs.push("normal")
             break;
         case 2:
-            classs = "dry"
+            classs.push("dry")
             break;
         case 3:
-            classs = "burning"
+            classs.push("burning")
             break;
         case 4:
-            classs = "charred"
+            classs.push("charred")
             break;
         case 5:
-            classs = "charred"
+            classs.push("charred")
             break;
     }
+    if (tree[id].isProtected == true)
+        classs.push("protected")
     if(classs.length>0) // this condition should always evaluate to true, but it's good to still check
-        svgelement.classList.add(classs)
+        svgelement.classList.add(...classs)
     else console.log(`warning!: tree-${id} did not get assigned a state-class. please check source-code.`)
-    if(tree[id].isProtected.now == true)
-        svgelement.classList.add("protected")
 
     // console.log("change t# " + id)
     // console.log(tree[id])
@@ -463,26 +500,6 @@ function updateTree(svgelement) {
     //      -- tree catches fire (i.e., was not burning before, but is now)
     if (tree[id].state.previous != 3 && tree[id].state.now == 3) {
         playSound(sCatchFire, volumeScaler.sCatchFire)
-    }
-
-    /*  state-specific behaviour:
-        if the tree just got protected (or, if it just lost the protection)...
-        */
-    if ((tree[id].isProtected.now == true) && (tree[id].isProtected.previous == false)) {
-        // playSound(sGoodNews, volumeScaler.sGoodNews)
-        svgelement.classList.add("protected")
-        // console.log(`protecting tree-${id}`)
-        tree[id].isProtected.previous == true
-        // it remains protected for 'protectionDuration' time only
-        setTimeout(function() {
-            // console.log(`un-protecting tree-${id}`)
-            if(tree[id].isProtected.now == true)
-                tree[id].isProtected.now = false
-        }, approx(protectionDuration,20))
-    }
-    if ((tree[id].isProtected.now == false) && (tree[id].isProtected.previous == true)) {
-        svgelement.classList.remove("protected")
-        tree[id].isProtected.previous == false
     }
 
     /*  state-specific behaviour:
@@ -1231,11 +1248,7 @@ for (let i = 0; loopRunner; i++) {
             resilience: /* placeholder */ 1, // min value = 1
         },
         behaviour: 0, // -1: move backward | 0: stay as-is | 1: move forward (in the tree's life-cycle)
-        isProtected: {
-            default: false,
-            previous: false,
-            now: false
-        },
+        isProtected: false,
     }
     // set id and class
     newDiv.setAttribute('class', tree[i].class)
@@ -1611,11 +1624,12 @@ function didClickHappenOnTree(e) {
             }
             if (SVGElementOfClickedTree.classList.contains("normal")) {
                 // console.log(`click on ${treeid}: normal -> protected`)
+                tree[treeid].isProtected = true
                 tree[treeid].behaviour = 0
-                tree[treeid].isProtected.now = true
             }
             if (SVGElementOfClickedTree.classList.contains("protected")) {
                 // console.log(`click on tree-${treeid.substring("tree-".length, treeid.length)}: classList.contains("${SVGElementOfClickedTree.classList}") • isProtected=${tree[treeid.substring("tree-".length, treeid.length)].stateSettings.protected.isProtected}`)
+                tree[treeid].isProtected = true
                 tree[treeid].behaviour = 0
             }
             if (SVGElementOfClickedTree.classList.contains("charred")) {
