@@ -1465,9 +1465,9 @@ function updateForest() {
          * spontaneous Δ in tree-state
          */
 
-        const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 75
-        const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 0.25
-        const THRESHOLD_MAKEDRY = /* suggested: .999 */ 0.999
+        const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
+        const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 0.0625
+        let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disenabled): .999 */ drys.length + burnings.length < 1 ? .99 : 0.9999
         const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.99
         const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
         const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
@@ -1551,20 +1551,25 @@ function updateForest() {
          * make fire, dryness, health spread from one tree to its neighbours 
          */
 
-        // spreadInfection(burnings, "burning", .99, 1)
-        // spreadInfection(drys, "dry", .995, 1)
-        // spreadInfection(normals, "normal", .99995, 1)
+        const IMMUNITY_TO_FIRE = .99
+        const IMMUNITY_TO_DRYING = .995
+        const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(gameState.health,0,1,.99999,.999) 
+        if(RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
+
+        spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1)
+        spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 1)
+        spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1)
 
         /**
          * fire, dryness, health can spread from one tree to its neighbours
          * @param {*} trees - a collection of trees-svg's
-         * @param {string} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
+         * @param {number} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
          * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
          * @param {number} [spreadDistance=1]
          */
         function spreadInfection(trees, state, immunity, spreadDistance) {
             for (let i = 0; i < trees.length; i++) {
-                const id = Number(trees[i].parentNode.id.substring("tree-".length, trees[i].parentNode.id.length))
+                const id = Number(trees[i].getAttribute('tree-id'))
                 const _x = tree[id].positionInForestGrid.x
                 const _y = tree[id].positionInForestGrid.y
                 for (let t = 0; t < totalTreesInForest; t++) {
@@ -1583,7 +1588,7 @@ function updateForest() {
                             setTimeout(function () {
                                 const neighbour = document.getElementById('tree-' + t)
                                 const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                                if (state == "burning" || state == "dry") {
+                                if (state == 3 || state == 2) {
                                     if (
                                         neighbourSvg.classList.contains("charred")
                                         ||
@@ -1600,7 +1605,7 @@ function updateForest() {
                                         tree[t].behaviour = 1
                                     }
                                     else if (
-                                        state == "burning"
+                                        state == 3
                                         &&
                                         neighbourSvg.classList.contains("dry")
                                     ) {
@@ -1608,16 +1613,18 @@ function updateForest() {
                                         tree[t].behaviour = 1
                                     }
                                 }
-                                else if (state == "normal") {
+                                else if (state == 1) {
                                     if (
                                         neighbourSvg.classList.contains("absent")
                                     ) {
+                                        // console.log(`spreading health. tree-${id} is seeded.`)
                                         tree[t].behaviour = 1
                                     }
-                                    else if (
-                                        neighbourSvg.classList.contains("charred")
+                                    if (
+                                        neighbourSvg.classList.contains("dry")
                                     ) {
-                                        tree[t].behaviour = 1
+                                        // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
+                                        tree[t].behaviour = -1
                                     }
                                 }
                             }, refreshTime)
