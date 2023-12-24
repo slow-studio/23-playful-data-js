@@ -94,6 +94,7 @@ const charredTimeMultiplier = 25
  * game state variables
  */
 let gameState = {
+    userHasBeenActive: false,
     startTime: new Date().getTime(),
     playTime: 0,
     starthealth: 1,
@@ -572,7 +573,7 @@ function playSound(sound, volume) {
     // sound.currentTime = 0
     // note: mute audio if the document loses focus (e.g., if the person switches tabs)
     sound.volume = document.hasFocus() ? volume : 0
-    sound.play()
+    if(document.hasFocus()) sound.play()
     // }
 }
 
@@ -1357,19 +1358,33 @@ function updateForest() {
 
     /* update sound */
 
-    // update volume of ambient sounds
+    // start playing sounds:
 
-    playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
-    // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
-    playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
-    // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
+    if (!gameState.userHasBeenActive && navigator.userActivation.hasBeenActive) {
+        gameState.userHasBeenActive = true
+        // start playing sounds, on loop
+        sBurning.loop = true
+        playSound(sBurning, 0)
+        sForest.loop = true
+        playSound(sForest, 1)
+    }
 
-    // randomly play a random-sound from the forest
+    // update volume of ambient sounds:
 
-    const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
-    if (Math.random() < 1 / (refreshRate * secondses)) {
-        playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
-    } 
+    if (gameState.userHasBeenActive) {
+
+        // update volumes:
+        playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
+        // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
+        playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
+        // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
+    
+        // randomly play a random-sound from the forest:
+        const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
+        if (Math.random() < 1 / (refreshRate * secondses)) {
+            playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
+        } 
+    }
 
     /* update visuals */
 
