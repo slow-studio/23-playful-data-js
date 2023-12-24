@@ -342,7 +342,9 @@ function updateTree(svgelement) {
     switch(tree[id].state.now[0]) {
         case 0:
             // the next tree that will grow there will have these properties:
-            tree[id].properties.resilience = 1 + Math.floor(3 * Math.random())
+            tree[id].properties.resilience = 1 // + Math.floor(3 * Math.random())
+            // the next statement seems unnecessary, but i've written it, just, to be double-sure.
+            tree[id].state.now[1] = 0
             break;
         case 1:
             // the tree should grow, till it reaches full size.
@@ -350,6 +352,8 @@ function updateTree(svgelement) {
             {
                 if (FRAMECOUNT % tree[id].properties.resilience == 0)
                 tree[id].state.now[1]++
+                // and, at this time, don't let the tree progress to another state
+                tree[id].behaviour = 0
             }
             // once it is at full size, the tree should stop growing
             else // if (tree[id].state.now[1] == svgtree.src.innerhtml[1].length - 1) 
@@ -368,8 +372,11 @@ function updateTree(svgelement) {
             break;
         case 5:
             // the tree should disintegrate, till it is a heap of ash:
-            if (tree[id].state.now[1] < svgtree.src.innerhtml[5].length - 1) 
+            if (tree[id].state.now[1] < svgtree.src.innerhtml[5].length - 1) {
                 tree[id].state.now[1]++
+                // and, at this time, don't let the tree progress to another state
+                tree[id].behaviour = 0
+            }
             // once it reaches there...
             else // if (tree[id].state.now[1] == svgtree.src.innerhtml[5].length - 1) 
             {
@@ -1375,6 +1382,7 @@ function updateForest() {
         let drys = document.getElementsByClassName("dry")
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
+        const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
 
         // update game state object
         gameState.health = (normals.length + protecteds.length) / totalTreesInForest
@@ -1416,43 +1424,89 @@ function updateForest() {
         //     }
         // }
 
+
+        /**
+         * spontaneous Δ in tree-state
+         */
+
+        const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 75
+        const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 0.25
+        const THRESHOLD_MAKEDRY = /* suggested: .999 */ 0.999
+        const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.99
+        const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
+        const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
+        const forstcover = countpresenttrees / alltrees.length
+
         // absent -> new shoot (which grows into a tree)
         for (let i = 0; i < absents.length; i++) {
-            if (Math.random() > .9)
-                tree[absents[i].getAttribute('tree-id')].behaviour = 1
+            const mintrees = 1
+            // if there are no trees in the forest,
+            if ((protecteds.length + normals.length + drys.length + burnings.length + charreds.length) < mintrees) {
+                // respawn the forest:
+                if (Math.random() < PERCENT_OF_FOREST_TO_RESPAWN / 100) {
+                    console.log(`spawning a tree into an empty forest.`)
+                    tree[absents[i].getAttribute('tree-id')].behaviour = 1
+                }
+            }
+            // else if there are some trees
+            else {
+                const thisthreshold = TREE_RESPAWN_PROBABILITY * Math.pow(forstcover, 2) / 100
+                if (Math.random() < thisthreshold) {
+                    console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) spawning tree-${absents[i].getAttribute('tree-id')}.`)
+                    tree[absents[i].getAttribute('tree-id')].behaviour = 1
+                }
+            }
         }
 
         // normal -> dry
         for (let i = 0; i < normals.length; i++) {
             if (
                 tree[normals[i].getAttribute('tree-id')].state.now[1] >= (svgtree.src.innerhtml[tree[normals[i].getAttribute('tree-id')].state.now[0]]).length - 1
-                && 
-                Math.random() > .999
-            )
+                &&
+                Math.random() > THRESHOLD_MAKEDRY
+            ) {
                 tree[normals[i].getAttribute('tree-id')].behaviour = 1
+            }
         }
 
         // dry -> burning
         for (let i = 0; i < drys.length; i++) {
-            if (Math.random() > .99)
+            if (Math.random() > THRESHOLD_SETFIRE) {
                 tree[drys[i].getAttribute('tree-id')].behaviour = 1
+            }
         }
 
         // burning -> charred
         for (let i = 0; i < burnings.length; i++) {
-            if (Math.random() > .99)
-            tree[burnings[i].getAttribute('tree-id')].behaviour = 1
+            if (Math.random() > THRESHOLD_STOPFIRE) {
+                tree[burnings[i].getAttribute('tree-id')].behaviour = 1
+            }
         }
 
-        // charred -> absent
+        // charred -> disintegrating -> absent
         for (let i = 0; i < charreds.length; i++) {
-            if (Math.random() > .99)
-                tree[charreds[i].getAttribute('tree-id')].behaviour = 1
-        }
-        for (let i = 0; i < charreds.length; i++) {
-            if ((protecteds.length + normals.length + drys.length) < 1)
-                if (Math.random() > .9)
+            const treeid = charreds[i].getAttribute('tree-id')
+            const treestate = tree[treeid].state.now
+            // charred -> disintegrating :—
+            // if the tree is charred (state 4), but not yet disintegrating (state 5)...
+            if (treestate[0] == 4) {
+                // ... then, based on this probability...
+                if (Math.random() < ((1 - THRESHLD_DISINTEGRATE) / forstcover)) {
+                    // ... make it disintegrate
                     tree[charreds[i].getAttribute('tree-id')].behaviour = 1
+                }
+            }
+            else
+                // disintegrating -> absent :—
+                // if the tree is disintegrating (state = 5)...
+                if (treestate[0] == 5) {
+                    /* 
+                        do nothing,
+                        because this transition is automatically handled within updateTree().
+                        nb. as soon the tree disintegrates (i.e., as soon as state 5 ends), 
+                        it immediately moves to state  0.
+                    */
+                }
         }
 
         /** make fire, dryness, health spread from one tree to its neighbours */
