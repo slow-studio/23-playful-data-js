@@ -77,7 +77,7 @@ const refreshTime = 1000 / refreshRate // time in millisecond
 var FRAMECOUNT = 0
 
 /** @type {number} duration for which a protected tree stays protected */
-const protectionDuration = 2500 // time in millisecond
+const protectionDuration = 7500 // time in millisecond
 
 /** @type {number} a heap of mud/ash takes ✕ times longer to begin growing into a tree */
 const absentTimeMultiplier = 10
@@ -405,7 +405,8 @@ function updateTree(svgelement) {
     // 3. automatically cycle through states:
     const allowautomaticcycling = false
     if( 
-        // false &&
+        allowautomaticcycling
+        &&
         // if the tree is at the last sub-stage within its state:
         tree[id].state.now[1] >= (svgtree.src.innerhtml[tree[id].state.now[0]]).length - 1 
         &&
@@ -450,7 +451,7 @@ function updateTree(svgelement) {
         ) { 
             // then, do nothing (i.e., let it stay in its current state)
         } 
-        else if (allowautomaticcycling) {
+        else {
             // move it to the next state
             tree[id].state.now[0]++ 
             // but if the next state exceeds the total states, then reset the tree to state-0.
@@ -1388,11 +1389,6 @@ function updateForest() {
         gameState.health = (normals.length + protecteds.length) / totalTreesInForest
         gameState.playTime = new Date().getTime() - gameState.startTime
 
-        // update each tree
-        for(let i=0 ; i<alltrees.length ; i++) {
-            updateTree(alltrees[i].getElementsByTagName("svg")[0])
-        }
-
         // // if the health is low, but the person hasn't clicked yet...
         // // instruct them to click on trees!
         // if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessage2==false)) {
@@ -1461,6 +1457,7 @@ function updateForest() {
         // normal -> dry
         for (let i = 0; i < normals.length; i++) {
             if (
+                // if the tree is fully grown
                 tree[normals[i].getAttribute('tree-id')].state.now[1] >= (svgtree.src.innerhtml[tree[normals[i].getAttribute('tree-id')].state.now[0]]).length - 1
                 &&
                 Math.random() > THRESHOLD_MAKEDRY
@@ -1509,7 +1506,10 @@ function updateForest() {
                 }
         }
 
-        /** make fire, dryness, health spread from one tree to its neighbours */
+
+        /** 
+         * make fire, dryness, health spread from one tree to its neighbours 
+         */
 
         // spreadInfection(burnings, "burning", .99, 1)
         // spreadInfection(drys, "dry", .995, 1)
@@ -1585,6 +1585,14 @@ function updateForest() {
                     }
                 }
             }
+        }
+
+        
+        /** 
+         * update each tree
+         */
+        for(let i=0 ; i<alltrees.length ; i++) {
+            updateTree(alltrees[i].getElementsByTagName("svg")[0])
         }
     }
 }
