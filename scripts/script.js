@@ -359,7 +359,7 @@ function updateTree(svgelement) {
     }
     
     // 3. automatically cycle through states:
-    const allowautomaticcycling = true
+    const allowautomaticcycling = false
     if( 
         // false &&
         // if the tree is at the last sub-stage within its state:
@@ -1359,9 +1359,7 @@ function updateForest() {
         let absents = document.getElementsByClassName("absent")
         let protecteds = document.getElementsByClassName("protected")
         let normals = document.getElementsByClassName("normal")
-        /** @type {*} */
         let drys = document.getElementsByClassName("dry")
-        /** @type {*} */
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
 
@@ -1405,43 +1403,44 @@ function updateForest() {
         //     }
         // }
 
-        // // dry -> burning
-        // for (let i = 0; i < drys.length; i++) {
-        //     if (Math.random() > .999)
-        //         updateTree(drys[i], "burning")
-        // }
+        // absent -> new shoot (which grows into a tree)
+        for (let i = 0; i < absents.length; i++) {
+            if (Math.random() > .9)
+                tree[absents[i].getAttribute('tree-id')].behaviour = 1
+        }
 
-        // // burning -> charred
-        // for (let i = 0; i < burnings.length; i++) {
-        //     if (Math.random() > .983)
-        //         updateTree(burnings[i], "charred")
-        // }
+        // normal -> dry
+        for (let i = 0; i < normals.length; i++) {
+            if (
+                tree[normals[i].getAttribute('tree-id')].state.now[1] >= (svgtree.src.innerhtml[tree[normals[i].getAttribute('tree-id')].state.now[0]]).length - 1
+                && 
+                Math.random() > .999
+            )
+                tree[normals[i].getAttribute('tree-id')].behaviour = 1
+        }
 
-        // // charred -> absent
-        // for (let i = 0; i < charreds.length; i++) {
-        //     if (Math.random() > .9999)
-        //         updateTree(charreds[i], "absent")
-        // }
-        // for (let i = 0; i < charreds.length; i++) {
-        //     if ((protecteds.length + normals.length + drys.length) < 1)
-        //         if (Math.random() > .95)
-        //             updateTree(charreds[i], "absent")
-        // }
+        // dry -> burning
+        for (let i = 0; i < drys.length; i++) {
+            if (Math.random() > .99)
+                tree[drys[i].getAttribute('tree-id')].behaviour = 1
+        }
 
-        // // absent -> new forest
-        // for (let i = 0; i < absents.length; i++) {
-        //     if (
-        //         ((protecteds.length + normals.length + drys.length) < (.1 * totalTreesInForest))
-        //         &&
-        //         (absents.length >= .8 * totalTreesInForest)
-        //     ) {
-        //         if (Math.random() < .67) {
-        //             setTimeout(function () {
-        //                 updateTree(absents[i], "normal")
-        //             }, Math.random() * 5000)
-        //         }
-        //     }
-        // }
+        // burning -> charred
+        for (let i = 0; i < burnings.length; i++) {
+            if (Math.random() > .99)
+            tree[burnings[i].getAttribute('tree-id')].behaviour = 1
+        }
+
+        // charred -> absent
+        for (let i = 0; i < charreds.length; i++) {
+            if (Math.random() > .99)
+                tree[charreds[i].getAttribute('tree-id')].behaviour = 1
+        }
+        for (let i = 0; i < charreds.length; i++) {
+            if ((protecteds.length + normals.length + drys.length) < 1)
+                if (Math.random() > .9)
+                    tree[charreds[i].getAttribute('tree-id')].behaviour = 1
+        }
 
         /** make fire, dryness, health spread from one tree to its neighbours */
 
