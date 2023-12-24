@@ -1553,7 +1553,7 @@ function updateForest() {
 
         const IMMUNITY_TO_FIRE = .99
         const IMMUNITY_TO_DRYING = .995
-        const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(gameState.health,0,1,.99999,.999) 
+        const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(normals.length / (normals.length + drys.length + burnings.length + charreds.length),0,1,.99999,.999) 
         if(RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
 
         spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1)
@@ -1620,12 +1620,12 @@ function updateForest() {
                                         // console.log(`spreading health. tree-${id} is seeded.`)
                                         tree[t].behaviour = 1
                                     }
-                                    if (
-                                        neighbourSvg.classList.contains("dry")
-                                    ) {
-                                        // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
-                                        tree[t].behaviour = -1
-                                    }
+                                    // if (
+                                    //     neighbourSvg.classList.contains("dry")
+                                    // ) {
+                                    //     // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
+                                    //     tree[t].behaviour = -1
+                                    // }
                                 }
                             }, refreshTime)
                         }
