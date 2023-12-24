@@ -310,6 +310,80 @@ function seedDryTrees(n) {
 }
 
 /**
+ * fire, dryness, health, etc can spread from one tree to its neighbours
+ * @param {*} trees - a collection of trees-svg's
+ * @param {number} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
+ * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
+ * @param {number} [spreadDistance=1]
+ */
+function spreadInfection(trees, state, immunity, spreadDistance) {
+    for (let i = 0; i < trees.length; i++) {
+        const id = Number(trees[i].getAttribute('tree-id'))
+        const _x = tree[id].positionInForestGrid.x
+        const _y = tree[id].positionInForestGrid.y
+        for (let t = 0; t < totalTreesInForest; t++) {
+            if (
+                true
+                && tree[t].positionInForestGrid.x >= 0
+                && tree[t].positionInForestGrid.y >= 0
+                && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                && tree[t].id
+            ) {
+                if (Math.random() > immunity) {
+                    // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                    setTimeout(function () {
+                        const neighbour = document.getElementById('tree-' + t)
+                        const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                        if (state == 3 || state == 2) {
+                            if (
+                                neighbourSvg.classList.contains("charred")
+                                ||
+                                neighbourSvg.classList.contains("absent")
+                                ||
+                                neighbourSvg.classList.contains("protected")
+                            ) {
+                                // can't do anything
+                            }
+                            else if (
+                                neighbourSvg.classList.contains("normal")
+                            ) {
+                                // console.log(`spreading dryness. making tree-${id} dry.`)
+                                tree[t].behaviour = 1
+                            }
+                            else if (
+                                state == 3
+                                &&
+                                neighbourSvg.classList.contains("dry")
+                            ) {
+                                // console.log(`spreading fire. tree-${id} catches fire.`)
+                                tree[t].behaviour = 1
+                            }
+                        }
+                        else if (state == 1) {
+                            if (
+                                neighbourSvg.classList.contains("absent")
+                            ) {
+                                // console.log(`spreading health. tree-${id} is seeded.`)
+                                tree[t].behaviour = 1
+                            }
+                            // if (
+                            //     neighbourSvg.classList.contains("dry")
+                            // ) {
+                            //     // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
+                            //     tree[t].behaviour = -1
+                            // }
+                        }
+                    }, refreshTime)
+                }
+            }
+        }
+    }
+}
+
+/**
  * @param {*} svgelement 
  */
 function updateTree(svgelement) {
@@ -592,8 +666,8 @@ function playSound(sound, volume) {
     // if(sound.ended) {
     // sound.currentTime = 0
     // note: mute audio if the document loses focus (e.g., if the person switches tabs)
-    sound.volume = document.hasFocus() ? volume : 0
-    if(document.hasFocus()) sound.play()
+    sound.volume = document.hasFocus() && gameState.userHasBeenActive ? volume : 0
+    if(document.hasFocus() && gameState.userHasBeenActive) sound.play()
     // }
 }
 
@@ -1317,11 +1391,11 @@ for (let i = 0; loopRunner; i++) {
     // keep track of the highest z-index assigned to any tree
     if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
     // the tree is not displayed when it is spawned (because we plan to make it appear _organically_ a few seconds later)
-    // newDiv.style.visibility = 'hidden'
+    newDiv.style.visibility = 'hidden'
+    // the tree appears after a delay:
+    setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
     // finally, make the div a child of #forest
     forest.appendChild(newDiv)
-    // the tree appears:
-    // setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
     // update the value for total number of trees spawned in the forest
     totalTreesInForest += 1
 }
@@ -1424,6 +1498,7 @@ function updateForest() {
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
         const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
+        const countalivetrees = normals.length + drys.length + burnings.length
 
         // update game state object
         gameState.health = (normals.length + protecteds.length) / totalTreesInForest
@@ -1477,10 +1552,10 @@ function updateForest() {
         for (let i = 0; i < absents.length; i++) {
             const mintrees = 1
             // if there are no trees in the forest,
-            if ((protecteds.length + normals.length + drys.length + burnings.length + charreds.length) < mintrees) {
+            if (countpresenttrees < mintrees) {
                 // respawn the forest:
                 if (Math.random() < PERCENT_OF_FOREST_TO_RESPAWN / 100) {
-                    console.log(`spawning a tree into an empty forest.`)
+                    // console.log(`spawning a tree into an empty forest.`)
                     tree[absents[i].getAttribute('tree-id')].behaviour = 1
                 }
             }
@@ -1488,7 +1563,7 @@ function updateForest() {
             else {
                 const thisthreshold = TREE_RESPAWN_PROBABILITY * Math.pow(forstcover, 2) / 100
                 if (Math.random() < thisthreshold) {
-                    // console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) spawning tree-${absents[i].getAttribute('tree-id')}.`)
+                    // console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) re-spawning tree-${absents[i].getAttribute('tree-id')}.`)
                     tree[absents[i].getAttribute('tree-id')].behaviour = 1
                 }
             }
@@ -1496,9 +1571,11 @@ function updateForest() {
 
         // normal -> dry
         for (let i = 0; i < normals.length; i++) {
+            const treeid = normals[i].getAttribute('tree-id')
+            const treestate = tree[treeid].state.now
             if (
                 // if the tree is fully grown
-                tree[normals[i].getAttribute('tree-id')].state.now[1] >= (svgtree.src.innerhtml[tree[normals[i].getAttribute('tree-id')].state.now[0]]).length - 1
+                treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
                 &&
                 Math.random() > THRESHOLD_MAKEDRY
             ) {
@@ -1559,80 +1636,6 @@ function updateForest() {
         spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1)
         spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 1)
         spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1)
-
-        /**
-         * fire, dryness, health can spread from one tree to its neighbours
-         * @param {*} trees - a collection of trees-svg's
-         * @param {number} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
-         * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
-         * @param {number} [spreadDistance=1]
-         */
-        function spreadInfection(trees, state, immunity, spreadDistance) {
-            for (let i = 0; i < trees.length; i++) {
-                const id = Number(trees[i].getAttribute('tree-id'))
-                const _x = tree[id].positionInForestGrid.x
-                const _y = tree[id].positionInForestGrid.y
-                for (let t = 0; t < totalTreesInForest; t++) {
-                    if (
-                        true
-                        && tree[t].positionInForestGrid.x >= 0
-                        && tree[t].positionInForestGrid.y >= 0
-                        && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                        && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                        && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                        && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                        && tree[t].id
-                    ) {
-                        if (Math.random() > immunity) {
-                            // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
-                            setTimeout(function () {
-                                const neighbour = document.getElementById('tree-' + t)
-                                const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                                if (state == 3 || state == 2) {
-                                    if (
-                                        neighbourSvg.classList.contains("charred")
-                                        ||
-                                        neighbourSvg.classList.contains("absent")
-                                        ||
-                                        neighbourSvg.classList.contains("protected")
-                                    ) {
-                                        // can't do anything
-                                    }
-                                    else if (
-                                        neighbourSvg.classList.contains("normal")
-                                    ) {
-                                        // console.log(`spreading dryness. making tree-${id} dry.`)
-                                        tree[t].behaviour = 1
-                                    }
-                                    else if (
-                                        state == 3
-                                        &&
-                                        neighbourSvg.classList.contains("dry")
-                                    ) {
-                                        // console.log(`spreading fire. tree-${id} catches fire.`)
-                                        tree[t].behaviour = 1
-                                    }
-                                }
-                                else if (state == 1) {
-                                    if (
-                                        neighbourSvg.classList.contains("absent")
-                                    ) {
-                                        // console.log(`spreading health. tree-${id} is seeded.`)
-                                        tree[t].behaviour = 1
-                                    }
-                                    // if (
-                                    //     neighbourSvg.classList.contains("dry")
-                                    // ) {
-                                    //     // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
-                                    //     tree[t].behaviour = -1
-                                    // }
-                                }
-                            }, refreshTime)
-                        }
-                    }
-                }
-            }
-        }
 
         
         /** 
