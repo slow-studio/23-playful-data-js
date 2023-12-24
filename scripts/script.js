@@ -568,7 +568,8 @@ function forcePlaySound(sound, volume) {
 function playSound(sound, volume) {
     // if(sound.ended) {
     // sound.currentTime = 0
-    sound.volume = volume
+    // note: mute audio if the document loses focus (e.g., if the person switches tabs)
+    sound.volume = document.hasFocus() ? volume : 0
     sound.play()
     // }
 }
@@ -1356,9 +1357,9 @@ function updateForest() {
 
     // update volume of ambient sounds
 
-    sBurning.volume = percentageOfTrees("burning") * volumeScaler.sBurning
+    playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
     // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
-    sForest.volume = percentageOfTrees("normal") * volumeScaler.sForest
+    playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
     // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
 
     // randomly play a random-sound from the forest
