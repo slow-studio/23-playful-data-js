@@ -136,6 +136,26 @@ function approx(n, p) {
         return n - randomDeviation
 }
 
+/**
+ * map a value from one range to another
+ * @returns {number}
+ * @param {number} value1 - value within source range
+ * @param {number} min1 - lower limit in source range 
+ * @param {number} max1 - upper limit in source range
+ * @param {number} min2 - lower limit of destination range
+ * @param {number} max2 - upper limit of destination range
+ */
+function map(value1, min1, max1, min2, max2) {
+    if(min1==max1) {
+        console.log(`the source range is invalid. (min and max values in the range must not be equal.) returning unchanged value.`)
+        return value1
+    }
+    const gradient = (max2-min2) / (max1-min1)
+    let value2 = min2 + ((value1 - min1) * gradient)
+    return value2
+}
+// console.log(map(5,0,10,-1,-.9))
+
 /** 
  * fetch the value of a property in the stylesheet 
  * @param {*} element
