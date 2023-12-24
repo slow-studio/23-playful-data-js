@@ -1399,11 +1399,13 @@ function updateForest() {
         playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
         // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
     
-        // randomly play a random-sound from the forest:
-        const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
-        if (Math.random() < 1 / (refreshRate * secondses)) {
-            playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
-        } 
+        if(!pauseForestUpdate) {
+            // randomly play a random-sound from the forest:
+            const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
+            if (Math.random() < 1 / (refreshRate * secondses)) {
+                playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
+            } 
+        }
     }
 
     /* update visuals */
