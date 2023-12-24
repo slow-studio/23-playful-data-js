@@ -1488,7 +1488,7 @@ function updateForest() {
             else {
                 const thisthreshold = TREE_RESPAWN_PROBABILITY * Math.pow(forstcover, 2) / 100
                 if (Math.random() < thisthreshold) {
-                    console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) spawning tree-${absents[i].getAttribute('tree-id')}.`)
+                    // console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) spawning tree-${absents[i].getAttribute('tree-id')}.`)
                     tree[absents[i].getAttribute('tree-id')].behaviour = 1
                 }
             }
