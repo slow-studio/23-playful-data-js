@@ -2,36 +2,50 @@
 
 environment:
 [ ] improve sounds. build soundscape. find more randomSounds. 
-[ ] make all stages of the animation
-[ ] barren or charred trees regenerate when clicked on
-[ ] trees regenerate in an area that's burned down totally
 
-content
+forest:
+[ ] add variation in tree-colour
+[ ] state-change from normal to dry should be gradual. (interpolate colour.)
+[ ] tap on an absent-tree to make it grow.
+[ ] seed dryness in a single spot, and let the dryness spread organically
 [ ] content should be different depending on the person's behaviour: { played at all, clicked at all, saved the forest well, did poorly, played for long, etc }.
-[ ] add links to actual "good news" articles
+
+infoBox messages:
+[x] add links to actual "good news" articles
+[ ] update (or remove) mouse-pointer svg's
+
+essay:
+[ ] people read the "read about this project" button first. it's too conspicuous.
+[ ] improve the essay.
+    [ ] add links to actual "good news" articles.
 
 play:
-[ ] remove "conclusion"? (and show some kind of stats in every #infoBox)
-[ ] improve criteria for triggering game-conclusion (infoBox-0)
-[ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
-[ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. eg: good news comes when the person is doing well, and not randomly.
+[ ] why will someone want to save the forest? (make them plant it first, perhaps?)
 [ ] strengthen design future/fiction narrative.
-[ ] add a (well-timed) conclusion or reward to the experience. maybe also display some scores ("trees saved", etc) in the concluding message (infoBox-0)
+    [ ] years not noticed on news articles. make the passage of time obvious. (use an upfront slider?)
+[ ] conclusion
+    [ ] remove "conclusion"? (and show some kind of stats in every #infoBox)
+    [ ] improve criteria for triggering game-conclusion (infoBox-0)
+    [ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
+    [ ] add a (well-timed) conclusion or reward to the experience. maybe also display some scores ("trees saved", etc) in the concluding message (infoBox-0)
+[ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. eg: good news comes when the person is doing well, and not randomly.
 [ ] a gamestate bar, showing a combined stat about the quality of gameplay (incl. health of forest, activity by person, etc). maybe it is "climate change vs you" or just "trees saved".
 
-tiy
-[ ] replace setInterval with requestAnmationFrame(callback)
+tidy:
+[ ] replace setInterval with requestAnimationFrame(callback)
 [ ] organise code (into files or modules)
 [ ] remove unnecessary console.log messages
 
-ios bugs:
+ios/safari bugs:
 [ ] disable double-tap-to-zoom on ios devices.
 [ ] fix sound: volume-settings dont seem to work on iphone browsers
 
 gamify:
-[ ] mousedrag to cut trees (leave stumps behind). [code example](https://developer.mozilla.org/en-US/docs/Web/API/Touch/radiusX)
+[x] mousedrag to cut trees (leave stumps behind). [code example](https://developer.mozilla.org/en-US/docs/Web/API/Touch/radiusX)
 [x] add scorekeeping graphic
 [x] add a button to toggle 'game' and 'toy' mode
 [x] modes: axe & water (click & drag ; click on tool buttons ; click & hold)
-[ ] update (or remove!) mouse-pointer svg's
 
+---
+
+tip: execute `npx http-server .` on 23-playful-data-js to be able to test the experience on any device within the same network.
