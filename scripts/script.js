@@ -259,54 +259,64 @@ function seedDryTrees(n) {
 
     console.log(`seedDryTrees(${n}) was called`)
 
-    // /* if there's at-least 1 "normal"/"protected" tree in the forest... */
-    // let healthyTrees = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
-    // console.log(`before seeding dry trees, healthyTrees = ${healthyTrees}`)
-    // if (healthyTrees > 0) {
+    /* if there's at-least 1 "normal" tree in the forest... */
+    let allnormaltrees = document.getElementsByClassName("normal") // HTMLCollection
+    // console.log(`seedDryTrees: before seeding dry trees, healthyTrees = ${normalTrees}`)
+    if (allnormaltrees.length == 0) {
+        console.log(`seedDryTrees: no normal trees available.`)
+    } else /* if (allnormaltrees.length > 0) */ 
+    {
+        // collect all healthy trees (svg elements)
+        let seedableTrees = []
+        // console.log(`seedDryTrees: found ${allnormaltrees.length} "normal" trees.`)
+        let arrayofallnormaltrees = Array.from(allnormaltrees) // convert HTMLCollection to Array
+        seedableTrees.push(...Array.from(arrayofallnormaltrees))
+        // remove "protected" trees from this array
+        for (let i = 0; i < seedableTrees.length; i++) {
+            if(seedableTrees[i].classList.contains("protected")) {
+                // remove this tree from the array 
+                seedableTrees.splice(i,1)
+                // console.log(`seedDryTrees: removed 1 protected tree.`)
+            }
+        }
+        // console.log(`${allnormaltrees.length} normal (but unprotected) trees available to seed dryness.`)
+        if (seedableTrees.length == 0) {
+            console.log(`seedDryTrees: no normal ( + unprotected ) trees available.`)
+        } else {
         
-    //     /* ...then, select a random "normal"/"protected" tree to turn "dry". */
-        
-    //     // keep n within sensible bounds
-    //     if (n >= healthyTrees) n = Math.floor(Math.random() * healthyTrees)
-    //     if (n <= 1) n = 1
+            // keep n within sensible bounds
+            if (n >= allnormaltrees.length) n = Math.floor(Math.random() * allnormaltrees.length)
+            if (n <= 1) n = 1
+            console.log(`seedDryTrees: trying to seed ${n} dry tree${n!=1?'s':''}...`)
+    
+            // fraction of trees to turn from normal to dry
+            let fr = n / allnormaltrees.length
+            // a counter which will track how many trees we do make dry
+            let conversioncounter = 0;
 
-    //     console.log("trying to seed " + n + " dry trees...")
-
-    //     // fraction of trees to turn from normal/protected to dry
-    //     let fr = n / healthyTrees
-        
-    //     // collect all healthy trees (svg elements)
-    //     let allhealthytrees = []
-    //     let allnormaltrees = document.getElementsByClassName("normal"), 
-    //         allprotectedtrees = document.getElementsByClassName("protected") // HTMLCollection
-    //     let arrayofallnormaltrees = Array.from(allnormaltrees),
-    //         arrayofallprotectedtrees = Array.from(allprotectedtrees) // convert HTMLCollection to Array
-    //     allhealthytrees.push(...Array.from(arrayofallnormaltrees))
-    //     allhealthytrees.push(...Array.from(arrayofallprotectedtrees))
-        
-    //     // a counter which will track how many trees we do make dry
-    //     let conversioncounter = 0;
-
-    //     // for each healthy tree, decide whether it turns dry
-    //     for(let i=0 ; i<allhealthytrees.length ; i++) {
-    //         if(conversioncounter<n) {
-    //             if(Math.random()<fr) {
-    //                 updateTree(allhealthytrees[i], "dry")
-    //                 conversioncounter++
-    //             }
-    //         }
-    //         else break;
-    //     }
-
-    //     // if no trees were converted, forcibly convert one
-    //     if(conversioncounter==0) {
-    //         console.log(`no trees were seeded. so: forcibly seeding dryness in one tree.`)
-    //         let randomtreeindex = Math.floor(Math.random()*allhealthytrees.length)
-    //         updateTree(allhealthytrees[randomtreeindex], "dry")
-    //     }
-
-    //     console.log(`seeding report: successfully seeded ${Math.max(Math.min(n,conversioncounter),1)} dry trees.`)
-    // }
+            // for each healthy tree, decide whether it turns dry
+            for(let i=0 ; i<seedableTrees.length ; i++) {
+                if(conversioncounter<n) {
+                    if(Math.random()<fr) {
+                        const treeid = seedableTrees[i].getAttribute('tree-id')
+                        const treestate = tree[treeid].state.now
+                        // if the tree is fully grown AND not protected
+                        if (
+                            treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
+                            // the second check (below) is unnecessary (because we've already removed all protected trees from the seedableTrees array), but, just double-checking anyway:
+                            && tree[treeid].isProtected == false
+                        ) {
+                            // it turns dry
+                            tree[treeid].behaviour = 1
+                            conversioncounter++
+                        }
+                    }
+                }
+                else break;
+            }
+            console.log(`seedDryTrees: seeded ${conversioncounter} dry tree${n!=1?'s':''}.`)
+        }
+    }
 }
 
 /**
@@ -1405,7 +1415,7 @@ console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with "
 /** #infoBox should have a z-index higher than all spawned trees */
 updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
 
-gameState.starthealth = (document.getElementsByClassName("protected").length + document.getElementsByClassName("normal").length) / totalTreesInForest
+gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
 
 /*  ------------------------------------------------------------
     show instructions.
@@ -1570,6 +1580,7 @@ function updateForest() {
         }
 
         // normal -> dry
+        //   -- method 1: automatically:
         for (let i = 0; i < normals.length; i++) {
             const treeid = normals[i].getAttribute('tree-id')
             const treestate = tree[treeid].state.now
@@ -1582,6 +1593,8 @@ function updateForest() {
                 tree[normals[i].getAttribute('tree-id')].behaviour = 1
             }
         }
+        //   -- method 2: by calling seedDryTrees():
+        // if(drys.length==0) seedDryTrees(3)
 
         // dry -> burning
         for (let i = 0; i < drys.length; i++) {
