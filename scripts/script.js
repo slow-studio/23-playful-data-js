@@ -74,14 +74,27 @@ document.body.setAttribute('onkeydown','cheatcodes(event)')
 const IDEALREFRESHRATE = 10
 const refreshRate = 10 // fps
 const refreshTime = 1000 / refreshRate // time in millisecond
+var FRAMECOUNT = 0
 
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
+
+/** @type {number} a heap of mud/ash takes ✕ times longer to begin growing into a tree */
+const absentTimeMultiplier = 10
+/** @type {number} a fully-grown tree resists drying for these many ✕ times longer */
+const normalTimeMultiplier = 25
+/** @type {number} a dry tree resists catching fire for these many ✕ times longer */
+const dryTimeMultiplier = 12.5
+/** @type {number} make fires burn for these many ✕ times longer */
+const fireBurnTimeMultiplier = 2.0
+/** @type {number} a tree remains charred for these many ✕ times longer */
+const charredTimeMultiplier = 25
 
 /**
  * game state variables
  */
 let gameState = {
+    userHasBeenActive: false,
     startTime: new Date().getTime(),
     playTime: 0,
     starthealth: 1,
@@ -96,7 +109,7 @@ let gameState = {
 // console.log(JSON.stringify(gameState, null, 2))
 
 /** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
-const TREELIMIT = 2500;
+const TREELIMIT = 7500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 180000 * IDEALREFRESHRATE / refreshRate // e.g. 180000 ms = 3 min
@@ -122,6 +135,26 @@ function approx(n, p) {
     else
         return n - randomDeviation
 }
+
+/**
+ * map a value from one range to another
+ * @returns {number}
+ * @param {number} value1 - value within source range
+ * @param {number} min1 - lower limit in source range 
+ * @param {number} max1 - upper limit in source range
+ * @param {number} min2 - lower limit of destination range
+ * @param {number} max2 - upper limit of destination range
+ */
+function map(value1, min1, max1, min2, max2) {
+    if(min1==max1) {
+        console.log(`the source range is invalid. (min and max values in the range must not be equal.) returning unchanged value.`)
+        return value1
+    }
+    const gradient = (max2-min2) / (max1-min1)
+    let value2 = min2 + ((value1 - min1) * gradient)
+    return value2
+}
+// console.log(map(5,0,10,-1,-.9))
 
 /** 
  * fetch the value of a property in the stylesheet 
@@ -200,7 +233,7 @@ function updateStyle(e, p, v) {
 }
 
 /**
- * show or hide #content div
+ * show or hide #content div. (it appears below the #forest div, and has the project writeup in it.)
  * @param {boolean} show 
  */
 function showcontent(show) {
@@ -218,25 +251,6 @@ function showcontent(show) {
 // don't show #content at the start : show the #playarea (and #forest) only.
 showcontent(false)
 
-/** make fires crackle */
-const fireCrackleTime = 600
-setInterval(function () {
-    /** @type {any} */
-    let fires = document.getElementsByClassName("fire")
-    for (let i = 0; i < fires.length; i++) {
-        if (fires[i]) {
-            fires[i].style.fill = randomiseHSLColour('--firedarker', 0, 5),
-            // console.log("fire gets darker")
-            setTimeout(function () {
-                if (fires[i]) {
-                    fires[i].style.fill = randomiseHSLColour('--fire', 0, 5)
-                    // console.log("fire gets less dark") 
-                }
-            }, approx(fireCrackleTime, 50));
-        }
-    }
-}, fireCrackleTime);
-
 /**
  * randomly convert some "normal" trees to their "dry" state
  * @param {number} [n=1] - number of trees to seed
@@ -245,173 +259,376 @@ function seedDryTrees(n) {
 
     console.log(`seedDryTrees(${n}) was called`)
 
-    /* if there's at-least 1 "normal"/"protected" tree in the forest... */
-    let healthyTrees = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
-    console.log(`before seeding dry trees, healthyTrees = ${healthyTrees}`)
-    if (healthyTrees > 0) {
-        
-        /* ...then, select a random "normal"/"protected" tree to turn "dry". */
-        
-        // keep n within sensible bounds
-        if (n >= healthyTrees) n = Math.floor(Math.random() * healthyTrees)
-        if (n <= 1) n = 1
-
-        console.log("trying to seed " + n + " dry trees...")
-
-        // fraction of trees to turn from normal/protected to dry
-        let fr = n / healthyTrees
-        
+    /* if there's at-least 1 "normal" tree in the forest... */
+    let allnormaltrees = document.getElementsByClassName("normal") // HTMLCollection
+    // console.log(`seedDryTrees: before seeding dry trees, healthyTrees = ${normalTrees}`)
+    if (allnormaltrees.length == 0) {
+        console.log(`seedDryTrees: no normal trees available.`)
+    } else /* if (allnormaltrees.length > 0) */ 
+    {
         // collect all healthy trees (svg elements)
-        let allhealthytrees = []
-        let allnormaltrees = document.getElementsByClassName("normal"), 
-            allprotectedtrees = document.getElementsByClassName("protected") // HTMLCollection
-        let arrayofallnormaltrees = Array.from(allnormaltrees),
-            arrayofallprotectedtrees = Array.from(allprotectedtrees) // convert HTMLCollection to Array
-        allhealthytrees.push(...Array.from(arrayofallnormaltrees))
-        allhealthytrees.push(...Array.from(arrayofallprotectedtrees))
-        
-        // a counter which will track how many trees we do make dry
-        let conversioncounter = 0;
-
-        // for each healthy tree, decide whether it turns dry
-        for(let i=0 ; i<allhealthytrees.length ; i++) {
-            if(conversioncounter<n) {
-                if(Math.random()<fr) {
-                    updateTree(allhealthytrees[i], "dry")
-                    conversioncounter++
-                }
+        let seedableTrees = []
+        // console.log(`seedDryTrees: found ${allnormaltrees.length} "normal" trees.`)
+        let arrayofallnormaltrees = Array.from(allnormaltrees) // convert HTMLCollection to Array
+        seedableTrees.push(...Array.from(arrayofallnormaltrees))
+        // remove "protected" trees from this array
+        for (let i = 0; i < seedableTrees.length; i++) {
+            if(seedableTrees[i].classList.contains("protected")) {
+                // remove this tree from the array 
+                seedableTrees.splice(i,1)
+                // console.log(`seedDryTrees: removed 1 protected tree.`)
             }
-            else break;
         }
+        // console.log(`${allnormaltrees.length} normal (but unprotected) trees available to seed dryness.`)
+        if (seedableTrees.length == 0) {
+            console.log(`seedDryTrees: no normal ( + unprotected ) trees available.`)
+        } else {
+        
+            // keep n within sensible bounds
+            if (n >= allnormaltrees.length) n = Math.floor(Math.random() * allnormaltrees.length)
+            if (n <= 1) n = 1
+            console.log(`seedDryTrees: trying to seed ${n} dry tree${n!=1?'s':''}...`)
+    
+            // fraction of trees to turn from normal to dry
+            let fr = n / allnormaltrees.length
+            // a counter which will track how many trees we do make dry
+            let conversioncounter = 0;
 
-        // if no trees were converted, forcibly convert one
-        if(conversioncounter==0) {
-            console.log(`no trees were seeded. so: forcibly seeding dryness in one tree.`)
-            let randomtreeindex = Math.floor(Math.random()*allhealthytrees.length)
-            updateTree(allhealthytrees[randomtreeindex], "dry")
+            // for each healthy tree, decide whether it turns dry
+            for(let i=0 ; i<seedableTrees.length ; i++) {
+                if(conversioncounter<n) {
+                    if(Math.random()<fr) {
+                        const treeid = seedableTrees[i].getAttribute('tree-id')
+                        const treestate = tree[treeid].state.now
+                        // if the tree is fully grown AND not protected
+                        if (
+                            treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
+                            // the second check (below) is unnecessary (because we've already removed all protected trees from the seedableTrees array), but, just double-checking anyway:
+                            && tree[treeid].isProtected == false
+                        ) {
+                            // it turns dry
+                            tree[treeid].behaviour = 1
+                            conversioncounter++
+                        }
+                    }
+                }
+                else break;
+            }
+            console.log(`seedDryTrees: seeded ${conversioncounter} dry tree${n!=1?'s':''}.`)
         }
-
-        console.log(`seeding report: successfully seeded ${Math.max(Math.min(n,conversioncounter),1)} dry trees.`)
     }
 }
 
 /**
- * tree changes as instructed
- * @typedef {Object} TreeChangeSettings
- * @property {object} shape
- * @property {string|boolean} [shape.foliage=false] 
- * @property {string|boolean} [shape.stump=false] 
- * @property {string|boolean} [shape.fire=false] 
- * @property {string|boolean} [shape.burned=false] 
- * @property {object} colour
- * @property {string|boolean} [colour.outline=false] 
- * @property {string|boolean} [colour.foliage=false] 
- * @property {string|boolean} [colour.stump=false] 
- * @property {string|boolean} [colour.fire=false] 
- * @property {string|boolean} [colour.burned=false] 
+ * fire, dryness, health, etc can spread from one tree to its neighbours
+ * @param {*} trees - a collection of trees-svg's
+ * @param {number} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
+ * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
+ * @param {number} [spreadDistance=1]
  */
+function spreadInfection(trees, state, immunity, spreadDistance) {
+    for (let i = 0; i < trees.length; i++) {
+        const id = Number(trees[i].getAttribute('tree-id'))
+        const _x = tree[id].positionInForestGrid.x
+        const _y = tree[id].positionInForestGrid.y
+        for (let t = 0; t < totalTreesInForest; t++) {
+            if (
+                true
+                && tree[t].positionInForestGrid.x >= 0
+                && tree[t].positionInForestGrid.y >= 0
+                && tree[t].positionInForestGrid.x >= _x - spreadDistance
+                && tree[t].positionInForestGrid.x <= _x + spreadDistance
+                && tree[t].positionInForestGrid.y >= _y - spreadDistance
+                && tree[t].positionInForestGrid.y <= _y + spreadDistance
+                && tree[t].id
+            ) {
+                if (Math.random() > immunity) {
+                    // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
+                    setTimeout(function () {
+                        const neighbour = document.getElementById('tree-' + t)
+                        const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+                        if (state == 3 || state == 2) {
+                            if (
+                                neighbourSvg.classList.contains("charred")
+                                ||
+                                neighbourSvg.classList.contains("absent")
+                                ||
+                                neighbourSvg.classList.contains("protected")
+                            ) {
+                                // can't do anything
+                            }
+                            else if (
+                                neighbourSvg.classList.contains("normal")
+                            ) {
+                                // console.log(`spreading dryness. making tree-${id} dry.`)
+                                tree[t].behaviour = 1
+                            }
+                            else if (
+                                state == 3
+                                &&
+                                neighbourSvg.classList.contains("dry")
+                            ) {
+                                // console.log(`spreading fire. tree-${id} catches fire.`)
+                                tree[t].behaviour = 1
+                            }
+                        }
+                        else if (state == 1) {
+                            if (
+                                neighbourSvg.classList.contains("absent")
+                            ) {
+                                // console.log(`spreading health. tree-${id} is seeded.`)
+                                tree[t].behaviour = 1
+                            }
+                            // if (
+                            //     neighbourSvg.classList.contains("dry")
+                            // ) {
+                            //     // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
+                            //     tree[t].behaviour = -1
+                            // }
+                        }
+                    }, refreshTime)
+                }
+            }
+        }
+    }
+}
+
 /**
  * @param {*} svgelement 
- * @param {string} state - the state of the tree
  */
-function updateTree(svgelement, state) {
+function updateTree(svgelement) {
 
     // helper variables
-    const id = Number(svgelement.parentNode.id.substring("tree-".length, svgelement.parentNode.id.length))
-    const foliages = svgelement.getElementsByClassName('foliage')
-    const wood = svgelement.getElementsByClassName('stump')
-    const fires = svgelement.getElementsByClassName('fire')
-    const burnedses = svgelement.getElementsByClassName('burned')
+    const id = Number(svgelement.getAttribute('tree-id'))
 
-    if (tree[id].stateSettings.protected.isProtected == true) {
-        // if the tree is protected, we can do nothing
-    } else {
-        /* tree memorises its present state */
-        tree[id].state.previous = tree[id].state.now
-        tree[id].shape.foliage.previous = tree[id].shape.foliage.now
-        tree[id].shape.stump.previous = tree[id].shape.stump.now
-        tree[id].shape.fire.previous = tree[id].shape.fire.now
-        tree[id].shape.burned.previous = tree[id].shape.burned.now
-        tree[id].colour.outline.previous = tree[id].colour.outline.now
-        tree[id].colour.foliage.previous = tree[id].colour.foliage.now
-        tree[id].colour.stump.previous = tree[id].colour.stump.now
-        tree[id].colour.fire.previous = tree[id].colour.fire.now
-        tree[id].colour.burned.previous = tree[id].colour.burned.now
+    /* tree memorises its previous state */
+    tree[id].state.previous[0] = tree[id].state.now[0]
+    tree[id].state.previous[1] = tree[id].state.now[1]
 
-        /* tree decides what its new appearance will be */
-        tree[id].state.now = state
-        // console.log(`updateTree # ${id}: ${tree[id].state.previous} -> ${tree[id].state.now}`)
-        const classes = svgelement.classList
-        for (let i = 0; i < classes.length; i++) {
-            svgelement.classList.remove(classes[i])
-        }
-        svgelement.classList.add(tree[id].state.now)
-        const settings = tree[id].stateSettings[state]
-        tree[id].shape.foliage.now = settings.shape.foliage
-        tree[id].shape.stump.now = settings.shape.stump
-        tree[id].shape.fire.now = settings.shape.fire 
-        tree[id].shape.burned.now = settings.shape.burned 
-        tree[id].colour.outline.now = settings.colour.outline 
-        tree[id].colour.foliage.now = settings.colour.foliage 
-        tree[id].colour.stump.now = settings.colour.stump 
-        tree[id].colour.fire.now = settings.colour.fire 
-        tree[id].colour.burned.now = settings.colour.burned 
+    /*  handle protection */
+    if (
+        // tree has been marked as to-be-protected
+        tree[id].isProtected == true 
+        && 
+        // but it is not currently "protected"
+        svgelement.classList.contains("protected") == false
+    ) // this means that it just got protected.
+    {
+        // console.log(`protecting tree-${id}`)
+        // playSound(sGoodNews, volumeScaler.sGoodNews)
+        svgelement.classList.add("protected")
+        // it remains protected for 'protectionDuration' time only
+        setTimeout(function() {
+            // console.log(`un-protecting tree-${id}`)
+            if(tree[id].isProtected == true) {
+                tree[id].isProtected = false
+                svgelement.classList.remove("protected")
+            }
+        }, approx(protectionDuration,20))
+    }
+    if (
+        // tree has been marked as not-to-be-protected
+        (tree[id].isProtected == false) 
+        && 
+        // but it is currently in a "protected" state
+        svgelement.classList.contains("protected")
+    ) // this means that it's going to lose its protection now
+    {
+        svgelement.classList.remove("protected")
+    }
 
-        // console.log("change t# " + id)
-        // console.log(tree[id])
 
-        /* tree changes appearance: */
-        // -- 1. it updates its svg shape
-        svgelement.innerHTML =
-            tree[id].shape.foliage.now
-            + tree[id].shape.stump.now
-            + tree[id].shape.fire.now
-            + tree[id].shape.burned.now
-        // -- 2. it sets the colour for those svg-shapes
-        for (const p of foliages) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.foliage.now
-        }
-        for (const p of wood) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.stump.now
-        }
-        for (const p of fires) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.fire.now
-        }
-        for (const p of burnedses) {
-            p.style.stroke = tree[id].colour.outline.now
-            p.style.fill = tree[id].colour.burned.now
-        }
-        // -- 3. sound feedback:
-        //      -- tree catches fire (i.e., was not burning before, but is now)
-        if (tree[id].state.previous != "burning" && tree[id].state.now == "burning") {
-            playSound(sCatchFire, volumeScaler.sCatchFire)
-        }
+    /* tree calculates what its new appearance will be */
 
-        /*  state-specific behaviour:
-            if the tree just got protected...
-            */
-        if (tree[id].state.previous != "protected" && tree[id].state.now == "protected") {
-            tree[id].stateSettings.protected.isProtected = true
-            // remains protected for 'protectionDuration' time
-            setTimeout(function () {
-                // console.log(`protected tree-${id} is preparing to become "normal" (automatically).\n(protectionDuration: ${protectionDuration}ms)\nchecking status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
-                if (tree[id].stateSettings.protected.isProtected = true) {
-                    tree[id].stateSettings.protected.isProtected = false
-                    // console.log(`protected tree-${id} is now ready to become "normal" (automatically).\nupdating status...\nisProtected: ${tree[id].stateSettings.protected.isProtected}`)
-                    updateTree(svgelement, "normal")
-                }
-            }, approx(protectionDuration, 20))
+    // 0. protected trees don't change their state
+    if (svgelement.classList.contains("protected") || tree[id].isProtected == true) 
+        tree[id].behaviour = 0
+    
+    // 1. cycle within a state:
+    switch(tree[id].state.now[0]) {
+        case 0:
+            // the next tree that will grow there will have these properties:
+            tree[id].properties.resilience = 1 //+ Math.floor(3 * Math.random())
+            // the next statement seems unnecessary, but i've written it, just, to be double-sure.
+            tree[id].state.now[1] = 0
+            break;
+        case 1:
+            // the tree should grow, till it reaches full size.
+            if (tree[id].state.now[1] < svgtree.src.innerhtml[1].length - 1) 
+            {
+                if (FRAMECOUNT % tree[id].properties.resilience == 0)
+                tree[id].state.now[1]++
+                // and, at this time, don't let the tree progress to another state
+                tree[id].behaviour = 0
+            }
+            // once it is at full size, the tree should stop growing
+            else // if (tree[id].state.now[1] == svgtree.src.innerhtml[1].length - 1) 
+                tree[id].state.now[1] = svgtree.src.innerhtml[1].length - 1
+            break;
+        case 2:
+            break;
+        case 3:
+            // keep cycling through all fire levels:
+            if (tree[id].state.now[1] < svgtree.src.innerhtml[3].length - 1) 
+                tree[id].state.now[1]++
+            else // if (tree[id].state.now[1] == svgtree.src.innerhtml[3].length - 1) 
+                tree[id].state.now[1] = 0
+            break;
+        case 4:
+            break;
+        case 5:
+            // the tree should disintegrate, till it is a heap of ash:
+            if (tree[id].state.now[1] < svgtree.src.innerhtml[5].length - 1) {
+                tree[id].state.now[1]++
+                // and, at this time, don't let the tree progress to another state
+                tree[id].behaviour = 0
+            }
+            // once it reaches there...
+            else // if (tree[id].state.now[1] == svgtree.src.innerhtml[5].length - 1) 
+            {
+                // ...it should become an absent tree (i.e., a fertile mound of ash-rich soil).
+                tree[id].state.now[0] = 0
+                tree[id].state.now[1] = 0
+            }
+            break;
+    }
+    
+    // 2. update state based on set-behaviour
+    if (tree[id].behaviour != 0) {
+        tree[id].state.now[0] += tree[id].behaviour
+        if(tree[id].state.now[0] < 0 || tree[id].state.now[0] > svgtree.src.innerhtml.length - 1)
+            tree[id].state.now[0] = 0
+        switch(tree[id].behaviour) {
+            case 1:
+                tree[id].state.now[1] = 0
+                break;
+            case -1:
+                tree[id].state.now[1] = (svgtree.src.innerhtml[tree[id].state.now[0]]).length -1
+                break;
+        }
+        tree[id].behaviour = 0
+    }
+    
+    // 3. automatically cycle through states:
+    const allowautomaticcycling = false
+    if( 
+        allowautomaticcycling
+        &&
+        // if the tree is at the last sub-stage within its state:
+        tree[id].state.now[1] >= (svgtree.src.innerhtml[tree[id].state.now[0]]).length - 1 
+        &&
+        // tree is not "protected"
+        ! svgelement.classList.contains("protected")
+    ) {
+        if (
+            (
+                // if there's a heap of fertile ash/mud
+                tree[id].state.now[0] == 0
+                // and is also a slow-growing tree (i.e., likely to take some time to start growing)
+                && Math.random() > 1 / (absentTimeMultiplier * tree[id].properties.resilience)
+            )
+            ||
+            (
+                // if the tree is fully-grown
+                tree[id].state.now[0] == 1
+                // and is also a resilient tree (i.e., likely to take some time to dry-out)
+                && Math.random() > 1 / (normalTimeMultiplier * tree[id].properties.resilience)
+            )
+            ||
+            (
+                // if the tree is dry
+                tree[id].state.now[0] == 2
+                // and is also a resilient tree (i.e., likely to resist catching fire)
+                && Math.random() > 1 / (dryTimeMultiplier * tree[id].properties.resilience)
+            )
+            ||
+            (
+                // if the tree is burning
+                tree[id].state.now[0] == 3
+                // and, if it is a resilient tree (e.g., would burn for a longer time before getting charred)
+                && Math.random() > 1 / (fireBurnTimeMultiplier * tree[id].properties.resilience)
+            )
+            ||
+            (
+                // if the tree is charred
+                tree[id].state.now[0] == 4
+                // and is also a resilient tree (i.e., likely to take some time to disintegrate)
+                && Math.random() > 1 / (charredTimeMultiplier * tree[id].properties.resilience)
+            )
+        ) { 
+            // then, do nothing (i.e., let it stay in its current state)
+        } 
+        else {
+            // move it to the next state
+            tree[id].state.now[0]++ 
+            // but if the next state exceeds the total states, then reset the tree to state-0.
+            if ( tree[id].state.now[0] >= svgtree.src.innerhtml.length )
+                tree[id].state.now[0] = 0
+            // and: whatever stage the tree moves to, set its sub-stage to be 0
+            tree[id].state.now[1] = 0 
         }
     }
 
-    // let protecteds = document.getElementsByClassName("protected")
+    /* update the class attached to the tree's html-element  */
+    // 1. erase all previous classes:
+    const classes = svgelement.classList
+    for (let i = 0; i < classes.length; i++) {
+        svgelement.classList.remove(classes[i])
+    }
+    // 2. add a class specifying the tree's newly assigned state:
+    let classs =[]
+    switch (tree[id].state.now[0]) {
+        case 0:
+            classs.push("absent")
+            break;
+        case 1:
+            classs.push("normal")
+            break;
+        case 2:
+            classs.push("dry")
+            break;
+        case 3:
+            classs.push("burning")
+            break;
+        case 4:
+            classs.push("charred")
+            break;
+        case 5:
+            classs.push("charred")
+            break;
+    }
+    if (tree[id].isProtected == true)
+        classs.push("protected")
+    if(classs.length>0) // this condition should always evaluate to true, but it's good to still check
+        svgelement.classList.add(...classs)
+    else console.log(`warning!: tree-${id} did not get assigned a state-class. please check source-code.`)
 
-    // just to be extra careful...
-    if (tree[id].state.now != "protected") {
-        tree[id].stateSettings.protected.isProtected = false
+    // console.log("change t# " + id)
+    // console.log(tree[id])
+
+    /* tree changes appearance: */
+    // -- 1. it updates its svg shape
+    svgelement.innerHTML = svgtree.src.innerhtml[tree[id].state.now[0]][tree[id].state.now[1]]
+    // -- 2. it sets the colour for those svg-shapes
+
+    // -- 3. sound feedback:
+    //      -- tree catches fire (i.e., was not burning before, but is now)
+    if (tree[id].state.previous[0] != 3 && tree[id].state.now[0] == 3) { 
+        playSound(sCatchFire, volumeScaler.sCatchFire)
+    }
+
+    /*  state-specific behaviour:
+        if the tree is on fire, make the fire crackle (visually)
+        */
+    const fireCrackleTime = 600
+    /** @type {any} */
+    let fires = svgelement.getElementsByClassName("fire")
+    for (let i = 0; i < fires.length; i++) {
+        if((new Date()).getMilliseconds()%2==(id%2))
+            // fire gets darker
+            fires[i].style.fill = randomiseHSLColour('--firedarker', 0, 5)
+        else // fire gets less dark
+            fires[i].style.fill = randomiseHSLColour('--fire', 0, 5)
     }
 }
 
@@ -459,8 +676,8 @@ function playSound(sound, volume) {
     // if(sound.ended) {
     // sound.currentTime = 0
     // note: mute audio if the document loses focus (e.g., if the person switches tabs)
-    sound.volume = document.hasFocus() ? volume : 0
-    sound.play()
+    sound.volume = (document.hasFocus() && gameState.userHasBeenActive) ? volume : 0
+    if(document.hasFocus() && gameState.userHasBeenActive) sound.play()
     // }
 }
 
@@ -870,7 +1087,10 @@ function setInfo(box, infotype) {
             break;
     }
     // add close-button to dismiss box
-    if(infotype!=0) {
+    if(
+        true 
+        && infotype!=0
+    ) {
         let closeBtn = addChildTag('button')
         closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
         closeBtn.setAttribute('id', 'closeInfoBox')
@@ -974,21 +1194,73 @@ function hideBox(box, seed) {
 
 const svgtree = {
     src: {
-        starttag: '<svg width="100%" height="100%" viewBox="0 0 134 382" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve">',
-        foliage: [
-            /* default */ '<path class="foliage" d="M40.695,345.956c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-95.673 21.939,-166.478c1.993,-14.2 14.902,-76.508 28.401,-76.508c13.498,0 19.325,56.249 27.506,126.547c6.551,56.295 16.154,87.73 16.154,116.124c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
-            /* sway left */ '<path class="foliage" d="M40.695,345.956c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 12.002,-90.003 21.939,-160.808c1.993,-14.2 6.398,-82.178 19.897,-82.178c13.498,0 27.829,53.415 36.01,123.713c6.551,56.295 16.154,90.564 16.154,118.958c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,3.044 -48.987,3.856Z"/>',
-            /* sway right */ '<path class="foliage" d="M40.695,343.122c-10.575,0.728 -20.695,-7.724 -20.695,-18.244c0,-63.798 14.837,-95.673 24.774,-166.478c1.993,-14.2 23.406,-73.674 36.905,-73.674c13.498,0 7.986,59.084 16.167,129.382c6.551,56.295 16.154,84.895 16.154,113.289c0,12.091 -12.368,12.859 -24.318,14.703c-11.949,1.843 -37.191,0.21 -48.987,1.022Z"/>'
+        starttag: '<svg viewBox="0 0 50 150">',
+        innerhtml: [
+            // 0: absent (fertile mud)
+            [
+                /* dead 10 */ '<polygon class="stump" points="24.89 147.04 25.21 145.96 25.87 146.15 26.94 147.34 24.02 147.34 24.89 147.04"/>',
+            ],
+            // 1: normal tree (growing)
+            [
+                /* 1: shoot */ '<path class="foliage" d="M24.91,149.48c-2.72,0-4-1.44-4.08-3.5-.08-1.81,1.4-1.75,2.66-1.45a14.89,14.89,0,0,1-.94-5c.09-1.93,1-3.23,1.67-3.15s1.21.86,1.42,6.55c.37-.51,1.28-2.32,2.36-2,1.53.46.07,2.5-.51,3.18a3,3,0,0,1,1.42,2C29.22,147.58,27,149.48,24.91,149.48Z"/>',
+                /* 2 */ '<path class="foliage" d="M24.76,144.4l0,2.89.33,0v-2.88a3.1,3.1,0,0,0,2.55-1.25,3.46,3.46,0,0,0,.31-2.55A1.72,1.72,0,0,0,29,138.72a1.67,1.67,0,0,0-1.34-1.27c1.05-.51,2.23-2.81,1.4-3.45-1.23-.95-2,.64-2.74,1.21,0-2.52.19-4.27-1.53-4.27-2,0-1.76,4.11-1.22,5.68,0,0-2.36-.19-2.68,1.53A2.86,2.86,0,0,0,22,141.09c.16.06-.58,1.18-.16,2.13S23.66,144.4,24.76,144.4Z"/>',
+                /* 3 */ '<path class="foliage" d="M21.07,141a2.66,2.66,0,0,1,2-2.08c-1.46-1.09-2.65-2.08-2.53-3.64a3.84,3.84,0,0,1,1.9-2.74c-1.79-2.17-1.23-3.51-.6-3.92s2.28.41,2.51.6c-.51-4.07-.58-5.8.64-5.92,2-.19,1.83,1.92,1.4,6.13,1.47-2,2.6-3.38,3.45-2.09.36.56-.58,1.88-2.34,4.56,1.06.11,2.13.4,2.47,1.22.5,1.24-.13,2.93-2.13,4.37a2,2,0,0,1,1,2.24,1.4,1.4,0,0,1-1.17,1.15,2,2,0,0,1,.08,2.29c-.48.75-1.59.91-2.62,1v3.45l-.48,0,0-3.53C22.55,143.5,20.9,142.3,21.07,141Z"/>',
+                /* 4 */ '<path class="foliage" d="M24.81,147.24h.51l-.06-5.39a3.44,3.44,0,0,0,3-2.26,3.06,3.06,0,0,0-1.52-3.76c1.5,0,2.7-.43,2.9-2.3.15-1.39-.14-2-1.19-2.55,1.4-.55,1.28-1.89,1.19-3.15-.11-1.51-.84-1.69-1.62-2.34,1.3-1.44,1.64-2.86,1.19-3.32s-1.43-.16-2.47.43c0-1.56-.13-4.09-1.36-4.09-1.43,0-1.47,2.92-1.44,5.15a1.49,1.49,0,0,0-2.13.21c-.69.68-.58,2.42.89,3.7a3.3,3.3,0,0,0-2.9,3.05c0,1.55,1.31,2,2.94,2.78-.8.44-1.73,1-1.28,2.58.19.67,1,.81,1.67,1a3.64,3.64,0,0,0-.78,2.61c.18,1.6,2.35,2.22,2.46,2.26Z"/>',
+                /* 5 */ '<path class="foliage" d="M24.59,140.86v6.76l.7,0v-6.8c2.72-.05,4.26-1.67,4.25-3,0-1-1.19-1.45-1.54-1.69a4.64,4.64,0,0,0,1.09-4,4.42,4.42,0,0,0-1.92-3c1.88-.68,2.78-2,2.54-4.41-.16-1.52-1.22-2.08-2.54-2.49,1.85-1.78,2.09-3.86,1.31-4.56-.44-.4-.67-.65-2.11-.56.07-2.06.33-4.71-1.08-4.71s-1.5,2.27-1.28,5a3.3,3.3,0,0,0-1.81,2.84A6.65,6.65,0,0,0,24,125c-2,.36-4.28,2.23-4.67,4-1,4.53,1.19,5.64,3.24,5.93a2.71,2.71,0,0,0-1.38,2.68C21.27,139.15,22.67,140,24.59,140.86Z"/>',
+                /* 6 */ '<path class="foliage" d="M24.64,137.79l-.11,9.49h.83l0-9.54c2-.32,3.9-.64,4.45-2.46.49-1.62-.06-3.45-1.66-5.37,1.63-.81,2.41-1.77,2.2-3.46a6.18,6.18,0,0,0-2.2-3.94,1.44,1.44,0,0,0,1.21-1.72,1.42,1.42,0,0,0-1.47-1,3.65,3.65,0,0,0-1.08-7c1.08-1,1.49-2.06.7-2.74a1.67,1.67,0,0,0-1.66,0c.19-1.7-.66-4.51-1.64-4.51-1.36,0-1.06,3.66-.91,6.87-.92.4-2.7.45-3.43,2.45-.9,2.5,1.06,4.67,2.05,5.4-.11,0-2.34,0-2.34,1.79,0,1.37,1.09,2.8,2.16,2.84a5.54,5.54,0,0,0-3.1,5.2,4.16,4.16,0,0,0,3.1,4.05c-.21.16-1,1.5-.55,2.27S22.87,137.49,24.64,137.79Z"/>',
+                /* 7 */ '<path class="foliage" d="M24.44,137v10.65h.92V137c4.08-.8,4.72-1.27,4.78-3.38a3.7,3.7,0,0,0-1.88-3.1,2.18,2.18,0,0,0,2.46-1.31,1.55,1.55,0,0,0-1.34-1.46c.26-.1,2.47-.35,2.45-2.14s-1.81-3.29-4.34-4.85c1.53-.72,2.17-2.08,2.08-4.31a4.06,4.06,0,0,0-2.68-3.58,2.51,2.51,0,0,0,.76-2.55,2.4,2.4,0,0,0-1.08-1.34c1.34-1.44,1.53-2.43,1.24-3.29-.12-.38-1.21-.67-1.94-.19-.1-3.73-.32-5.46-1.79-5.3-.94.11-1,1-.58,3.1a2.42,2.42,0,0,0-2.55,1.63c-.5,1.75-.57,4.59,1.72,5.65a1.72,1.72,0,0,0-2.1,1,2.65,2.65,0,0,0,.89,3c-2,.66-3.26,2.58-3.25,5.23,0,2.25,2.45,3.58,4.27,3.7a2.8,2.8,0,0,0-1.82,2.65,5.27,5.27,0,0,0,2.08,3.48c-1.88.44-3.6.7-3.67,3.16C19,135,20.94,136.07,24.44,137Z"/>',
+                /* 8 */ '<path class="foliage" d="M24.65,135v12.32h1V135a4.17,4.17,0,0,0,2.11-.9,4,4,0,0,0,1.08-1.34,2.64,2.64,0,0,0,2-1.78c.35-1.16-.3-2.08-1.4-3.13,2.57-.07,3.65-1.4,3.77-3.13.12-2-.9-4.3-2.56-5a2.19,2.19,0,0,0,1.41-2c0-1-.81-1.53-1.6-2.49a4.49,4.49,0,0,0,3.06-5c-.36-2.53-2.23-3.47-4.4-4.66a2.13,2.13,0,0,0,1-2.13c-.19-1.1-1-1.61-2.18-2.12a2.45,2.45,0,0,0,.62-3.15,2,2,0,0,0-2.77.41c-.22-1.05-.4-5.65-2-5.65-2,0-.87,5.11-.61,6.13-1.86-.92-4.05-1.14-4.64-.08-.77,1.36.31,3.38,2.51,4.29-3.28-.38-3.85,1.32-4.17,3.24-.37,2.17,1.29,3.63,3.15,4a2.79,2.79,0,0,0-1.07,2,3.08,3.08,0,0,0,1.7,2.36c-2.38.2-3.64.16-4.08,3.71a4.76,4.76,0,0,0,3.64,5.29,2.07,2.07,0,0,0-.77,1.54,2,2,0,0,0,1,1.72,2.86,2.86,0,0,0-2.55,3,2.73,2.73,0,0,0,3.17,2.38,9.53,9.53,0,0,0,1.43,1.39A9.55,9.55,0,0,0,24.65,135Z"/>',
+                /* 9 */ '<path class="foliage" d="M24.65,135v12.32h1V135a4.17,4.17,0,0,0,2.11-.9,4,4,0,0,0,1.08-1.34,2.64,2.64,0,0,0,2-1.78c.35-1.16-.3-2.08-1.4-3.13,2.57-.07,3.65-1.4,3.77-3.13.12-2-.9-4.3-2.56-5a2.19,2.19,0,0,0,1.41-2c0-1-.81-1.53-1.6-2.49a4.49,4.49,0,0,0,3.06-5c-.36-2.53-2.23-3.47-4.4-4.66a2.13,2.13,0,0,0,1-2.13c-.19-1.1-1-1.61-2.18-2.12a2.45,2.45,0,0,0,.62-3.15,2,2,0,0,0-2.77.41c-.22-1.05-.4-5.65-2-5.65-2,0-.87,5.11-.61,6.13-1.86-.92-4.05-1.14-4.64-.08-.77,1.36.31,3.38,2.51,4.29-3.28-.38-3.85,1.32-4.17,3.24-.37,2.17,1.29,3.63,3.15,4a2.79,2.79,0,0,0-1.07,2,3.08,3.08,0,0,0,1.7,2.36c-2.38.2-3.64.16-4.08,3.71a4.76,4.76,0,0,0,3.64,5.29,2.07,2.07,0,0,0-.77,1.54,2,2,0,0,0,1,1.72,2.86,2.86,0,0,0-2.55,3,2.73,2.73,0,0,0,3.17,2.38,9.53,9.53,0,0,0,1.43,1.39A9.55,9.55,0,0,0,24.65,135Z"/>',
+                /* 10 */ '<path class="foliage" d="M24.64,133.82v13.85h.83l.07-13.85a3.09,3.09,0,0,0,1.78-1.15,3.2,3.2,0,0,0,.58-2.36c2.17-.57,4.05-2,4.08-3.06a2.37,2.37,0,0,0-.89-2,2,2,0,0,0,1.53-2,2,2,0,0,0-1.53-1.85c1.95-.83,3.76-2.06,3.89-6,0-1.21-.67-5.45-4.34-6,2.18-1,2.36-3.71,2-5.56-.44-2.58-2.85-4.2-5.23-4.54a1.88,1.88,0,0,0,.45-1.91A1.92,1.92,0,0,0,26.11,96C29,94.89,30.05,92.81,29,91.34c-.86-1.18-2.11-1-4.34-.16.19-5.93-.16-8.29-1.59-8.29-1.22,0-2,2.84-1.54,5.29-.53-.05-3.05-.82-3.83,1-1.11,2.65.1,4.74,3.64,7.27-3.1.38-5.54,1.71-6.32,4.34-1.24,4.22,1.22,7,5.68,9.51a2.65,2.65,0,0,0-2.29,2,2.71,2.71,0,0,0,2.23,3.07c-1.72.09-4.6-.42-5.33,2.07-.82,2.77,1.34,4.18,3.61,5.46-1.83.64-2.74,1.81-2.72,3,0,1.54,2.27,3.32,5.46,3.51a3.59,3.59,0,0,0,1,2.94A5,5,0,0,0,24.64,133.82Z"/>',
+                /* 11 */ '<path class="foliage" d="M24.43,134.7v12.39h.89V134.7c1-.49,2.58-.16,3.25-1.08a2.83,2.83,0,0,0,.52-1.47c2,.06,4.19.34,5-1.28.7-1.34-.07-3.64-1.22-5.87a2.62,2.62,0,0,0,.32-4.09c2.71-2.4,4.67-4.4,4.47-9.12-.15-3.67-4.6-4.85-5-5,2.15-2.34,3.21-5.43,2.18-8.08C34,96.48,32.11,96,29.53,95.32a3.94,3.94,0,0,0,2.68-5.17c-.8-2-3-3.51-5.42-1.85.17-2.3,1-3.48.19-4a2,2,0,0,0-1.72,0c-.06-3.86.72-5.88-.83-5.88-1.17,0-.93,1.11-1.6,3.45C22,80,21.24,79.52,20.69,80.11s-1.31,2.23.42,6.72c-.52,0-2.75,0-3.43,1-1.11,1.7,0,5.77,1.62,7.19-4.56,1.43-5.69,2.54-6,3.74a8.64,8.64,0,0,0,5.34,10.37,3,3,0,0,0-2.3,2.81,3,3,0,0,0,1.53,2.55c-2.55.45-4.53,1.7-4.72,3.77a4.3,4.3,0,0,0,2.17,4c-.73,2-2.1,3.62-1.34,5.42A4.91,4.91,0,0,0,20,130.3a7.52,7.52,0,0,0,4.41,4.4Z"/>',
+                /* 12 */ '<path class="foliage" d="M24.32,135.7v11.53H25l-.26-11.44h.52l-.05,11.44h.43v-11.5a6.4,6.4,0,0,0,2.89-.37A6.31,6.31,0,0,0,30.66,134c3.68,0,5-1.83,5.53-2.78,1.44-2.69.43-5.69-1.57-6.66.82-.3,1.71-.42,1.74-1.66a2.78,2.78,0,0,0-1.15-2.51c3.7-1.2,6.06-4.47,6-7.41,0-4.64-2.52-6.55-5.54-7.15,2.06-1.28,3.88-2,3.15-5.91-.48-2.61-2.85-5.58-4.51-5.87,1.92-1.24,2.26-3.08,1.7-5.49-1.23-5.32-3.29-5.2-6.48-4.17,1.13-.6,1.31-1.34.8-2.58-.42-1-2.33-.2-2.44-.23,1.66-1.41,2.18-2.94,1.61-4s-1.79-.6-3.57-.17c.3-1.7.84-6.18-1.36-5.7-1.36.3-1.51,3.73-1.13,5.39-.79-.12-3-1.35-4,.22s-1.11,4.39,1.36,7.41c0,0-3.51-.67-5,2.15-1.23,2.34.32,5.3,1.51,7-3.11,1.06-3.56,4.39-3.74,5.79-.27,2,.68,6.59,4.85,8.17a3.5,3.5,0,0,0-3.32,2.68c-.42,1.6,2,3.37,2,3.45-2.21.8-5,1-5.58,3.44-.24,1,.91,5.3,2.64,6.26-.7,1.74-1.24,3.21-.38,5.23s2.64,3.87,5.87,3.11a3.8,3.8,0,0,0,2.05,2.51A8.12,8.12,0,0,0,24.32,135.7Z"/>',
+                /* 13 */ '<path class="foliage" d="M24.19,137v10.3h.6l.08-10.3h.43v10.3h.42V137a6,6,0,0,0,2.81-.68,5.87,5.87,0,0,0,1.7-1.36c.55.21,6.05,1,7.24-2.05,1.63-4.14,1.46-6.48-1.28-7.91a2.58,2.58,0,0,0,1.62-2.56,2.63,2.63,0,0,0-1.28-1.91c2.84-1.12,6.23-3.8,5.94-6.45-.48-4.37-2.81-6.6-5.71-8.29,2.32-1.65,5.4-2.62,3.44-6.85-1.82-3.91-3-5.44-7.75-5.54,2-1.89,3.44-4,2.17-7.66a7.65,7.65,0,0,0-4.89-4.59,3.61,3.61,0,0,0,.87-2.94c-.23-1.2-1.44-1.62-1.66-1.79,1.93-1.59,2.45-3.92,1.4-5.1-1.2-1.35-2.73-.65-4.21.7,0-3.41-.13-6.89-1.94-6.89s-1.64,6.41-1.38,10.59A4,4,0,0,0,18,77.54c-1.35,2.09-.71,4.87.64,7.22A3.82,3.82,0,0,0,15.91,87c-.73,2.2.9,3.32,1.92,5.23a7.07,7.07,0,0,0-6.77,4.54c-1.11,3.35.8,6.79,4.92,8.8-.09,0-2.11,1.6-2.3,3.13A4,4,0,0,0,15,112c-2.4,1-3.66,2-3.9,5-.31,4,1.85,4.76,2.43,5.56a4.92,4.92,0,0,0-.77,5.23c.95,2,2.88,3.1,5.62,2.62a1.58,1.58,0,0,0,0,1.85,1.6,1.6,0,0,0,2.11.32A4.78,4.78,0,0,0,24.19,137Z"/>',
+                /* 14 */ '<path class="foliage" d="M24.23,137.49v9.7h.56v-9.7h.64v9.7h.38v-9.7l4.93-1.83a4.75,4.75,0,0,0,2.95.78,3.15,3.15,0,0,0,2.25-1.25c1.57.17,2.41-1.11,3.15-3.19a7.06,7.06,0,0,0-1.45-6.85,4,4,0,0,0,.89-4.72A6.59,6.59,0,0,0,43.17,114c0-3.15-2.6-6.47-4.77-8.21,2.3-1.39,3.19-4.6,3.19-6.64,0-2.21-2.08-4.21-4.76-4.43a2,2,0,0,0-1.36-3.57,8.32,8.32,0,0,0,0-6.72,7.6,7.6,0,0,0-4.77-4.3c.73-1.83,3-6.07,1.83-8.34-.8-1.53-1.44-1.7-3.87-1.83,1.09-1.89,1.08-3.59.43-4-1.49-.85-1.6.14-2.56,1-.74-3.59-.89-5.36-2.08-5.36-1.49,0-1.52,2.78-2.17,8.29-1.27-.38-1.73,0-1.83.09-.67.63,0,2,1.23,4.13A5.31,5.31,0,0,0,17,76.51c-1.45,2.1-1.79,3.49.34,7.45a4.75,4.75,0,0,0-1.24,7.1,6.4,6.4,0,0,0-5.83,4.51c-1.32,3.83,1.45,7.71,4.81,9.92-.31.2-1.2.17-1.61,1.45a6.32,6.32,0,0,0,.72,4.55c-.31.12-2.81.64-3.28,2.89s1.19,4.68,2.26,6.26c-.23.15-2.69,1.57-2.68,4S12,129.91,16.62,130a2.25,2.25,0,0,0,3.06,3.06,7.14,7.14,0,0,0,4.55,4.43Z"/>',
+                /* 15 */ '<path class="foliage" d="M24.17,56.36c-1.48,0-2.51,5.93-1.42,8.87-.68.12-2.71-.13-3.14.6C19,66.9,20.13,68.77,21.9,71a2.41,2.41,0,0,0-2.51.78c-.5.8,0,2.3.72,3.31a5.34,5.34,0,0,0-4.68,4.35c-.4,2.14.23,5,2.3,5.94-1.33.21-2.71.77-3,2a3,3,0,0,0,1,2.78c-4.72,1-6.65,4.23-7.1,6.21-.76,3.37,1.58,7.61,5.63,8.85a3.92,3.92,0,0,0-2.11,3.29,2.31,2.31,0,0,0,1.68,2.15c-2.81-.17-4.58.92-4.61,4.33,0,2,.51,3.93,3.42,4.35a5.38,5.38,0,0,0-4,5.77c.09,3.11,3.39,5.81,7.63,5.1a3.15,3.15,0,0,0-.25,4.5c1,.94,2.09.45,3.25-.51a8.49,8.49,0,0,0,2.27,3,10.86,10.86,0,0,0,2.77,1.46v8.85h.67l0-8.92.43,0v8.89h.49l0-8.88a8.18,8.18,0,0,0,2.9-.89A6.64,6.64,0,0,0,31,136.11a5.46,5.46,0,0,0,7.79-2.33,7.2,7.2,0,0,0-1.37-8.59c1.21.15,2.93-.36,3.12-1.49a2.24,2.24,0,0,0-1.42-2.44,8.25,8.25,0,0,0,4.91-7.3c.08-3.35-1.86-6.9-5.06-7.77,3-2.22,3.66-4.31,3.49-7A6,6,0,0,0,37,93.36a2.59,2.59,0,0,0,.62-2C37.44,90.12,36,90,35.89,89.89a4.14,4.14,0,0,0,1-3.41,6.67,6.67,0,0,0-4.35-4.67,2,2,0,0,0,1.15-2.53,1.63,1.63,0,0,0-2.11-.79,6.16,6.16,0,0,0,2.19-6.13c-.52-2.46-2-4.46-5.8-3.7,3.13-2.8,2.12-6,1.55-6.4s-2-.29-3.24,2.31C25.81,56.83,25.36,56.36,24.17,56.36Z"/>',
+                /* 16 */ '<path class="foliage" d="M23.83,138.37v8.72h.57v-8.72H25v8.72h.74v-8.72a9.3,9.3,0,0,0,3.32-2.05,4.65,4.65,0,0,0,1.15-1.71c2.59,1.24,5,1.68,7.63-1.15a7.35,7.35,0,0,0,1.79-7.09,2.66,2.66,0,0,0,1.4-2.49,4.09,4.09,0,0,0-1.66-3.16c.32-.23,2.49-.57,2.68-4.27a6,6,0,0,0-.95-3.29c1.69-.06,2.19-4.22,1.75-5.68-.63-2.06-4.63-3.58-5.14-4.25,2.73-2.51,4.6-4.33,3.33-8.09-.89-2.6-2-3.75-4-4.45,1.21-2.63,1.88-5,.67-7a5.43,5.43,0,0,0-3.83-2.36,2.15,2.15,0,0,0,.32-2.84,1.78,1.78,0,0,0-2.1-.76c2.24-3.18,2.86-6.56,1.72-8.72a4.82,4.82,0,0,0-5.36-2.36c.76-2,.75-4.19.06-4.51-.89-.4-1.35.39-2.33,1.38.19-4.85-.22-8.84-1.25-8.84S23,59.41,23.83,62a1.73,1.73,0,0,0-2,.6c-.87,1.41.35,4.44,1.05,6.74-1.79-.54-3.77-.29-4.28,1.12-.44,1.24.69,2.36,1.88,3.86A6.2,6.2,0,0,0,17,84.37a3.93,3.93,0,0,0-2.39,1.76,3.73,3.73,0,0,0,.41,3.6,7.49,7.49,0,0,0-6.06,5c-1,3.1.19,7.31,5.14,9.86a3.56,3.56,0,0,0-2,2.05,3.5,3.5,0,0,0,.19,2.68c-1.71.54-3,1.36-3.38,3-.47,2.2,1.12,4.82,3.35,6.09a2.6,2.6,0,0,0-2.55,2.06c-.28,1.57.06,3.78,1.15,4.74a9.48,9.48,0,0,0,2.32,4.07c.87.81,2.69.16,3.1,0a2.46,2.46,0,0,0,.45,2.37c.54.55,1.19.3,1.85-.13a6.77,6.77,0,0,0,.73,4.43C20.26,137.51,23.56,138.36,23.83,138.37Z"/>',
+                /* 17 */ '<path class="foliage" d="M24.11,139v8.3h.65V139h.57v8.3h.48V139l4.72-3.77c1.6,1.18,2.84,1.48,5.46,0,1.93-1.09,2.9-4.31,2.78-5.58,2.36-.48,3.06-1.24,3.6-4.28a5.79,5.79,0,0,0-1.15-4.47,5,5,0,0,0,1.61-4,3.13,3.13,0,0,0-1.64-2.56c2.94-.83,5-5.59,4.34-8.3s-3-3.12-5.26-3.16c.16-.17,3.26-3.48,2.1-7.82a8.42,8.42,0,0,0-4.47-5.26A5.76,5.76,0,0,0,39,83.22c-1.43-3.06-3.73-2.48-4-2.52a2.1,2.1,0,0,0-1.85-3.64c2.17-2.06,3.74-4.82,2.39-7.88C34.59,67,32.1,65.53,29,65.06c1.12-1.93,1.84-4.75,1-5.43-.66-.54-1.91-.05-3.21.74.09-3.7,0-10.21-1.47-10.21-1.28,0-3.32,4.6-1.76,10.53a3,3,0,0,0-2.63.84c-1.13,1.39-.27,3.82,1.45,6.5-1.49-.54-3.28-1-4,1.09-.53,1.61-.22,4.24,1.5,4.66-.92.63-3.69,2.56-4.62,4.5-1.69,3.51.29,5.24.51,5.65a3.76,3.76,0,0,0-2.43,1.5,3.81,3.81,0,0,0-.19,3.89c-2.9,0-6.22,4.4-6.06,7.24a9.44,9.44,0,0,0,5.71,8,2.36,2.36,0,0,0-2,1.53,2.33,2.33,0,0,0,.64,2.49c.13.07-2.49-.08-3.57,2.12a6.39,6.39,0,0,0,1.53,6.85A5.33,5.33,0,0,0,7.11,123a3.7,3.7,0,0,0,3.32,3.25c-.13,1.79-.07,3.83,1.31,5s3.31.68,5,.07a9.48,9.48,0,0,0,2.52,5.49A7.78,7.78,0,0,0,24.11,139Z"/>',
+                /* 18 */ '<path class="foliage" d="M24.06,139.74v7.49h.56v-7.49h.85v7.49h.42v-7.49a6.64,6.64,0,0,0,2.6-1,6.73,6.73,0,0,0,1.83-1.78,4.46,4.46,0,0,0,5.45,0,9,9,0,0,0,3.53-6.56c.25,0,3.35-.11,4.38-3,.84-2.31.06-4.5-1.57-6.89a3.52,3.52,0,0,0,1.59-2.79,3.7,3.7,0,0,0-1.51-3.34c3.2-1.73,5.6-7.45,5-9.65-1-3.47-4.21-2.79-4.86-2.86a10.87,10.87,0,0,0,1.11-7.44c-.78-3.05-3-4-3.88-4.81,2-1.9,2.8-3.51,2.21-5.66a4.82,4.82,0,0,0-4.21-3.62c.06-.82.45-1.79-.14-2.61a2.09,2.09,0,0,0-2.2-1c4.53-3.57,3.9-6.47,2-9.4-1.57-2.47-3.8-3.49-7.83-2.81,1.83-1.7,2.59-4.2,1.75-6-.61-1.32-1.73-1.48-3.33-1.69,2-2.33,2.16-4.54,1.75-4.86s-1.44-.09-2.47,1.37c.23-4-.47-6.28-1.53-6.47-1.23-.22-2.26,3-2.34,7.62a2,2,0,0,0-2,1.61c-.26,1.12.76,2.23,1.15,3.07a2,2,0,0,0-2,1c-.72,1.16-.26,3.47.34,4.39-2,.1-3.45,1.08-3.76,2.88-.56,3.24,1.22,4.72,3.55,5a4.55,4.55,0,0,0-.85,1.53,4.69,4.69,0,0,0-.22,2c-1.51.37-3.42.85-4.55,1.91-1.3,1.23-1.27,3.36-.51,5a5.59,5.59,0,0,0-3.15,2,3.16,3.16,0,0,0,0,4.55,7.78,7.78,0,0,0-5.11,5A8.69,8.69,0,0,0,10,103.7c-.66.43-1.68,1-1.85,1.93s.36,1.31,1,2.07c-1.53.77-3.19,1.47-3.54,3.16s1,3.29,2.09,4.67a7,7,0,0,0-3,6.6c.48,2.93,3.27,5,6.55,5-.69,2.65-.67,4.6.93,6.25s3.52,1.63,6,1.24c.52,1.19.37,2.19,1.87,3.57A6.08,6.08,0,0,0,24.06,139.74Z"/>',
+                /* 19 */ '<path class="foliage" d="M23.85,140.34v6.85h.64v-6.85h.85v6.85h.72v-6.85a3,3,0,0,0,3.32-2.68,7.4,7.4,0,0,0,6.85.64c2.34-1.24,2.34-4.85,1.41-6.77,3.36.09,7.36-3.14,7.49-6.21s-2.51-4.91-3.24-5.41c.68-1,1.74-2.31,1.62-3.6A2.88,2.88,0,0,0,42,114c3.79-.89,6.51-7.15,5.83-10.55-.58-2.93-4-2.41-4.85-2.51,1.53-.81,2.82-3,1.91-6.72-.62-2.63-1.4-4.47-5.4-5.32a3.71,3.71,0,0,0,2.05-4.51,3.31,3.31,0,0,0-4.35-2,3.23,3.23,0,0,0,0-2.73A3.32,3.32,0,0,0,35.85,78c4.09-2.51,3.35-5,3.49-8,.21-4.72-4-6.53-8-6.68,1.42-1,2.2-2.18,1.82-3.73-.54-2.23-2.58-3.14-4.5-3.5,2-2.3,3.24-4.22,2.3-5.36-1.41-1.71-3.49.2-3.7.29.25-3.61-.43-7.83-1.79-7.83-1.07,0-1,1.39-1.62,4.22a1.77,1.77,0,0,0-1.1.35c-1.12.92-.81,2.92-.52,5.31a2.52,2.52,0,0,0-2.59,1.66c-.81,1.91,0,3,1.45,3.83a3.4,3.4,0,0,0-2.47,3.06,3.09,3.09,0,0,0,.85,2.08c-2.09.26-3,2-3.36,3.71-.6,2.68.8,3.69,3.27,5.36a1.7,1.7,0,0,0-.76,1.74,3.51,3.51,0,0,0-3.79.85c-1.47,1.41-3.06,3.62-1.36,5.92-1.79.47-4.2,1.42-4.93,3.26-.62,1.58-.08,2.94,1.14,4.23A9.81,9.81,0,0,0,4.92,95c-.64,2.87.88,5.55,3.36,7.24a2.32,2.32,0,0,0-1.36,1.89,3.2,3.2,0,0,0,1.23,2.91c-.2,0-2.34-.09-3.15,1.75a5.26,5.26,0,0,0,2.21,6.13c-2.21,1.1-3.7,2.63-3.74,4.85-.06,3.08,2.13,5.36,6.51,6.93a5.85,5.85,0,0,0,.89,7.19c2.94,2.81,4.58,2.18,6.85,1a5.47,5.47,0,0,0,2,3.76A7.59,7.59,0,0,0,23.85,140.34Z"/>',
+                /* 20: grown tree */ '<path class="foliage" d="M23.92,147.26h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.82-.27,5.82.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44,5.73,5.73,0,0,0,6.83,1.79c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.15,4.15,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.25,4.25,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61a2.93,2.93,0,0,0-1.28-2.56c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15,2.13,2.13,0,0,0-1.69,1.74,3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22A4.17,4.17,0,0,0,13.14,78a4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.94c-.51,4.69,1.63,6.64,4.5,7.81-1.27.58-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3,4.11,4.11,0,0,0,3.66,5,7.13,7.13,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5,8.17,8.17,0,0,0,4.18,1.28C24.14,141.52,23.79,147.26,23.92,147.26Z"/>',
+            ],
+            // 2: dry
+            [
+                /* 20: grown tree */ '<path class="foliage" d="M23.92,147.26h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.82-.27,5.82.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44,5.73,5.73,0,0,0,6.83,1.79c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.15,4.15,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.25,4.25,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61a2.93,2.93,0,0,0-1.28-2.56c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15,2.13,2.13,0,0,0-1.69,1.74,3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22A4.17,4.17,0,0,0,13.14,78a4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.94c-.51,4.69,1.63,6.64,4.5,7.81-1.27.58-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3,4.11,4.11,0,0,0,3.66,5,7.13,7.13,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5,8.17,8.17,0,0,0,4.18,1.28C24.14,141.52,23.79,147.26,23.92,147.26Z"/>',
+            ],
+            // 3: burning
+            [
+                /* fire 01 */ '<path class="foliage" d="M23.92,149.74h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.81-.27,5.81.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44A5.73,5.73,0,0,0,35.73,143c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.16,4.16,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.19,4.19,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61A2.93,2.93,0,0,0,30.88,52c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15A2.13,2.13,0,0,0,18.21,64a3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22,4.17,4.17,0,0,0-3.67,1.08,4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.93c-.51,4.7,1.63,6.65,4.5,7.82-1.27.57-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3.05,4.11,4.11,0,0,0,3.66,4.95,7.11,7.11,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5A8.17,8.17,0,0,0,23.76,144C24.14,144,23.79,149.75,23.92,149.74Z"/><path class="fire" d="M28.82,22.16c1.71,9-1.95,11.08-4.37,12.07s-4.31,1.32-6.22,4.23c-2,3.07-.92,7.92-.47,10.62a50.85,50.85,0,0,1,1.31,17.85,50.71,50.71,0,0,1-2.45,11.14c-1.26,2.56-3,5.22-4.75,5.07-1.36-.11-1.26-1.67-2.33-1.52-1.54.22-3,3.84-3.24,6.6-.45,5.41,2.22,6.42.82,9.5C5,102.4,2.52,101,1.06,106.56.64,108.18.68,111,5,115.07c2.31,2.17,1,2.54,3.17,5.12,3.38,3.93,12,4.87,15.29,4.67,10.27-.64,18.42-6.51,20-9.13A6.39,6.39,0,0,0,44.7,111c-.55-2.58-1.72-5.12-1.23-8.29.8-5.16,3.6-6.43,5.34-10.68,1.66-5.29-1.08-7.19-2.06-8.38-1.51-1.82-3-2.12-4.1-4.91-1.76-4.58,1.5-4.77-3.22-8.29-.74-.55-1.3,1.32-2.67,1.58-2.42.44-5.28-4.17-6.37-6.22-3.49-6.59-3.83-11.5-4.09-16.14-.09-1.7-1.19-9.4,5.56-9.25,2.66.06,3.35-5.65,2-7.77C30.39,27,30.39,27,28.82,22.16Z"/><path class="fire" d="M38.26,60.06c-.45-.09-1.11.75-1.24,1.59s.38,2,.85,2,.83-.93.93-1.62S38.72,60.16,38.26,60.06Z"/><path class="fire" d="M24.3,13.2c-.34,1.14.57,2.05,1.12,1.93.75-.17.84-2.35.11-2.78C25.07,12.07,24.57,12.28,24.3,13.2Z"/>',
+                /* fire 02 */ '<path class="foliage" d="M23.92,149.74h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.81-.27,5.81.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44A5.73,5.73,0,0,0,35.73,143c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.16,4.16,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.19,4.19,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61A2.93,2.93,0,0,0,30.88,52c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15A2.13,2.13,0,0,0,18.21,64a3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22,4.17,4.17,0,0,0-3.67,1.08,4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.93c-.51,4.7,1.63,6.65,4.5,7.82-1.27.57-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3.05,4.11,4.11,0,0,0,3.66,4.95,7.11,7.11,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5A8.17,8.17,0,0,0,23.76,144C24.14,144,23.79,149.75,23.92,149.74Z"/><path class="fire" d="M29,15.29a8.21,8.21,0,0,1,1.12,5.42c-.21,1.07-1.59,4.22-5.76,7l-2.48,2.54c-2.25,4.38-2.55,6.79-2.51,8.16,0,.47.07,1.6.2,2.77.34,3.17,1,5.14,1.79,13.31.23,2.39-.32,13.22-2.63,17.92-1.26,2.56-2.84,3.07-3.74,3.27a5.72,5.72,0,0,1-4.3-1c-1.75.72-1.44,3.79-2.79,6.85-1.64,3.7-6.23,7.25-6.69,14.41-.23,3.63.32,5.34,4.06,11.23,2.64,4.15,1.83,7.24,3.25,9.9.69,1.26,3.76,4.36,6,5.07,4.07,1.31,7.55,1.72,9.32,1.48,6.48-.9,7.66-3.3,13.69-5.46,4.46-1.59,3.88.67,5.9-.24,2.9-1.3,5.45-4.69,5.17-7.72-.47-5.18-3.9-8.44-5.49-16.57-.19-.95-.85-5.8,3.5-12.74,2.15-3.42,3.18-10,2-13.14-.82-2.18-2.84-5.12-5.49-5.41s-3.9,2.37-6.29,2.15c-1.66-.16-3.73-1.7-5.9-7.41-2.43-6.4-2.7-11.15-3.5-15.69a23.82,23.82,0,0,1,.8-12.58c1.11-4,3.1-5.73,3.82-8.84C32.45,17.86,30.2,16.29,29,15.29Z"/><path class="fire" d="M13.9,62.91c.73.25.74,2.71,0,4.62-.61,1.59-1.94,3.34-2.63,3.11s-.72-2.8.08-4.78C12,64.39,13.23,62.69,13.9,62.91Z"/><path class="fire" d="M39.62,49.85c.73.08,1.39,2.83.72,3.27-.4.26-1.42-.2-1.75-1C38.16,51,39.12,49.8,39.62,49.85Z"/><path class="fire" d="M27,2.75C26.71,3.26,27,4,27.28,4c.45.12,1.36-1.13,1.12-1.51A1,1,0,0,0,27,2.75Z"/>',
+                /* fire 03 */ '<path class="foliage" d="M23.92,149.74h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.81-.27,5.81.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44A5.73,5.73,0,0,0,35.73,143c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.16,4.16,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.19,4.19,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61A2.93,2.93,0,0,0,30.88,52c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15A2.13,2.13,0,0,0,18.21,64a3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22,4.17,4.17,0,0,0-3.67,1.08,4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.93c-.51,4.7,1.63,6.65,4.5,7.82-1.27.57-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3.05,4.11,4.11,0,0,0,3.66,4.95,7.11,7.11,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5A8.17,8.17,0,0,0,23.76,144C24.14,144,23.79,149.75,23.92,149.74Z"/><path class="fire" d="M27.56,21.56c-1.13,2.68-6,5.1-7.36,11.82-1.62,7.93.65,10.41,2.35,16,.42,1.37,1.94,8.1-1.46,13.92-.79,1.36-3.29,4.73-7,4.7a7,7,0,0,1-4.21-1.61c-.68.34-5.49,2.82-6.63,8.24-.1.46-1.33,4.91,1.45,8.42,1.86,2.34,5.26,2.34,6.48,6,1.38,4.15-.76,5.45-3.56,11.41A21.57,21.57,0,0,0,6.2,115c1.23,4.36,8,4.64,10.92,4.78,9.55-2,8.87-3.79,14.89-4.62,5.34-.72,7.93.17,10.52,1.87a19.25,19.25,0,0,0,5.75-9.23,19,19,0,0,0,0-10c-1.47.11-3.8.37-5.58-1.06-4.86-3.88-5.79-10.27-6.24-15.7-.32-3.91.46-12.86,2.27-14.56,4.41-4.16,6.65-8.07,5.91-11.49-.61-2.8-1.38-7.6-9-7.68-5.57-.06-6.95-5-8.09-6.81a21.06,21.06,0,0,1-1.45-7.28C25.89,26.1,27.08,24.15,27.56,21.56Z"/><path class="fire" d="M15.18,51.91c-.41-.72-3,1.16-3,3.32,0,1.47,1.52,3.51,1.86,2.83C14.61,56.93,15.55,52.56,15.18,51.91Z"/><path class="fire" d="M27.89,9.43c-.95.4.16,5.18.56,5.18.61,0,1.81-1.47,1.46-3.08C29.63,10.24,28.42,9.2,27.89,9.43Z"/>',
+                /* fire 04 */ '<path class="foliage" d="M23.92,149.74h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.81-.27,5.81.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44A5.73,5.73,0,0,0,35.73,143c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.16,4.16,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.19,4.19,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61A2.93,2.93,0,0,0,30.88,52c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15A2.13,2.13,0,0,0,18.21,64a3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22,4.17,4.17,0,0,0-3.67,1.08,4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.93c-.51,4.7,1.63,6.65,4.5,7.82-1.27.57-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3.05,4.11,4.11,0,0,0,3.66,4.95,7.11,7.11,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5A8.17,8.17,0,0,0,23.76,144C24.14,144,23.79,149.75,23.92,149.74Z"/><path class="fire" d="M21.41,21.58c.25,3.48,0,8.79,2.27,9.3,4,.89,6.7-.16,8.82,2.11,3.56,3.8,1.86,5.5-.57,11.49a33.6,33.6,0,0,0-2.42,12.3c-.13,2.54-1.12,13.62,3,24.84,2.74,7.5,5.33,8.5,6.56,8.74a6.61,6.61,0,0,0,4.61-1c.3.82.78,2,1.45,3.48C47.51,97.86,48.75,98,49,100c.45,3.54-.11,5.55-4.69,9.88-1.46,1.37-1.54,3.72-2,6.15-.28,1.43-1.82,2-2.51,2.42-2,.49-8.33-5.26-12-5.09-7.36.32-14.5,4.82-15.46,5.74-3.24,2.35-7.09.14-7.69-1-2.18-4.37-3.23-17.57-2.75-23.71.32-4.13,4.76-5.76,5.91-10.28C9.11,79,5.8,77.58,5,71.18c-.14-1.08.68-7.22,5.34-10.11a9.91,9.91,0,0,1,3.4-1.3c.57,1,1.92,3,3.56,3,2.32-.08,4.14-4.37,4.53-7.77.53-4.62-1.69-6.6-3.08-12.71-.57-2.53-1.94-6.55-.72-11Z"/><path class="fire" d="M12.59,51.28c.42.35-.17,2.07-.73,2.1-.36,0-.93-.67-.72-1.37S12.31,51,12.59,51.28Z"/><path class="fire" d="M42.29,78.87C41.05,79,40,83,41.08,83.81c.68.5,2.63-.07,3.15-1.62C44.82,80.44,43.16,78.76,42.29,78.87Z"/>',
+                /* fire 05 */ '<path class="foliage" d="M23.92,149.74h1l-.46-5.59c0-.14.9-.19,1-.22s-.27,5.81-.27,5.81.93,0,1,0,0-6,.07-6.07a5.12,5.12,0,0,0,2.65-2.44A5.73,5.73,0,0,0,35.73,143c2.82-1.19,3.35-4.85,3.17-7.79a12.67,12.67,0,0,0,4-1,5.67,5.67,0,0,0,0-10,4.16,4.16,0,0,0,2-4,4.28,4.28,0,0,0-2-3c.6-.22,4.93-1.81,5.79-6.06.62-3,.65-6.6-1.79-7.72a4.19,4.19,0,0,0-3-.22,11.51,11.51,0,0,0,.19-7.86,4.49,4.49,0,0,0-3.19-3.14,4.38,4.38,0,0,0,1.47-6.11c-.67-.9-1.87-1.27-3.47-.89a3.21,3.21,0,0,0,.18-2.53c-.39-.69-1.36-.55-2.18-.47.88-.58,3.74-2,4-5,.23-2.51.9-7.22-2.13-9.94a8.94,8.94,0,0,0-6.87-2.06,3.37,3.37,0,0,0-2-6c.12-.08,2.43-2.64,2.26-4.61A2.93,2.93,0,0,0,30.88,52c-1.15-.83-2.5-.11-2.77-.09.84-.19,1.5-1.69,1.24-3.16a1.73,1.73,0,0,0-2.56-1c-.79-2.47.61-6.63-1.39-6.62-2.5.2-1.92,5.61-1.92,7.61-.46.08-1.1-.42-1.73.35-1,1.21-.41,3.25.16,5.74a2.34,2.34,0,0,0-3,1.21,5.48,5.48,0,0,0,1,6.15A2.13,2.13,0,0,0,18.21,64a3.22,3.22,0,0,0,.69,3.26c-1.56-.47-2.51-1-3.66.93a4.62,4.62,0,0,0-.7,4c.82,1.93,3.17,3,3.67,3.19a4.07,4.07,0,0,0-1.31,1.87,6.2,6.2,0,0,0-.09,2.22,4.17,4.17,0,0,0-3.67,1.08,4.11,4.11,0,0,0-1.24,4.7,4.45,4.45,0,0,0-5,2c-1.09,2,.27,5.84,1.38,5.6a5.52,5.52,0,0,0-4.69,4.93c-.51,4.7,1.63,6.65,4.5,7.82-1.27.57-2.26,1.43-2.19,2.65a3.06,3.06,0,0,0,1,2,3.88,3.88,0,0,0-3.66,3.05,4.11,4.11,0,0,0,3.66,4.95,7.11,7.11,0,0,0-5,6,4.81,4.81,0,0,0,1.66,4,8.66,8.66,0,0,0,6,1.53,9.28,9.28,0,0,0-1.69,3.42c-.6,1.88-.51,4.49,1.09,5.64,2.18,1.57,6.83,1,8.91.36a4.62,4.62,0,0,0,1.68,3.5A8.17,8.17,0,0,0,23.76,144C24.14,144,23.79,149.75,23.92,149.74Z"/><path class="fire" d="M21.56,18.83c-2.12,3-3.79,7.34-2.83,11.41,1.13,4.86,3.88,5.05,5,9.47s2.11,8.82-1.45,11.9c-.43.36-2.65,1.55-6.8,0-1.48,1.65-3.3,2.62-4.29,6.15-1.14,4.05.1,7.55.32,11.65.51,9.16-3.33,13.75-4.93,20C6.05,91.47,4.05,99,3.84,103.32c-.12,2.17,1.58,3.14,1.21,5.82-.49,3.48-2.19,6.31.24,10,1.94-1.78,7.12-3.56,10-2.43,8.05,3.22,10.69,6.28,18,5.82,6.39-.4,11.5-4,12.38-8.25.51-2.44.13-2.56-1.45-7.53A13.23,13.23,0,0,1,45.59,96c3.34-5,1.16-11.63-2.47-13.59-4.49-2.43-3.52-.33-7.24.24-4,.61-5.54-6.84-5.58-8.5-.25-10.52,3.72-15.7,3.15-23.55-.66-9.18-7-9.14-7.06-14.8-.09-4.53,2.32-6.12,1.07-10C26.41,22.62,22.29,22.88,21.56,18.83Z"/><path class="fire" d="M39.2,72.24c-1,0-1.78,1.79-1.78,3.24s.81,3.21,1.78,3.23,1.94-1.72,1.94-3.23S40.18,72.21,39.2,72.24Z"/>',
+                /* fire 06 */ '<path class="foliage" d="M24.06,141.71v7.49h.56v-7.49h.85v7.49h.42v-7.49a6.73,6.73,0,0,0,4.43-2.81,4.43,4.43,0,0,0,5.45,0,9,9,0,0,0,3.53-6.55c.25,0,3.35-.12,4.38-3,.84-2.32.06-4.5-1.57-6.89a3.52,3.52,0,0,0,1.59-2.79,3.68,3.68,0,0,0-1.51-3.34c3.2-1.73,5.6-7.46,5-9.65-1-3.47-4.21-2.79-4.86-2.86a10.89,10.89,0,0,0,1.11-7.45c-.78-3-3-4-3.88-4.8,2-1.9,2.8-3.51,2.21-5.66a4.82,4.82,0,0,0-4.21-3.62c.06-.82.45-1.79-.14-2.61a2.09,2.09,0,0,0-2.2-1c4.53-3.58,3.9-6.48,2-9.41-1.57-2.46-3.8-3.48-7.83-2.8,1.83-1.71,2.59-4.2,1.75-6-.61-1.33-1.73-1.48-3.33-1.7,2-2.33,2.16-4.53,1.75-4.85s-1.44-.09-2.47,1.36c.23-4-.47-6.27-1.53-6.46-1.23-.22-2.26,3-2.34,7.61a2,2,0,0,0-2,1.62c-.26,1.12.76,2.22,1.15,3.06a2,2,0,0,0-2,1c-.72,1.17-.26,3.48.34,4.4-2,.1-3.45,1.07-3.76,2.88-.56,3.23,1.22,4.72,3.55,5a4.55,4.55,0,0,0-.85,1.53,4.69,4.69,0,0,0-.22,2c-1.51.37-3.42.85-4.55,1.91-1.3,1.23-1.27,3.35-.51,5a5.59,5.59,0,0,0-3.15,2,3.16,3.16,0,0,0,0,4.55,7.75,7.75,0,0,0-5.11,5A8.69,8.69,0,0,0,10,105.67c-.66.43-1.68,1-1.85,1.92s.36,1.31,1,2.08c-1.53.77-3.19,1.46-3.54,3.16s1,3.29,2.09,4.67a7,7,0,0,0-3,6.6c.48,2.93,3.27,5,6.55,5-.69,2.65-.67,4.61.93,6.26s3.52,1.63,6,1.23c.52,1.2.37,2.2,1.87,3.58A6.08,6.08,0,0,0,24.06,141.71Z"/><path class="fire" d="M6.54,118.67c-1.62-1.45-4-3.63-3.87-6.56.16-2.61,1.63-4.4,1.94-7.11.75-6.56-1-9.54,1.93-16.44C8.91,83,11.28,84,14.6,76.05c1.57-3.74,4-13,1.07-18.79a9.65,9.65,0,0,1,0-9.17,13.74,13.74,0,0,1,3.16-5c.79.12,4.32.81,6.32-1.5,2.61-3,2-6.71-.47-13,1.5,2.53,4.82,5.11,6.64,8.54,2.43,4.56,1,8.06-.71,17-1,4.93-1.22,16.22,3.16,23.55.75,1.25,2.19,3.6,4,3.48,1.62-.11,2.69-2.07,3-2.69a14.42,14.42,0,0,1,4,5.22c2.68,6.87,1.58,11.85,1.5,19.12,0,3.44,2.07,4.55,2.13,7.43.07,3.32-2.38,5.61-4.51,7.27-2.53,2-2.92,4.88-6.47,5.22-5.7.55-9.6.09-12.41-.87-6.42-2.18-7.7-5.52-12.1-5.85C9.7,115.75,7.85,117.57,6.54,118.67Z"/><path class="fire" d="M37.76,65.56c-.3.19-1.48,3.27-.16,5.21.36.54,1.13,1.37,1.66,1.19.7-.24.76-2.15.4-3.56S38.33,65.2,37.76,65.56Z"/><path class="fire" d="M23.93,15.05a7.52,7.52,0,0,0-1.82,6.05,7,7,0,0,0,2.53,4.78,8.61,8.61,0,0,0,1.58-5.41A8.74,8.74,0,0,0,23.93,15.05Z"/>',
+                /* fire 07 */ '<path class="foliage" d="M24.06,141.71v7.49h.56v-7.49h.85v7.49h.42v-7.49a6.73,6.73,0,0,0,4.43-2.81,4.43,4.43,0,0,0,5.45,0,9,9,0,0,0,3.53-6.55c.25,0,3.35-.12,4.38-3,.84-2.32.06-4.5-1.57-6.89a3.52,3.52,0,0,0,1.59-2.79,3.68,3.68,0,0,0-1.51-3.34c3.2-1.73,5.6-7.46,5-9.65-1-3.47-4.21-2.79-4.86-2.86a10.89,10.89,0,0,0,1.11-7.45c-.78-3-3-4-3.88-4.8,2-1.9,2.8-3.51,2.21-5.66a4.82,4.82,0,0,0-4.21-3.62c.06-.82.45-1.79-.14-2.61a2.09,2.09,0,0,0-2.2-1c4.53-3.58,3.9-6.48,2-9.41-1.57-2.46-3.8-3.48-7.83-2.8,1.83-1.71,2.59-4.2,1.75-6-.61-1.33-1.73-1.48-3.33-1.7,2-2.33,2.16-4.53,1.75-4.85s-1.44-.09-2.47,1.36c.23-4-.47-6.27-1.53-6.46-1.23-.22-2.26,3-2.34,7.61a2,2,0,0,0-2,1.62c-.26,1.12.76,2.22,1.15,3.06a2,2,0,0,0-2,1c-.72,1.17-.26,3.48.34,4.4-2,.1-3.45,1.07-3.76,2.88-.56,3.23,1.22,4.72,3.55,5a4.55,4.55,0,0,0-.85,1.53,4.69,4.69,0,0,0-.22,2c-1.51.37-3.42.85-4.55,1.91-1.3,1.23-1.27,3.35-.51,5a5.59,5.59,0,0,0-3.15,2,3.16,3.16,0,0,0,0,4.55,7.75,7.75,0,0,0-5.11,5A8.69,8.69,0,0,0,10,105.67c-.66.43-1.68,1-1.85,1.92s.36,1.31,1,2.08c-1.53.77-3.19,1.46-3.54,3.16s1,3.29,2.09,4.67a7,7,0,0,0-3,6.6c.48,2.93,3.27,5,6.55,5-.69,2.65-.67,4.61.93,6.26s3.52,1.63,6,1.23c.52,1.2.37,2.2,1.87,3.58A6.08,6.08,0,0,0,24.06,141.71Z"/><path class="fire" d="M26.92,22.4c.88,3.68,1.39,8.38-1.23,11.53s-6.5,1.2-8.75,4.84c-1.58,2.56-2.71,6.93.37,14.31,0,0,3.77,10.15.08,23.53a22.89,22.89,0,0,1-1.77,3.92c-.94,1.7-1.42,2.55-2.23,3.08-1.88,1.2-2.55.79-4.55.56C7.22,84,4.9,86.66,4.32,93.29c-.31,3,1.14,5.07-.19,8.58-1,2.63-2.29,3.58-2.81,6-.8,3.57,1,7.3,3.23,10.07,2.07,2.61,5.76,2.15,6.84,2.38,3.54.77,10.42,4.39,15.53,4.39,5.28,0,12.22-2.6,15.61-7.69,2.62-3.92,1.65-10,2.39-11.77,1.33-3.24,4.81-6.47,4.46-9.92-.47-4.46-3.07-4.35-3.69-7.35-1.36-6.65-.92-9.15-4.16-11.56-2.25-1.68-3.45-.7-5.23-1.39-3.89-1.51-6.45-6.46-7.53-9.69a20.26,20.26,0,0,1-.92-10.22C28.2,52.77,30,52.33,30,50c0-1.06-1.26-1.54-1.46-4-.36-4.38,3.84-3.61,4.53-9.45C33.62,31.94,29.23,28.78,26.92,22.4Z"/><path class="fire" d="M24.23,11.63a4.54,4.54,0,0,0-1.54,2.31,4.7,4.7,0,0,0,.77,3.84,4.11,4.11,0,0,0,.77-6.15Z"/><path class="fire" d="M37.07,62.07c.59.08,1,1.16.93,2,0,.67-.41,1.64-1,1.7s-1.26-.86-1.31-1.7C35.63,63.06,36.45,62,37.07,62.07Z"/>',
+            ],
+            // 4: charred
+            [
+                /* dead 01 */ '<polyline class="stump" points="21.21 65.15 23.16 70.68 25 75.87"/><polygon class="stump" points="24.52 100.85 26.3 147.62 23.98 147.62 23.59 131.65 23.16 114.38 23.55 91.79 23.82 89.2 26.95 57.74 24.52 100.85"/><polyline class="stump" points="30.66 64.25 29.06 66.26 26.28 69.73"/><path class="stump" d="M12.66,78.94c2.08,1.61,3.35,3.74,5.11,5.3.49.43,2.18,3,2.68,3.42,1.5,1.33,2.29.55,3.79,1.88"/><polyline class="stump" points="12.66 83.92 15.72 84.55 18.2 84.62"/><polyline class="stump" points="24.91 103.83 29.12 99.58 44.19 90.94"/><polyline class="stump" points="36.87 95.52 39.85 97.15 41.89 96.89"/><polyline class="stump" points="36.87 87.66 35.17 92.43 31.85 97.66"/><polyline class="stump" points="8.45 118.25 18.45 127.11 23.74 131.78"/><polyline class="stump" points="5.89 124 11.21 124.71 15.23 124.25"/><polyline class="stump" points="25.94 126.13 37.3 120.72 41.13 119.72 42.45 117.07"/><polyline class="stump" points="35.84 121.42 42 121.85 44.57 120.94"/><polyline class="stump" points="32.96 122.38 35.64 119.28 37.09 117.07"/>',
+            ],
+            // 5: charred (disintegrating)
+            [
+                /* dead 01 */ '<polyline class="stump" points="21.21 65.15 23.16 70.68 25 75.87"/><polygon class="stump" points="24.52 100.85 26.3 147.62 23.98 147.62 23.59 131.65 23.16 114.38 23.55 91.79 23.82 89.2 26.95 57.74 24.52 100.85"/><polyline class="stump" points="30.66 64.25 29.06 66.26 26.28 69.73"/><path class="stump" d="M12.66,78.94c2.08,1.61,3.35,3.74,5.11,5.3.49.43,2.18,3,2.68,3.42,1.5,1.33,2.29.55,3.79,1.88"/><polyline class="stump" points="12.66 83.92 15.72 84.55 18.2 84.62"/><polyline class="stump" points="24.91 103.83 29.12 99.58 44.19 90.94"/><polyline class="stump" points="36.87 95.52 39.85 97.15 41.89 96.89"/><polyline class="stump" points="36.87 87.66 35.17 92.43 31.85 97.66"/><polyline class="stump" points="8.45 118.25 18.45 127.11 23.74 131.78"/><polyline class="stump" points="5.89 124 11.21 124.71 15.23 124.25"/><polyline class="stump" points="25.94 126.13 37.3 120.72 41.13 119.72 42.45 117.07"/><polyline class="stump" points="35.84 121.42 42 121.85 44.57 120.94"/><polyline class="stump" points="32.96 122.38 35.64 119.28 37.09 117.07"/>',
+                /* dead 02 */ '<polygon class="stump" points="24.04 147.06 24.93 146.43 25.1 147.06 25.48 147.62 24.55 147.62 24.04 147.06"/><polygon class="stump" points="26.53 147.64 26.75 147.64 26.64 147.3 26.53 147.64"/><path class="stump" d="M27.66,147.76h0Z"/><polygon class="stump" points="22.9 147.36 23.32 147.75 23.19 147.36 22.9 147.36"/><polyline class="stump" points="20.62 64.68 21.98 68.12 23.33 71.36 24.11 74.59"/><polyline class="stump" points="30.19 64.68 28.96 66.59 26.96 68.12 25.39 70.15"/><path class="stump" d="M11.74,78.57a39.25,39.25,0,0,0,5.11,5.31c.49.43,2.13,2.62,2.62,3.05,1.5,1.33,2.64.74,3.86,2.25"/><polyline class="stump" points="11.74 83.56 14.81 84.19 17.29 84.25"/><polyline class="stump" points="23.98 103.36 28.45 99.27 36.87 95.23 43.47 90.34"/><polyline class="stump" points="36.37 95.53 39.68 96.35 41.17 96.1"/><polyline class="stump" points="35.55 88 33.62 93.15 31.78 97.67"/><polyline class="stump" points="25 125.78 36.15 120.34 41.34 118.55 42.19 116.89"/><polyline class="stump" points="34.9 121.42 41.06 121.85 43.64 120.93"/><polyline class="stump" points="32.03 122.38 34.7 119.27 36.15 117.06"/><polyline class="stump" points="8.62 118.21 12.74 122.17 16.19 124.25 18.87 126.89"/><polyline class="stump" points="5.85 123.87 11.72 124.08 14.49 123.57"/><path class="stump" d="M24.45,134.46l.59-.29L24,113.27l0-16.21.16-9.15,1.58-24.34.21-5.83C25.2,64.51,23.61,77.79,23,86.85c-.95,14.15-1.21,23.28-.85,27.44.5,5.76.42,10.68.85,14l.85,1.36Z"/><polygon class="stump" points="20.53 130 21.17 130.25 20.85 129.74 20.53 130"/><polygon class="stump" points="23.09 134.97 23.09 135.74 23.47 134.97 23.09 134.97"/><polygon class="stump" points="23.94 137.57 24.45 137.91 24.45 137.06 25 136.68 23.94 137.57"/><path class="stump" d="M23.47,139.91h0Z"/><path class="stump" d="M24.47,141.61l.19.17Z"/>',
+                /* dead 03 */ '<polyline class="stump" points="21.75 63.75 23.11 67.19 24.49 69.49 25.43 73.28"/><polyline class="stump" points="30.91 64.2 29.89 65.32 28.15 66.6 26.52 68.08"/><path class="stump" d="M12.49,77.14a39.7,39.7,0,0,0,5.32,5.3c.49.44,1.91,2.62,2.41,3.06,1.5,1.33,2.24.74,3.46,2.25"/><polyline class="stump" points="12.49 82.13 15.56 82.76 18.03 82.82"/><polyline class="stump" points="24.96 102.34 31.6 96.98 38.23 93.66 43.38 89.66"/><polyline class="stump" points="37.63 94.49 40.91 95.57 42.43 95.57"/><polyline class="stump" points="36.81 86.96 35.26 91.87 32.92 96.31"/><polygon class="stump" points="27.04 57.4 24.15 81.28 23.09 101.96 23.09 114 23.68 115.23 24.11 117.96 24.28 116.3 24.79 116.51 25.38 118.55 24.61 99.58 25.16 79.74 27.04 57.4"/><polygon class="stump" points="23.38 147.7 24.19 147.23 23.79 146.38 24.19 146 24.53 145.23 25.38 145.45 25.77 144.64 25.77 145.57 26.28 146.17 26.28 146.72 27.72 147.02 27.72 147.45 28.53 147.7 22.11 147.7 23.38 147.7"/><path class="stump" d="M29.51,123.49l1.19-.34Z"/><path class="stump" d="M42.7,116.21v0Z"/><path class="stump" d="M41,113.23h0Z"/><polygon class="stump" points="38.15 118.55 38.36 118.85 38.36 118.55 38.15 118.55"/><path class="stump" d="M40.07,117.33h0Z"/><path class="stump" d="M30.11,147.7h0Z"/><path class="stump" d="M24.56,138.78l.16.12Z"/><polygon class="stump" points="24.85 137.4 25.06 137.4 24.96 137.25 24.85 137.4"/><path class="stump" d="M23.57,137l-.16-.16Z"/><polygon class="stump" points="24.64 131.75 24.85 131.98 24.96 131.75 24.64 131.75"/><path class="stump" d="M17.35,126.27h0Z"/><path class="stump" d="M16.71,123v0Z"/><path class="stump" d="M17.48,123.15l.41.17Z"/><path class="stump" d="M22.65,133.61h0Z"/><path class="stump" d="M22.2,131.12h0Z"/><path class="stump" d="M24.5,122.47v0Z"/><path class="stump" d="M24.64,126.39h0Z"/><path class="stump" d="M36.91,120.59v0Z"/><path class="stump" d="M14.38,121.48l.19.16Z"/>',
+                /* dead 04 */ '<polyline class="stump" points="21.81 63.32 22.98 65.75 24.51 68.08 25.49 71.06"/><polyline class="stump" points="30.97 63.77 29.96 64.89 28.21 66.17 26.58 66.64"/><path class="stump" d="M12.21,76.35c1.15,2.12,3,2.52,4.77,4.08.49.43,2.36,3.21,2.85,3.64,1.51,1.33,2.6,1.87,3.82,3.38"/><polyline class="stump" points="12.66 81.34 15.74 81.66 17.93 81.61"/><polyline class="stump" points="24.09 101.72 31.26 96.01 38.77 92.94 43.15 89.19"/><polyline class="stump" points="38.04 93.46 40.96 94.42 42.47 94.81"/><polyline class="stump" points="36.85 86.81 35.57 90.77 32.97 95.16"/><path class="stump" d="M27.09,57.74,25.84,68.53l-1.16,8.3L23.56,90l.09,10.23.44,1.46v2.88l.22.09.19-6S25,87.79,25,87.45,25.49,74,25.49,74l.91-7.61Z"/><polygon class="stump" points="19.75 147.65 20.81 147.32 22.6 146.72 23.79 144.77 25 143.7 26.3 144.64 27.23 145.79 28.34 146.77 29.15 146.85 29.61 147.68 19.75 147.65"/><polygon class="stump" points="24.4 140.44 24.68 140.79 25 140.44 24.4 140.44"/><polygon class="stump" points="23.7 138.39 23.89 138.87 24.18 138.2 23.7 138.39"/><path class="stump" d="M25,138.2l.3.34Z"/><path class="stump" d="M22.68,143l.35-.13Z"/><polygon class="stump" points="27.25 141.84 27.53 142.38 27.79 141.84 27.25 141.84"/><path class="stump" d="M25,135.9l.3.29Z"/><path class="stump" d="M23.7,136.67h0Z"/><polygon class="stump" points="25.3 131.63 25.15 132.04 25.3 132.04 25.3 131.63"/><path class="stump" d="M23.82,132.2l.12.32Z"/><path class="stump" d="M25.3,129.65v0Z"/><path class="stump" d="M23.26,125.12l.44.38Z"/><path class="stump" d="M25.15,123.49l.15.16Z"/><path class="stump" d="M24.34,113.82h0Z"/><path class="stump" d="M24.34,111.71l.16-.25Z"/><path class="stump" d="M24.34,110.12h0Z"/><path class="stump" d="M24.34,108l.08.25Z"/><path class="stump" d="M25.15,117.33h0Z"/><path class="stump" d="M27.24,138.37h0Z"/>',
+                /* dead 05 */ '<polyline class="stump" points="22.56 64.97 23.72 66.65 24.93 68.99 26.03 71.34"/><polyline class="stump" points="31.72 64.68 30.35 65.54 28.5 66.31 26.65 67.04"/><path class="stump" d="M13.4,77.59c1.15,2.12,1.92,1.47,3.67,3,.5.43,3.78,4.53,4.28,5,1.5,1.33,2.27,1.59,3.49,3.1"/><polyline class="stump" points="14.71 82.01 16.08 81.78 19.12 83.08"/><polyline class="stump" points="27.14 58.97 26.65 67.04 24.54 81.78 24.84 91.27 25.21 79.39 26.14 70.64"/><polygon class="stump" points="19.77 147.7 20.91 146.94 22.53 146.94 23.43 144.85 24.7 143.91 26.15 144.85 27.43 146.04 29.09 146.89 29.55 147.7 19.77 147.7"/><polygon class="stump" points="24.11 141.23 24.4 141.79 25.27 141.51 24.11 141.23"/><path class="stump" d="M23.6,138.68l.29.21Z"/><path class="stump" d="M25.64,138v0Z"/><path class="stump" d="M23.89,135.32v0Z"/><path class="stump" d="M22.83,143.28h0Z"/><path class="stump" d="M31.13,147.7h0Z"/><path class="stump" d="M36,94.38l.43-.29Z"/><polygon class="stump" points="24.54 99.06 24.84 98.38 24.06 99.06 24.54 99.06"/><path class="stump" d="M24.06,103.4v0Z"/><path class="stump" d="M25,110.3l.27.38Z"/><path class="stump" d="M26.32,114.38l-.21.26Z"/><path class="stump" d="M25.68,115.87v0Z"/><path class="stump" d="M25.47,119.32v0Z"/><path class="stump" d="M25.47,121.79v0Z"/><path class="stump" d="M31.72,95.87h0Z"/><path class="stump" d="M30.28,98v0Z"/><path class="stump" d="M24.06,96.77h0Z"/><path class="stump" d="M24.28,94.55h0Z"/>',
+                /* dead 06 */ '<polyline class="stump" points="27.21 59.57 26.89 65.67 25.28 74.79 25 83.64 25.27 83.48 25.78 74.1 26.93 66.47"/><polyline class="stump" points="22.84 64.49 25 68.1 25.95 71"/><polyline class="stump" points="30.34 64.75 28.61 65.78 26.87 66.81"/><polygon class="stump" points="19.27 147.25 20.41 146.57 21.63 146.57 23.03 144.85 24.15 143.06 25.55 143.29 26.73 144.63 28.65 146.64 30.69 147.05 31.43 147.25 19.27 147.25"/><polygon class="stump" points="25.65 137.48 26.16 137.7 25.9 136.97 25.65 137.48"/><polygon class="stump" points="22.49 139.39 22.78 139.62 22.78 139.2 22.49 139.39"/><path class="stump" d="M23.89,140.8l.26.16Z"/><path class="stump" d="M24.4,138.82l.16.19Z"/><path class="stump" d="M28.17,143.06l.35.29Z"/><polygon class="stump" points="26.7 140.8 26.16 140.96 26.43 141.28 26.7 140.8"/><path class="stump" d="M19.81,144.85h0Z"/><path class="stump" d="M23.64,132.18h0Z"/><path class="stump" d="M24.4,133.68l.08.16Z"/><path class="stump" d="M25.55,131v0Z"/><path class="stump" d="M24.56,125.22l.2-.25Z"/><path class="stump" d="M25.9,118.81h0Z"/><path class="stump" d="M24.34,101.64h0Z"/><path class="stump" d="M25,97.81h0Z"/><polygon class="stump" points="24.34 94.2 24.82 94.2 24.34 94.62 24.34 94.2"/><path class="stump" d="M25.43,92.29h0Z"/><path class="stump" d="M23.8,88.59h0Z"/><path class="stump" d="M25,87.37h0Z"/><path class="stump" d="M31.43,96.34v0Z"/><path class="stump" d="M19.55,83.83h0Z"/><path class="stump" d="M18.6,82.65v0Z"/><path class="stump" d="M16.49,80l.22.29Z"/><path class="stump" d="M19.55,87.37h0Z"/>',
+                /* dead 07 */ '<path class="stump" d="M18.3,147.21l1.53-.51L22,144.6c1.76-2.08,2.34-2.6,3.1-2.59,1.65,0,2.1,1.09,3.16,2.46l1.59,1.72,3.26,1Z"/><polygon class="stump" points="16.83 147.37 16.06 147.37 16.45 147.05 16.83 147.37"/><polygon class="stump" points="23.75 140.29 24.2 140.51 24.81 139.65 23.75 140.29"/><polygon class="stump" points="25.35 136.17 25.54 136.94 26.11 136.33 25.35 136.17"/><path class="stump" d="M25.73,134.41l.2.26Z"/><polygon class="stump" points="24.81 130.62 24.81 131.03 25.83 130.2 24.81 130.62"/><polygon class="stump" points="24.01 128.35 24.28 128.35 24.15 128.03 24.01 128.35"/><polygon class="stump" points="24.81 124.9 24.81 125.51 25.32 125.51 25 124.9 24.81 124.9"/><path class="stump" d="M25.06,121.71l.26.35Z"/><path class="stump" d="M24.46,119.83h0Z"/><path class="stump" d="M25.19,114.56l.13.2Z"/>',
+                /* dead 08 */ '<polygon class="stump" points="20.19 146.51 22.55 145.81 24.09 143.7 25.23 141.91 26.06 142.23 27.98 144.6 29.51 146.13 30.72 147.02 30.72 147.34 32.57 147.34 18.18 147.34 19.97 147.18 20.19 146.51"/><path class="stump" d="M16.11,147l.32.22Z"/><path class="stump" d="M35.54,147.34h0Z"/>',
+                /* dead 09 */ '<path class="stump" d="M22.7,147.09l.32-.77,1.66-.22.95-1a.58.58,0,0,1,.91.1l.61,1,.83.7.32.45-1.61-.46-3.18.46H21.34Z"/><path class="stump" d="M29.89,147h0Z"/><path class="stump" d="M17.32,147.34h0Z"/><path class="stump" d="M31.55,147.34h0Z"/>',
+                /* dead 10 */ '<polygon class="stump" points="24.89 147.04 25.21 145.96 25.87 146.15 26.94 147.34 24.02 147.34 24.89 147.04"/>',
+            ]
         ],
-        stump: '<path class="stump" d="M78.599,343.603l-0,30.056l-4.484,5.341l-14.596,0l-3.834,-4.884l-0,-28.913l22.914,-1.6Z"/>',
-        fire: '<path class="fire" d="M55.889,74.322c3.005,-5.038 6.083,-11.872 4.708,-18.707c-3.06,-15.32 13.79,-28.09 13.79,-28.09c9.68,-6.27 9.366,-17.66 8.466,-23.27c-0.087,-0.726 1.123,-1.254 1.123,-1.254c-0,-0 0.875,0.402 0.987,0.73c1.854,5.7 3.784,16.352 -0.066,22.964c-1.186,2.037 -3,6.51 -3.71,8.22c-1.4,3.46 -2.52,7.77 -2.95,21l0.067,4.954c1.711,6.895 2.653,12.701 2.653,16.696c-0.035,4.892 -1.498,9.668 -4.21,13.74l-5.43,8.22c-4.73,11.03 -4.03,19.18 2.12,24.52l5.376,1.984c0.339,-0.318 4.245,-2.045 4.924,-2.724c4.16,-4.15 7.34,-8.79 5.87,-15.56c-1.53,-7.1 7.11,-13 10.28,-13.84c0.623,-0.162 1.205,-0.452 1.71,-0.85c2.39,-1.85 8.6,-7.59 6.52,-15.49c0,0 4.5,12.91 -2.44,18.28c-0.447,0.347 -0.887,0.707 -1.32,1.08c-3.533,3.079 -5.649,7.478 -5.85,12.16l-0.15,2.74c0.058,8.914 -8.57,19.88 -8.57,19.88c-1.7,2.53 7.707,7.53 7.937,9.53c0.306,2.553 0.333,5.131 0.08,7.69c-0.191,1.885 -1.083,3.631 -2.5,4.89c0,0 -2.519,4.355 -2.93,6.64l-0.18,4.91c-0.51,1.02 1.49,4.6 4.49,5.33c0,0 3.219,1.587 6.45,0.485c4.875,-4.016 1.671,-10.168 0.873,-17.195c-1.53,-13.54 11.74,-18.64 11.74,-18.64c0,0 5.34,-6.76 5,-12c0.91,3.83 1.39,11.12 -4.52,19.12c-3.491,4.635 -4.441,10.63 -2.744,16.018c1.407,-0.462 3.189,-1.425 3.684,-3.548c1.003,-4.35 3.575,-8.183 7.22,-10.76c1.09,-0.77 3.59,-1.14 5.68,-1.4c0.041,-0.005 0.083,-0.007 0.124,-0.007c0.587,-0 0.809,0.483 0.809,1.07c0,0.284 -0.419,0.556 -0.62,0.757c-3.24,3.08 -7.743,9.35 -6.433,21.35c2.12,19.45 -5.61,14.3 -36.76,45.45c-31.15,31.15 -58.52,-6.67 -58.52,-6.67c0,0 -5.198,-3.565 -10.64,-7.865c-4.837,-2.199 -9.177,-5.549 -12.06,-10.525c-2.154,-3.707 -2.977,-7.499 -2.943,-11.168c0.132,-14.29 11.623,-25.092 11.623,-25.092c0,0 -5.241,16.539 -1.213,26.21c0.031,0.044 0.062,0.091 0.093,0.14c2.18,3.43 5.91,4.37 14.1,6.3c2.239,0.527 10.13,1.253 3.18,-8.37c-2.995,-4.148 -3.584,-12.591 -3,-19.11c0.53,-5.75 4,-12.18 7.31,-16.45c1.501,-1.952 5.061,-3.802 7.981,-5.731c1.58,-2.312 2.174,-5.184 1.609,-7.959l-0.499,-6.531c-0.059,-0.1 -0.117,-0.197 -0.171,-0.289c-3.018,-5.159 -4.454,-11.092 -4.13,-17.06l0,-0.69c0.313,-5.917 2.327,-11.62 5.8,-16.42l5.08,-5.77c1.69,-1.38 3.451,-2.754 5.102,-4.023Z"/>',
-        burned: '<path class="burned" d="M60.67,380.299l-6.203,-71.311l8.765,-48.949l-1.22,-11.17l-10.36,-26.59l-8.08,-7.49l-17.79,1.87l18.654,-2.525l-12.664,-14.295l20.595,22.139l9.41,22.697l-4.475,-47.256l12.58,-60.01l-2.882,-10.779l0.142,-9.274l-0.142,-18.858l1.684,21.933l3.158,17.011l-11.853,56.776l22.614,-26.26l4.995,-17.914l-3.238,18.689l-23.304,31.16l5.944,60.361l-5.572,47.798l14.054,-35.733l19.14,-11.5l-1.621,-21.767l3.188,20.26l12.313,-11.843l-11.532,14.279l-19.179,12.356l-15.142,39.016l11.791,67.179l-13.77,0Z"/>',
         endtag: '</svg>'
     },
     dim: {
         // these are known to us, from when we created the svg
-        width: 134 / 2.5,
-        height: 382 / 2.5
+        width: 50,
+        height: 150
     }
 }
 
@@ -1073,55 +1345,6 @@ for (let i = 0; loopRunner; i++) {
         },
         class: 'tree',
         zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
-        shape: {
-            foliage: {
-                default: svgtree.src.foliage[0],
-                previous: '',
-                now: ''
-            },
-            stump: {
-                default: svgtree.src.stump,
-                previous: '',
-                now: ''
-            },
-            fire: {
-                default: svgtree.src.fire,
-                previous: '',
-                now: ''
-            },
-            burned: {
-                default: svgtree.src.burned,
-                previous: '',
-                now: ''
-            },
-        },
-        colour: {
-            outline: {
-                default: 'black',
-                previous: '',
-                now: ''
-            },
-            foliage: {
-                default: 'white',
-                previous: '',
-                now: ''
-            },
-            stump: {
-                default: 'white',
-                previous: '',
-                now: ''
-            },
-            fire: {
-                default: 'white',
-                previous: '',
-                now: ''
-            },
-            burned: {
-                default: 'black',
-                previous: '',
-                now: ''
-            }
-        },
         dimensions: {
             l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
             t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
@@ -1135,86 +1358,16 @@ for (let i = 0; loopRunner; i++) {
             }
         },
         state: {
-            default: 'normal',
-            previous: '',
-            now: 'normal'
+            // [state, substate]
+            default: [0,0],
+            previous: [0,0],
+            now: [0,0],
         },
-        stateSettings: {
-            absent: {
-                shape: {
-                    // stump: svgtree.src.stump
-                },
-                colour: {
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            protected: {
-                isProtected: false,
-                shape: {
-                    foliage: forestSettings.orderly.shape ? svgtree.src.foliage[0] : (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: false,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--protected', 3, 10, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            normal: {
-                shape: {
-                    foliage: forestSettings.orderly.shape ? svgtree.src.foliage[0] : (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: false,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--green', 3, 10, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            dry: {
-                shape: {
-                    foliage: (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: false,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--autumn', 10, 20, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour)
-                }
-            },
-            burning: {
-                shape: {
-                    foliage: (Math.random() < .5 ? svgtree.src.foliage[1] : svgtree.src.foliage[2]),
-                    stump: svgtree.src.stump,
-                    fire: svgtree.src.fire,
-                    burned: false
-                },
-                colour: {
-                    outline: 'black',
-                    foliage: randomiseHSLColour('--autumn', 10, 20, forestSettings.orderly.colour),
-                    stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour),
-                    fire: randomiseHSLColour('--fire', 0, 5),
-                }
-            },
-            charred: {
-                shape: {
-                    foliage: false,
-                    stump: false,
-                    fire: false,
-                    burned: svgtree.src.burned
-                },
-                colour: {
-                    outline: 'black',
-                    burned: 'black'
-                }
-            }
-        }
+        properties: {
+            resilience: /* placeholder */ 1, // min value = 1
+        },
+        behaviour: 0, // -1: move backward | 0: stay as-is | 1: move forward (in the tree's life-cycle)
+        isProtected: false,
     }
     // set id and class
     newDiv.setAttribute('class', tree[i].class)
@@ -1224,12 +1377,9 @@ for (let i = 0; loopRunner; i++) {
     newDiv.innerHTML = svgtree.src.starttag + svgtree.src.endtag
     // then, grab the svg-element...
     const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
-    // ... and, finally, draw and style the tree (within the svg-element):
-    //  — spawn all normal trees:
-    // updateTree(svgelement,"normal")
-    //  or
-    //  - spawn a more organic-looking forest:
-    updateTree(svgelement, Math.random()<.1?"charred":Math.random()<.15?"absent":"normal")
+    svgelement.setAttribute('tree-id',`${i}`)
+    // ... and, finally, draw the tree (within the svg-element):
+    updateTree(svgelement)
 
     // newDiv should be as large as the tree-image
     newDiv.style.width = tree[i].dimensions.w + 'px'
@@ -1255,10 +1405,10 @@ for (let i = 0; loopRunner; i++) {
     if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
     // the tree is not displayed when it is spawned (because we plan to make it appear _organically_ a few seconds later)
     newDiv.style.visibility = 'hidden'
+    // the tree appears after a delay:
+    setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
     // finally, make the div a child of #forest
     forest.appendChild(newDiv)
-    // the tree appears:
-    setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
     // update the value for total number of trees spawned in the forest
     totalTreesInForest += 1
 }
@@ -1268,33 +1418,12 @@ console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with "
 /** #infoBox should have a z-index higher than all spawned trees */
 updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
 
-gameState.starthealth = (document.getElementsByClassName("protected").length + document.getElementsByClassName("normal").length) / totalTreesInForest
-
-/*  ------------------------------------------------------------
-    show instructions.
-    ------------------------------------------------------------  */
-
-setInfo(infoBox, 1)
-showBox(infoBox,false)
-
 /*  ------------------------------------------------------------
     start the experience.
     ------------------------------------------------------------  */
 
-let closeinfobox = document.getElementById('closeInfoBox')
-closeinfobox.addEventListener('click', () => {
-
-    hideBox(infoBox, true)
-    
-    // start playing sounds, on loop
-    sBurning.loop = true
-    playSound(sBurning, 0)
-    sForest.loop = true
-    playSound(sForest, 1)
-
-    // update the forest.
-    setInterval(function () { updateForest() }, refreshTime)
-})
+// update the forest.
+setInterval(function () { updateForest() }, refreshTime)
 
 /*  ------------------------------------------------------------
     update the forest.
@@ -1302,26 +1431,45 @@ closeinfobox.addEventListener('click', () => {
 
 function updateForest() {
 
+    FRAMECOUNT++
+
     /* print gameState */
 
     gameState.state = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
-    console.log(JSON.stringify(gameState, null, 2))
+    // console.log(JSON.stringify(gameState, null, 2))
 
     /* update sound */
 
-    // update volume of ambient sounds
+    // start playing sounds:
 
-    playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
-    // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
-    playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
-    // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
+    if (!gameState.userHasBeenActive && navigator.userActivation.hasBeenActive) {
+        console.log(`setting gameState.userHasBeenActive = true`)
+        gameState.userHasBeenActive = true
+        // start playing sounds, on loop
+        sBurning.loop = true
+        playSound(sBurning, 1)
+        sForest.loop = true
+        playSound(sForest, 1)
+    }
 
-    // randomly play a random-sound from the forest
+    // update volume of ambient sounds:
 
-    const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
-    if (Math.random() < 1 / (refreshRate * secondses)) {
-        playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
-    } 
+    if (gameState.userHasBeenActive) {
+
+        // update volumes:
+        playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
+        // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
+        playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
+        // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
+    
+        if(!pauseForestUpdate) {
+            // randomly play a random-sound from the forest:
+            const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
+            if (Math.random() < 1 / (refreshRate * secondses)) {
+                playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
+            } 
+        }
+    }
 
     /* update visuals */
 
@@ -1331,41 +1479,99 @@ function updateForest() {
     if (! (boxDisplayAttrIs(infoBox) || pauseForestUpdate)) {
 
         // collect all trees by the states they are in
+        let alltrees = document.getElementsByClassName("tree")
         let absents = document.getElementsByClassName("absent")
         let protecteds = document.getElementsByClassName("protected")
         let normals = document.getElementsByClassName("normal")
-        /** @type {*} */
         let drys = document.getElementsByClassName("dry")
-        /** @type {*} */
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
+        const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
+        const countalivetrees = normals.length + drys.length + burnings.length
+       
+        /** 
+         * update each tree
+         */
+        for(let i=0 ; i<alltrees.length ; i++) {
+            updateTree(alltrees[i].getElementsByTagName("svg")[0])
+        }
 
         // update game state object
         gameState.health = (normals.length + protecteds.length) / totalTreesInForest
         gameState.playTime = new Date().getTime() - gameState.startTime
 
-        // if the health is low, but the person hasn't clicked yet...
-        // instruct them to click on trees!
-        if ((gameState.health < gameState.starthealth * .8) && (gameState.clicksonsicktrees < 1) && (gameState.shownMessage2==false)) {
-            console.log("encourage person to tap on trees.")
-            setInfo(infoBox, 2)
-            gameState.shownMessage2 = true
-            showBox(infoBox, false)
+        // show instructions
+        if ((gameState.infoBoxSeenCounter == 0) && (normals.length > 0)) {
+            // count how many "normal" trees are fully-grown
+            let countfullygrowntrees = 0
+            for(let i=0 ; i< normals.length ; i++) {
+                // if the tree is fully grown ...
+                const treeid = normals[i].getAttribute('tree-id')
+                const treestate = tree[treeid].state.now
+                if (treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1) {
+                    // ... add to the count of fully-grown trees
+                    countfullygrowntrees++
+                }
+            }
+            // if READINESS % of all "normal" trees are now fully-grown (i.e., if the forest is almost ready)
+            const READINESS_THRESHOLD = 0.80
+            if (countfullygrowntrees >= normals.length * READINESS_THRESHOLD) {
+                console.log(`starting the experience for ${normals.length} trees.`)
+                // then show the first infoBox
+                setInfo(infoBox, 1)
+                showBox(infoBox, true)
+                // set *this* as the experience's actual startTime.
+                gameState.startTime = new Date().getTime()
+                gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
+            }
         }
 
-        // if there are no dry/burning trees left (but there still are normal trees):
-        if ((drys.length == 0) && (burnings.length == 0) && (normals.length + protecteds.length >= 0)){
-            // console.log(`no dry or burning trees (there are, however, normal trees).`)
+        if (gameState.infoBoxSeenCounter > 0) {
 
-            // conclude the experience
-            if(gameState.clicksonsicktrees > totalTreesInForest * gameState.starthealth || gameState.playTime > PLAYTIMELIMIT) {
-                setInfo(infoBox,0)
-                showBox(infoBox, true)
+            // if the health is getting low, but the person hasn't clicked yet...
+            // instruct them to click on trees!
+            if (
+                true
+                && (boxDisplayAttrIs(infoBox) == false)
+                && (gameState.health < gameState.starthealth * .8) 
+                && (gameState.clicksonsicktrees < 1) 
+                && (gameState.shownMessage2==false)
+            ) {
+                console.log("encourage person to tap on trees.")
+                setInfo(infoBox, 2)
+                gameState.shownMessage2 = true
+                showBox(infoBox, false)
             }
 
-            // or keep the experience going
-            else if (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ {
-                if(!boxDisplayAttrIs(infoBox)) {
+            // if there are no dry/burning trees left (but there still are normal trees):
+            if (
+                true
+                && (drys.length == 0) 
+                && (burnings.length == 0) 
+                && (normals.length + protecteds.length >= 0)
+            ) {
+                // console.log(`no dry or burning trees (there are, however, normal trees).`)
+
+                // conclude the experience
+                if(
+                    (boxDisplayAttrIs(infoBox) == false)
+                    && 
+                    (gameState.infoBoxSeenCounter >= 4) 
+                    && (
+                        gameState.clicksonsicktrees > totalTreesInForest * gameState.starthealth 
+                        || gameState.playTime > PLAYTIMELIMIT
+                    )
+                ) {
+                    setInfo(infoBox,0)
+                    showBox(infoBox, true)
+                }
+
+                // or keep the experience going
+                else if (
+                    (boxDisplayAttrIs(infoBox) == false)
+                    &&
+                    (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ 
+                ) {
                     console.log("forest saved. showing new news.")
                     const infotype = Math.random() > gameState.health ? 3 /* good news */ : 4 /* bad news */
                     console.log(`${infotype==3?"good":"bad"} news selected.`)
@@ -1375,121 +1581,108 @@ function updateForest() {
             }
         }
 
+        /**
+         * spontaneous Δ in tree-state
+         */
+
+        const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
+        const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 0.0625
+        let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ drys.length + burnings.length < 1 ? .99 : 0.9999
+        const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.99
+        const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
+        const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
+        const forstcover = countpresenttrees / alltrees.length
+
+        // absent -> new shoot (which grows into a tree)
+        for (let i = 0; i < absents.length; i++) {
+            const mintrees = 1
+            // if there are no trees in the forest,
+            if (countpresenttrees < mintrees) {
+                // respawn the forest:
+                if (Math.random() < PERCENT_OF_FOREST_TO_RESPAWN / 100) {
+                    // console.log(`spawning a tree into an empty forest.`)
+                    tree[absents[i].getAttribute('tree-id')].behaviour = 1
+                }
+            }
+            // else if there are some trees
+            else {
+                const thisthreshold = TREE_RESPAWN_PROBABILITY * Math.pow(forstcover, 2) / 100
+                if (Math.random() < thisthreshold) {
+                    // console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) re-spawning tree-${absents[i].getAttribute('tree-id')}.`)
+                    tree[absents[i].getAttribute('tree-id')].behaviour = 1
+                }
+            }
+        }
+
+        // normal -> dry
+        // //   -- method 1: automatically:
+        // for (let i = 0; i < normals.length; i++) {
+        //     const treeid = normals[i].getAttribute('tree-id')
+        //     const treestate = tree[treeid].state.now
+        //     if (
+        //         // if the tree is fully grown
+        //         treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
+        //         &&
+        //         Math.random() > THRESHOLD_MAKEDRY
+        //     ) {
+        //         tree[normals[i].getAttribute('tree-id')].behaviour = 1
+        //     }
+        // }
+        // //   -- method 2: by calling seedDryTrees():
+        // if(drys.length==0) seedDryTrees(3)
+
         // dry -> burning
         for (let i = 0; i < drys.length; i++) {
-            if (Math.random() > .999)
-                updateTree(drys[i], "burning")
+            if (Math.random() > THRESHOLD_SETFIRE) {
+                tree[drys[i].getAttribute('tree-id')].behaviour = 1
+            }
         }
 
         // burning -> charred
         for (let i = 0; i < burnings.length; i++) {
-            if (Math.random() > .983)
-                updateTree(burnings[i], "charred")
-        }
-
-        // charred -> absent
-        for (let i = 0; i < charreds.length; i++) {
-            if (Math.random() > .9999)
-                updateTree(charreds[i], "absent")
-        }
-        for (let i = 0; i < charreds.length; i++) {
-            if ((protecteds.length + normals.length + drys.length) < 1)
-                if (Math.random() > .95)
-                    updateTree(charreds[i], "absent")
-        }
-
-        // absent -> new forest
-        for (let i = 0; i < absents.length; i++) {
-            if (
-                ((protecteds.length + normals.length + drys.length) < (.1 * totalTreesInForest))
-                &&
-                (absents.length >= .8 * totalTreesInForest)
-            ) {
-                if (Math.random() < .67) {
-                    setTimeout(function () {
-                        updateTree(absents[i], "normal")
-                    }, Math.random() * 5000)
-                }
+            if (Math.random() > THRESHOLD_STOPFIRE) {
+                tree[burnings[i].getAttribute('tree-id')].behaviour = 1
             }
         }
 
-        /** make fire, dryness, health spread from one tree to its neighbours */
+        // charred -> disintegrating -> absent
+        for (let i = 0; i < charreds.length; i++) {
+            const treeid = charreds[i].getAttribute('tree-id')
+            const treestate = tree[treeid].state.now
+            // charred -> disintegrating :—
+            // if the tree is charred (state 4), but not yet disintegrating (state 5)...
+            if (treestate[0] == 4) {
+                // ... then, based on this probability...
+                if (Math.random() < ((1 - THRESHLD_DISINTEGRATE) / forstcover)) {
+                    // ... make it disintegrate
+                    tree[charreds[i].getAttribute('tree-id')].behaviour = 1
+                }
+            }
+            else
+                // disintegrating -> absent :—
+                // if the tree is disintegrating (state = 5)...
+                if (treestate[0] == 5) {
+                    /* 
+                        do nothing,
+                        because this transition is automatically handled within updateTree().
+                        nb. as soon the tree disintegrates (i.e., as soon as state 5 ends), 
+                        it immediately moves to state  0.
+                    */
+                }
+        }
 
-        spreadInfection(burnings, "burning", .99, 1)
-        spreadInfection(drys, "dry", .995, 1)
-        // spreadInfection(normals, "normal", .99995, 1)
-
-        /**
-         * fire, dryness, health can spread from one tree to its neighbours
-         * @param {*} trees
-         * @param {string} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
-         * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
-         * @param {number} spreadDistance
+        /** 
+         * make fire, dryness, health spread from one tree to its neighbours 
          */
-        function spreadInfection(trees, state, immunity, spreadDistance) {
-            for (let i = 0; i < trees.length; i++) {
-                const id = Number(trees[i].parentNode.id.substring("tree-".length, trees[i].parentNode.id.length))
-                const _x = tree[id].positionInForestGrid.x
-                const _y = tree[id].positionInForestGrid.y
-                for (let t = 0; t < totalTreesInForest; t++) {
-                    if (
-                        true
-                        && tree[t].positionInForestGrid.x >= 0
-                        && tree[t].positionInForestGrid.y >= 0
-                        && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                        && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                        && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                        && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                        && tree[t].id
-                    ) {
-                        if (Math.random() > immunity) {
-                            // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
-                            setTimeout(function () {
-                                const neighbour = document.getElementById('tree-' + t)
-                                const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
-                                if (state == "burning" || state == "dry") {
-                                    if (
-                                        neighbourSvg.classList.contains("charred")
-                                        ||
-                                        neighbourSvg.classList.contains("absent")
-                                        ||
-                                        neighbourSvg.classList.contains("protected")
-                                    ) {
-                                        // can't do anything
-                                    }
-                                    else if (
-                                        neighbourSvg.classList.contains("normal")
-                                    ) {
-                                        // console.log(`spreading dryness. making tree-${id} dry.`)
-                                        updateTree(neighbourSvg, "dry")
-                                    }
-                                    else if (
-                                        state == "burning"
-                                        &&
-                                        neighbourSvg.classList.contains("dry")
-                                    ) {
-                                        // console.log(`spreading fire. tree-${id} catches fire.`)
-                                        updateTree(neighbourSvg, "burning")
-                                    }
-                                }
-                                else if (state == "normal") {
-                                    if (
-                                        neighbourSvg.classList.contains("absent")
-                                    ) {
-                                        updateTree(neighbourSvg, "normal")
-                                    }
-                                    else if (
-                                        neighbourSvg.classList.contains("charred")
-                                    ) {
-                                        updateTree(neighbourSvg, "absent")
-                                    }
-                                }
-                            }, refreshTime)
-                        }
-                    }
-                }
-            }
-        }
+
+        const IMMUNITY_TO_FIRE = .99
+        const IMMUNITY_TO_DRYING = .995
+        const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(normals.length / (normals.length + drys.length + burnings.length + charreds.length),0,1,.99999,.99975) 
+        if(RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
+
+        spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1)
+        spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 1)
+        spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1)
     }
 }
 
@@ -1542,10 +1735,12 @@ function didClickHappenOnTree(e) {
     // if we didn't click on the #infoBox, then we may continue checking whether the click happened on a tree in the #forest:
     if (clickedOnInfosBox == false) {
 
-        // in the array, we are checking which element is an "SVG Path Element" (i.e., is a <path> element).
+        // in the array, we are checking which element is an "SVG Path/Polyline/Polygon Element" (i.e., is a <path>, <polyline> or <polygon>).
         c = c.map(function (x) {
             if (
                 x.constructor.toString().indexOf("SVGPathElement()") > -1
+                || x.constructor.toString().indexOf("SVGPolylineElement()") > -1
+                || x.constructor.toString().indexOf("SVGPolygonElement()") > -1
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
             )
                 // return <path>'s parent (which is an <svg>)
@@ -1571,23 +1766,30 @@ function didClickHappenOnTree(e) {
         // now, we instruct each (clicked-)tree to change
         for (const i in c) {
             const SVGElementOfClickedTree = c[i]
-            if (SVGElementOfClickedTree.classList.contains("burning")) {
+            const treeid = Number(SVGElementOfClickedTree.getAttribute('tree-id'))
+            if (SVGElementOfClickedTree.classList.contains("burning") || SVGElementOfClickedTree.classList.contains("dry")) {
                 gameState.clicksonsicktrees++
-                // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: burning -> dry`)
-                updateTree(SVGElementOfClickedTree, "dry")
+                // if (SVGElementOfClickedTree.classList.contains("dry")) console.log(`click on ${treeid}: dry -> normal`)
+                // if (SVGElementOfClickedTree.classList.contains("burning")) console.log(`click on ${treeid}: burning -> dry`)
+                tree[treeid].behaviour = -1
             }
-            else if (SVGElementOfClickedTree.classList.contains("dry")) {
-                gameState.clicksonsicktrees++
-                // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: dry -> normal`)
-                updateTree(SVGElementOfClickedTree, "normal")
+            if (SVGElementOfClickedTree.classList.contains("normal")) {
+                // console.log(`click on ${treeid}: normal -> protected`)
+                tree[treeid].isProtected = true
+                tree[treeid].behaviour = 0
             }
-            else if (SVGElementOfClickedTree.classList.contains("normal")) {
-                // console.log(`click on ${SVGElementOfClickedTree.parentNode.id}: normal -> protected`)
-                updateTree(SVGElementOfClickedTree, "protected")
+            if (SVGElementOfClickedTree.classList.contains("protected")) {
+                // console.log(`click on tree-${treeid.substring("tree-".length, treeid.length)}: classList.contains("${SVGElementOfClickedTree.classList}") • isProtected=${tree[treeid.substring("tree-".length, treeid.length)].stateSettings.protected.isProtected}`)
+                tree[treeid].isProtected = true
+                tree[treeid].behaviour = 0
             }
-            else if (SVGElementOfClickedTree.classList.contains("protected")) {
-                // console.log(`click on tree-${SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)}: classList.contains("${SVGElementOfClickedTree.classList}") • isProtected=${tree[SVGElementOfClickedTree.parentNode.id.substring("tree-".length, SVGElementOfClickedTree.parentNode.id.length)].stateSettings.protected.isProtected}`)
-                updateTree(SVGElementOfClickedTree, "protected")
+            if (SVGElementOfClickedTree.classList.contains("charred")) {
+                // console.log(`click on ${treeid}: charred -> disintegrating`)
+                tree[treeid].behaviour = 1
+            }
+            if (SVGElementOfClickedTree.classList.contains("absent")) {
+                // console.log(`click on ${treeid}: absent -> normal`)
+                tree[treeid].behaviour = 1
             }
         }
     }
