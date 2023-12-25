@@ -1552,7 +1552,7 @@ function updateForest() {
 
         const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
         const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 0.0625
-        let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disenabled): .999 */ drys.length + burnings.length < 1 ? .99 : 0.9999
+        let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ drys.length + burnings.length < 1 ? .99 : 0.9999
         const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.99
         const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
         const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
@@ -1643,7 +1643,7 @@ function updateForest() {
 
         const IMMUNITY_TO_FIRE = .99
         const IMMUNITY_TO_DRYING = .995
-        const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(normals.length / (normals.length + drys.length + burnings.length + charreds.length),0,1,.99999,.999) 
+        const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(normals.length / (normals.length + drys.length + burnings.length + charreds.length),0,1,.99999,.99975) 
         if(RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
 
         spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1)
