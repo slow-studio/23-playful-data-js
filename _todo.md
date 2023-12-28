@@ -5,8 +5,12 @@ environment:
 
 forest:
 [ ] add variation in tree-colour
+[✓] update tree-shapes
+    [✓] on-fire trees are offset. (they are lower than other trees.)
+    [✓] dry and on-fire trees should use the fully-grown-tree svg-path for foliage
+    [✓] absent trees have fully-grown-tree svg-path in them, but it is invisible. (use class='invisible' for this.)
 [ ] state-change from normal to dry should be gradual. (interpolate colour.)
-[ ] tap on an absent-tree to make it grow.
+[✓] tap on an absent-tree to make it grow. (because it has a larger clickable-area.)
 [ ] seed dryness in a single spot, and let the dryness spread organically
 [ ] content should be different depending on the person's behaviour: { played at all, clicked at all, saved the forest well, did poorly, played for long, etc }.
 
