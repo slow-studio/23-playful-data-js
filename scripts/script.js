@@ -1358,10 +1358,9 @@ for (let i = 0; loopRunner; i++) {
             }
         },
         state: {
-            // [state, substate]
-            default: [0,0],
-            previous: [0,0],
-            now: [0,0],
+            default:    /* [state, substate] */ [0,0],
+            previous:   /* [state, substate] */ [0,0],
+            now:        /* [state, substate] */ [0,0],
         },
         properties: {
             resilience: /* placeholder */ 1, // min value = 1
