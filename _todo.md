@@ -4,7 +4,7 @@ environment:
 [ ] improve sounds. build soundscape. find more randomSounds. 
 
 forest:
-[ ] add variation in tree-colour
+[✓] add variation in tree-colour
 [✓] update tree-shapes
     [✓] on-fire trees are offset. (they are lower than other trees.)
     [✓] dry and on-fire trees should use the fully-grown-tree svg-path for foliage

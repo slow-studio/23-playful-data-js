@@ -400,6 +400,9 @@ function updateTree(svgelement) {
 
     // helper variables
     const id = Number(svgelement.getAttribute('tree-id'))
+    const foliages = svgelement.getElementsByClassName('foliage')
+    const stumps = svgelement.getElementsByClassName('stump')
+    const fires = svgelement.getElementsByClassName('fire')
 
     /* tree memorises its previous state */
     tree[id].state.previous[0] = tree[id].state.now[0]
@@ -610,7 +613,12 @@ function updateTree(svgelement) {
     // -- 1. it updates its svg shape
     svgelement.innerHTML = svgtree.src.innerhtml[tree[id].state.now[0]][tree[id].state.now[1]]
     // -- 2. it sets the colour for those svg-shapes
-
+    for (const p of foliages) {
+        if(tree[id].isProtected) p.style.fill = tree[id].properties.colour.foliageProtected
+        else if(tree[id].state.now[0] >= /* tree is dry (or worse) */ 2) p.style.fill = tree[id].properties.colour.foliageDry
+        else /* tree is normal */ p.style.fill = tree[id].properties.colour.foliageNormal
+    }
+    for (const p of stumps) { p.style.fill = tree[id].properties.colour.stump }
     // -- 3. sound feedback:
     //      -- tree catches fire (i.e., was not burning before, but is now)
     if (tree[id].state.previous[0] != 3 && tree[id].state.now[0] == 3) { 
@@ -621,8 +629,6 @@ function updateTree(svgelement) {
         if the tree is on fire, make the fire crackle (visually)
         */
     const fireCrackleTime = 600
-    /** @type {any} */
-    let fires = svgelement.getElementsByClassName("fire")
     for (let i = 0; i < fires.length; i++) {
         if((new Date()).getMilliseconds()%2==(id%2))
             // fire gets darker
@@ -1378,6 +1384,12 @@ for (let i = 0; loopRunner; i++) {
         },
         properties: {
             resilience: /* placeholder */ 1, // min value = 1
+            colour: {
+                foliageProtected: randomiseHSLColour('--protected', 3, 10, forestSettings.orderly.colour),
+                foliageNormal: randomiseHSLColour('--green', 3, 15, forestSettings.orderly.colour),
+                foliageDry: randomiseHSLColour('--autumn', 3, 20, forestSettings.orderly.colour),
+                stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour),
+            }
         },
         behaviour: 0, // -1: move backward | 0: stay as-is | 1: move forward (in the tree's life-cycle)
         isProtected: false,
