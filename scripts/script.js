@@ -71,24 +71,24 @@ function cheatcodes(e) {
 }
 document.body.setAttribute('onkeydown','cheatcodes(event)')
 
-const IDEALREFRESHRATE = 10
-const refreshRate = 10 // fps
-const refreshTime = 1000 / refreshRate // time in millisecond
+const IDEAL_REFRESH_RATE = 10
+const REFRESH_RATE = 10 // fps
+const REFRESH_TIME = 1000 / REFRESH_RATE // time in millisecond
 var FRAMECOUNT = 0
 
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
 /** @type {number} a heap of mud/ash takes ✕ times longer to begin growing into a tree */
-const absentTimeMultiplier = 10
+const ABSENT_TIME_MULTIPLIER = 10
 /** @type {number} a fully-grown tree resists drying for these many ✕ times longer */
-const normalTimeMultiplier = 25
+const NORMAL_TIME_MULTIPLIER = 25
 /** @type {number} a dry tree resists catching fire for these many ✕ times longer */
-const dryTimeMultiplier = 12.5
+const DRY_TIME_MULTIPLIER = 12.5
 /** @type {number} make fires burn for these many ✕ times longer */
-const fireBurnTimeMultiplier = 2.0
+const FIRE_BURN_TIME_MULTIPLIER = 2.0
 /** @type {number} a tree remains charred for these many ✕ times longer */
-const charredTimeMultiplier = 25
+const CHARRED_TIME_MULTIPLIER = 25
 
 /**
  * game state variables
@@ -112,7 +112,7 @@ let gameState = {
 const TREELIMIT = 7500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
-const PLAYTIMELIMIT = 180000 * IDEALREFRESHRATE / refreshRate // e.g. 180000 ms = 3 min
+const PLAYTIMELIMIT = 180000 * IDEAL_REFRESH_RATE / REFRESH_RATE // e.g. 180000 ms = 3 min
 
 /** @type {number} if the infoBox is shown these many times, we offer a button to show #content */
 const INFOBOXCOUNTLIMIT = 0
@@ -386,7 +386,7 @@ function spreadInfection(trees, state, immunity, spreadDistance) {
                             //     tree[t].behaviour = -1
                             // }
                         }
-                    }, refreshTime)
+                    }, REFRESH_TIME)
                 }
             }
         }
@@ -528,35 +528,35 @@ function updateTree(svgelement) {
                 // if there's a heap of fertile ash/mud
                 tree[id].state.now[0] == 0
                 // and is also a slow-growing tree (i.e., likely to take some time to start growing)
-                && Math.random() > 1 / (absentTimeMultiplier * tree[id].properties.resilience)
+                && Math.random() > 1 / (ABSENT_TIME_MULTIPLIER * tree[id].properties.resilience)
             )
             ||
             (
                 // if the tree is fully-grown
                 tree[id].state.now[0] == 1
                 // and is also a resilient tree (i.e., likely to take some time to dry-out)
-                && Math.random() > 1 / (normalTimeMultiplier * tree[id].properties.resilience)
+                && Math.random() > 1 / (NORMAL_TIME_MULTIPLIER * tree[id].properties.resilience)
             )
             ||
             (
                 // if the tree is dry
                 tree[id].state.now[0] == 2
                 // and is also a resilient tree (i.e., likely to resist catching fire)
-                && Math.random() > 1 / (dryTimeMultiplier * tree[id].properties.resilience)
+                && Math.random() > 1 / (DRY_TIME_MULTIPLIER * tree[id].properties.resilience)
             )
             ||
             (
                 // if the tree is burning
                 tree[id].state.now[0] == 3
                 // and, if it is a resilient tree (e.g., would burn for a longer time before getting charred)
-                && Math.random() > 1 / (fireBurnTimeMultiplier * tree[id].properties.resilience)
+                && Math.random() > 1 / (FIRE_BURN_TIME_MULTIPLIER * tree[id].properties.resilience)
             )
             ||
             (
                 // if the tree is charred
                 tree[id].state.now[0] == 4
                 // and is also a resilient tree (i.e., likely to take some time to disintegrate)
-                && Math.random() > 1 / (charredTimeMultiplier * tree[id].properties.resilience)
+                && Math.random() > 1 / (CHARRED_TIME_MULTIPLIER * tree[id].properties.resilience)
             )
         ) { 
             // then, do nothing (i.e., let it stay in its current state)
@@ -1444,7 +1444,7 @@ updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettin
     ------------------------------------------------------------  */
 
 // update the forest.
-setInterval(function () { updateForest() }, refreshTime)
+setInterval(function () { updateForest() }, REFRESH_TIME)
 
 /*  ------------------------------------------------------------
     update the forest.
@@ -1486,7 +1486,7 @@ function updateForest() {
         if(!pauseForestUpdate) {
             // randomly play a random-sound from the forest:
             const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
-            if (Math.random() < 1 / (refreshRate * secondses)) {
+            if (Math.random() < 1 / (REFRESH_RATE * secondses)) {
                 playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
             } 
         }
