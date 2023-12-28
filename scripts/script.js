@@ -1403,10 +1403,6 @@ for (let i = 0; loopRunner; i++) {
     newDiv.style.zIndex = (tree[i].zindex).toString()
     // keep track of the highest z-index assigned to any tree
     if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
-    // the tree is not displayed when it is spawned (because we plan to make it appear _organically_ a few seconds later)
-    newDiv.style.visibility = 'hidden'
-    // the tree appears after a delay:
-    setTimeout(function () { newDiv.style.visibility = 'visible' }, Math.random() * 1000)
     // finally, make the div a child of #forest
     forest.appendChild(newDiv)
     // update the value for total number of trees spawned in the forest
