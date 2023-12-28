@@ -411,7 +411,7 @@ function updateTree(svgelement) {
     /*  handle protection */
     if (
         // tree has been marked as to-be-protected
-        tree[id].isProtected == true 
+        (tree[id].isProtected == true)
         && 
         // but it is not currently "protected"
         svgelement.classList.contains("protected") == false
