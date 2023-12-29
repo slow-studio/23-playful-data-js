@@ -1441,7 +1441,7 @@ for (let i = 0; loopRunner; i++) {
         properties: {
             resilience: /* placeholder */ 1, // min value = 1
             colour: {
-                foliageProtected: randomiseHSLColour('--protected', 3, 10, forestSettings.orderly.colour),
+                foliageProtected: randomiseHSLColour('--protected', 5, 15, forestSettings.orderly.colour),
                 foliageNormal: randomiseHSLColour('--green', 3, 15, forestSettings.orderly.colour),
                 foliageDry: randomiseHSLColour('--autumn', 3, 20, forestSettings.orderly.colour),
                 stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour),
