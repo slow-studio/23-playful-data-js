@@ -509,20 +509,20 @@ function updateTree(svgelement) {
             break;
         case 1:
             /* state-specific stuff */
-            // the tree should grow, till it reaches full size.
-            if (tree[id].state.now[1] < svgtree.src.innerhtml[1].length - 1) 
-            {
-                if (FRAMECOUNT % tree[id].properties.resilience == 0)
-                tree[id].state.now[1]++
-                // and, at this time, don't let the tree progress to another state
-                tree[id].behaviour = 0
-            }
-            // once it is at full size, the tree should stop growing
-            else // if (tree[id].state.now[1] == svgtree.src.innerhtml[1].length - 1) 
-                tree[id].state.now[1] = svgtree.src.innerhtml[1].length - 1
+                // the tree should grow, till it reaches full size.
+                if (tree[id].state.now[1] < svgtree.src.innerhtml[1].length - 1) 
+                {
+                    if (FRAMECOUNT % tree[id].properties.resilience == 0)
+                    tree[id].state.now[1]++
+                    // and, at this time, don't let the tree progress to another state
+                    tree[id].behaviour = 0
+                }
+                // once it is at full size, the tree should stop growing
+                else // if (tree[id].state.now[1] == svgtree.src.innerhtml[1].length - 1) 
+                    tree[id].state.now[1] = svgtree.src.innerhtml[1].length - 1
             /* other stuff */
-            // if the tree were to start drying, this variable helps the tree start at its least dry state
-            tree[id].state.drySubstateCounter = 0
+                // if the tree were to start drying, this variable helps the tree start at its least dry state
+                tree[id].state.drySubstateCounter = 0
             break;
         case 2:
             // calculate how dry the tree is, i.e., its dryness-substate
@@ -533,14 +533,14 @@ function updateTree(svgelement) {
             break;
         case 3:
             /* state-specific stuff */
-            // keep cycling through all fire levels:
-            if (tree[id].state.now[1] < svgtree.src.innerhtml[3].length - 1) 
-                tree[id].state.now[1]++
-            else // if (tree[id].state.now[1] == svgtree.src.innerhtml[3].length - 1) 
-                tree[id].state.now[1] = 0
+                // keep cycling through all fire levels:
+                if (tree[id].state.now[1] < svgtree.src.innerhtml[3].length - 1) 
+                    tree[id].state.now[1]++
+                else // if (tree[id].state.now[1] == svgtree.src.innerhtml[3].length - 1) 
+                    tree[id].state.now[1] = 0
             /* other stuff */
-            // if the tree were to stop burning, this variable helps the tree start at its dryest state
-            tree[id].state.drySubstateCounter = stepstodryout
+                // if/when the tree stops burning, this variable sets it to its dryest state
+                tree[id].state.drySubstateCounter = stepstodryout
             break;
         case 4:
             break;
