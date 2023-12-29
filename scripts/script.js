@@ -350,28 +350,31 @@ function seedDryTrees(n) {
  * @param {number} state - the state that the trees (which are trying to spread their condition to their neighbours) are in
  * @param {number} immunity - the immunity of their neighbouring trees, so that they don't get infected easily.
  * @param {number} [spreadDistance=1]
+ * @param {boolean} [spreadUniformly=true]
  */
-function spreadInfection(trees, state, immunity, spreadDistance) {
+function spreadInfection(trees, state, immunity, spreadDistance, spreadUniformly) {
     for (let i = 0; i < trees.length; i++) {
         const id = Number(trees[i].getAttribute('tree-id'))
         const _x = tree[id].positionInForestGrid.x
         const _y = tree[id].positionInForestGrid.y
-        for (let t = 0; t < totalTreesInForest; t++) {
-            if (
-                true
-                && tree[t].positionInForestGrid.x >= 0
-                && tree[t].positionInForestGrid.y >= 0
-                && tree[t].positionInForestGrid.x >= _x - spreadDistance
-                && tree[t].positionInForestGrid.x <= _x + spreadDistance
-                && tree[t].positionInForestGrid.y >= _y - spreadDistance
-                && tree[t].positionInForestGrid.y <= _y + spreadDistance
-                && tree[t].id
-            ) {
-                if (Math.random() > immunity) {
-                    // note: this setTimeout(), below, is important. it lets us wait for some time before making neighbouring trees catch fire. without this, the whole forest caught fire in one loop.
-                    setTimeout(function () {
-                        const neighbour = document.getElementById('tree-' + t)
-                        const neighbourSvg = neighbour.getElementsByTagName("svg")[0]
+        if (Math.random() > (spreadUniformly ? immunity : 0)) {
+            for(let j=_x-spreadDistance ; j<=_x+spreadDistance ; j++) {
+                for(let k=_y-spreadDistance ; k<=_y+spreadDistance ; k++) {
+                    const neighbourSvg = document.querySelector(`[data-pos="${j},${k}"]`)
+                    if (
+                        Math.random() > (spreadUniformly ? 0 : immunity)
+                        && neighbourSvg
+                        // and we're not selecting the tree itself
+                        && (j == _x && k == _y) == false
+                        // and we"re within bounds
+                        && j >= 0
+                        && j <= maxTreeIDinRow
+                        && k >= 0
+                        && k <= rowID
+                        // and to handle the staggered arangement of trees
+                        && (_y%2==0 ? j>=_x : j<=_x)
+                    ) {
+                        const id = neighbourSvg.getAttribute('tree-id')
                         if (state == 3 || state == 2) {
                             if (
                                 neighbourSvg.classList.contains("charred")
@@ -386,7 +389,7 @@ function spreadInfection(trees, state, immunity, spreadDistance) {
                                 neighbourSvg.classList.contains("normal")
                             ) {
                                 // console.log(`spreading dryness. making tree-${id} dry.`)
-                                tree[t].behaviour = 1
+                                tree[id].behaviour = 1
                             }
                             else if (
                                 state == 3
@@ -394,7 +397,7 @@ function spreadInfection(trees, state, immunity, spreadDistance) {
                                 neighbourSvg.classList.contains("dry")
                             ) {
                                 // console.log(`spreading fire. tree-${id} catches fire.`)
-                                tree[t].behaviour = 1
+                                tree[id].behaviour = 1
                             }
                         }
                         else if (state == 1) {
@@ -402,16 +405,16 @@ function spreadInfection(trees, state, immunity, spreadDistance) {
                                 neighbourSvg.classList.contains("absent")
                             ) {
                                 // console.log(`spreading health. tree-${id} is seeded.`)
-                                tree[t].behaviour = 1
+                                tree[id].behaviour = 1
                             }
                             // if (
                             //     neighbourSvg.classList.contains("dry")
                             // ) {
                             //     // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
-                            //     tree[t].behaviour = -1
+                            //     tree[id].behaviour = -1
                             // }
                         }
-                    }, REFRESH_TIME)
+                    }
                 }
             }
         }
@@ -1456,6 +1459,7 @@ for (let i = 0; loopRunner; i++) {
     // then, grab the svg-element...
     const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
     svgelement.setAttribute('tree-id',`${i}`)
+    svgelement.setAttribute('data-pos', `${tree[i].positionInForestGrid.x},${tree[i].positionInForestGrid.y}`)
     // ... and, finally, draw the tree (within the svg-element):
     updateTree(svgelement)
 
@@ -1750,13 +1754,13 @@ function updateForest() {
          */
 
         const IMMUNITY_TO_FIRE = .99
-        const IMMUNITY_TO_DRYING = .995
+        const IMMUNITY_TO_DRYING = .9975
         const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(normals.length / (normals.length + drys.length + burnings.length + charreds.length),0,1,.99999,.99975) 
         if(RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
 
-        spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1)
-        spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 1)
-        spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1)
+        spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1, false)
+        spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 2, false)
+        spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, true)
     }
 }
 
