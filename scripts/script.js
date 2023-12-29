@@ -219,6 +219,34 @@ function randomiseHSLColour(c, rhby, rlby, blocker) {
 }
 
 /**
+ * @param {string} start - colour to start with, in hsl() format
+ * @param {*} end - colour to end at, in hsl() format
+ * @param {number} totalSteps - total number of steps
+ * @param {number} currentStep - current step (to calculate colour at)
+ * @param {number} [factorForH=1]
+ * @param {number} [factorForS=1]
+ * @param {number} [factorForL=1] 
+ * @returns {string}
+ */
+function interpolateHSLColour(start, end, totalSteps, currentStep, factorForH,factorForS, factorForL) {
+    function splitHSL(c) {
+        const hsl = c.split(",")
+        let h = Number(hsl[0].split("(")[1])
+        if(h<=0 || h>=360) h=0 ; h = Math.floor(h);
+        let s = Number(hsl[1].split("%")[0].trim())
+        let l = Number(hsl[2].split("%")[0].trim())
+        if(l<=0) l=0 ; if(l>=100) l=100 ; l = Math.floor(l);
+        return {H: h, S: s, L: l}
+    }
+    const h = splitHSL(start).H + ((splitHSL(end).H - splitHSL(start).H) * Math.pow(currentStep / totalSteps, factorForH))
+    const s = splitHSL(start).S + ((splitHSL(end).S - splitHSL(start).S) * Math.pow(currentStep / totalSteps, factorForS))
+    const l = splitHSL(start).L + ((splitHSL(end).L - splitHSL(start).L) * Math.pow(currentStep / totalSteps, factorForL))
+    return `hsl(${h}, ${s}%, ${l}%)`
+}
+
+
+
+/**
  * update an element's style
  * @param {*} e - element
  * @param {string} p - parameter 
