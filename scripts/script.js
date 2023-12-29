@@ -434,13 +434,14 @@ function updateTree(svgelement) {
     tree[id].state.previous[1] = tree[id].state.now[1]
 
     /*  handle protection */
+    // 1. if the tree just got protected:
     if (
         // tree has been marked as to-be-protected
         (tree[id].isProtected == true)
         && 
         // but it is not currently "protected"
         svgelement.classList.contains("protected") == false
-    ) // this means that it just got protected.
+    )
     {
         // console.log(`protecting tree-${id}`)
         // playSound(sGoodNews, volumeScaler.sGoodNews)
@@ -451,18 +452,35 @@ function updateTree(svgelement) {
             if(tree[id].isProtected == true) {
                 tree[id].isProtected = false
                 svgelement.classList.remove("protected")
+                tree[id].state.protectionTime = 0
             }
-        }, approx(protectionDuration,20))
+        }, tree[id].state.totalProtectionTime)
     }
+    // 2. if the tree is about to lose its protection:
     if (
         // tree has been marked as not-to-be-protected
         (tree[id].isProtected == false) 
         && 
         // but it is currently in a "protected" state
         svgelement.classList.contains("protected")
-    ) // this means that it's going to lose its protection now
+    ) 
     {
         svgelement.classList.remove("protected")
+    }
+    // 3. if the tree is within the protected state:
+    if (
+        // tree has been marked as to-be-protected
+        (tree[id].isProtected == true)
+        && 
+        // and it is currently "protected"
+        svgelement.classList.contains("protected") == true
+    ) {
+        // console.log(`the tree is within the protected state. protectionTime ${tree[id].state.protectionTime} out of ${tree[id].state.totalProtectionTime}`)
+        tree[id].state.protectionTime += REFRESH_TIME
+        if (tree[id].state.protectionTime <= 0) 
+            tree[id].state.protectionTime = 0
+        if (tree[id].state.protectionTime >= tree[id].state.totalProtectionTime) 
+            tree[id].state.protectionTime = tree[id].state.totalProtectionTime
     }
 
 
@@ -639,9 +657,17 @@ function updateTree(svgelement) {
     svgelement.innerHTML = svgtree.src.innerhtml[tree[id].state.now[0]][tree[id].state.now[1]]
     // -- 2. it sets the colour for those svg-shapes
     for (const p of foliages) {
-        if(tree[id].isProtected) p.style.fill = tree[id].properties.colour.foliageProtected
         else if(tree[id].state.now[0] >= /* tree is dry (or worse) */ 2) p.style.fill = tree[id].properties.colour.foliageDry
         else /* tree is normal */ p.style.fill = tree[id].properties.colour.foliageNormal
+        if (tree[id].isProtected) {
+            p.style.fill = interpolateHSLColour(
+                tree[id].properties.colour.foliageProtected, 
+                tree[id].properties.colour.foliageNormal, 
+                tree[id].state.totalProtectionTime, 
+                tree[id].state.protectionTime, 
+                1, 1, 1
+            )
+        }
     }
     for (const p of stumps) { p.style.fill = tree[id].properties.colour.stump }
     // -- 3. sound feedback:
@@ -1406,6 +1432,8 @@ for (let i = 0; loopRunner; i++) {
             default:    /* [state, substate] */ [0,0],
             previous:   /* [state, substate] */ [0,0],
             now:        /* [state, substate] */ [0,0],
+            totalProtectionTime: approx(protectionDuration, 20), 
+            protectionTime: 0, // how much time has this tree been protected for
         },
         properties: {
             resilience: /* placeholder */ 1, // min value = 1
