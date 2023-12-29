@@ -609,12 +609,7 @@ function updateTree(svgelement) {
         } 
         else {
             // move it to the next state
-            tree[id].state.now[0]++ 
-            // but if the next state exceeds the total states, then reset the tree to state-0.
-            if ( tree[id].state.now[0] >= svgtree.src.innerhtml.length )
-                tree[id].state.now[0] = 0
-            // and: whatever stage the tree moves to, set its sub-stage to be 0
-            tree[id].state.now[1] = 0 
+            tree[id].behaviour = 1
         }
     }
 
