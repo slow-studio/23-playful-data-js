@@ -199,25 +199,22 @@ function getStylePropertyFromRoot(property) {
  * - randomiseHSLColour('var(--fire)', 15, 30)
  */
 function randomiseHSLColour(c, rhby, rlby, blocker) {
-    if(c.slice(0,3)=='var') {
-        if(blocker) return c
-        c = c.slice(c.indexOf("(")+1,c.indexOf(")"))
+    if (c.slice(0, 3) == 'var') {
+        c = c.slice(c.indexOf("(") + 1, c.indexOf(")"))
     }
-    if(c.slice(0,2)=='--') {
-        if(blocker) return `var(${c})`
+    if (c.slice(0, 2) == '--') {
         c = getStylePropertyFromRoot(`var(${c})`)
     }
-    if(blocker) return c
     let hsl = c.split(",")
-    if(hsl[0].split("(")[0]!="hsl") {
+    if (hsl[0].split("(")[0] != "hsl") {
         console.log(`supplied colour "${c}" is not in HSL format. so, randomiseHSLColour() can not randomise colour. so: returning colour {string} as-is: ${c}.`)
         return c
     }
     let h = Number(hsl[0].split("(")[1])
-    h = approx(h, rhby) ; if(h<=0 || h>=360) h=0 ; h = Math.floor(h);
+    h = blocker ? h : approx(h, rhby); if (h <= 0 || h >= 360) h = 0; h = Math.floor(h);
     let s = Number(hsl[1].split("%")[0].trim())
     let l = Number(hsl[2].split("%")[0].trim())
-    l = approx(l, rlby) ; if(l<=0) l=0 ; if(l>=100) l=100 ; l = Math.floor(l);
+    l = blocker ? l : approx(l, rlby); if (l <= 0) l = 0; if (l >= 100) l = 100; l = Math.floor(l);
     return `hsl(${h}, ${s}%, ${l}%)`
 }
 
