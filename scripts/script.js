@@ -1702,6 +1702,8 @@ function updateForest() {
         //         treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
         //         &&
         //         Math.random() > THRESHOLD_MAKEDRY
+        //         // and it is not protected
+        //         && tree[treeid].isProtected == false
         //     ) {
         //         tree[normals[i].getAttribute('tree-id')].behaviour = 1
         //     }
