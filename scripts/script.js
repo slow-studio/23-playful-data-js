@@ -79,6 +79,11 @@ var FRAMECOUNT = 0
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
+/** @type {number} steps a tree takes to dry out */
+const STEPSTODRYOUT = 20
+/** @type {number} step that a dry tree is at (out of a total of STEPSTODRYOUT number of steps) */
+let drySubstateCounter = /* placeholder*/ 0
+
 /** @type {number} a heap of mud/ash takes ✕ times longer to begin growing into a tree */
 const ABSENT_TIME_MULTIPLIER = 10
 /** @type {number} a fully-grown tree resists drying for these many ✕ times longer */
@@ -431,6 +436,7 @@ function updateTree(svgelement) {
     const foliages = svgelement.getElementsByClassName('foliage')
     const stumps = svgelement.getElementsByClassName('stump')
     const fires = svgelement.getElementsByClassName('fire')
+    const stepstodryout = STEPSTODRYOUT *  tree[id].properties.resilience
 
     /* tree memorises its previous state */
     tree[id].state.previous[0] = tree[id].state.now[0]
@@ -502,6 +508,7 @@ function updateTree(svgelement) {
             tree[id].state.now[1] = 0
             break;
         case 1:
+            /* state-specific stuff */
             // the tree should grow, till it reaches full size.
             if (tree[id].state.now[1] < svgtree.src.innerhtml[1].length - 1) 
             {
@@ -513,15 +520,27 @@ function updateTree(svgelement) {
             // once it is at full size, the tree should stop growing
             else // if (tree[id].state.now[1] == svgtree.src.innerhtml[1].length - 1) 
                 tree[id].state.now[1] = svgtree.src.innerhtml[1].length - 1
+            /* other stuff */
+            // if the tree were to start drying, this variable helps the tree start at its least dry state
+            tree[id].state.drySubstateCounter = 0
             break;
         case 2:
+            // calculate how dry the tree is, i.e., its dryness-substate
+            tree[id].state.drySubstateCounter++
+            // keep drySubstateCounter within bounds
+            if (tree[id].state.drySubstateCounter <= 0) tree[id].state.drySubstateCounter = 0
+            if (tree[id].state.drySubstateCounter >= stepstodryout) tree[id].state.drySubstateCounter = stepstodryout
             break;
         case 3:
+            /* state-specific stuff */
             // keep cycling through all fire levels:
             if (tree[id].state.now[1] < svgtree.src.innerhtml[3].length - 1) 
                 tree[id].state.now[1]++
             else // if (tree[id].state.now[1] == svgtree.src.innerhtml[3].length - 1) 
                 tree[id].state.now[1] = 0
+            /* other stuff */
+            // if the tree were to stop burning, this variable helps the tree start at its dryest state
+            tree[id].state.drySubstateCounter = stepstodryout
             break;
         case 4:
             break;
@@ -654,8 +673,6 @@ function updateTree(svgelement) {
     svgelement.innerHTML = svgtree.src.innerhtml[tree[id].state.now[0]][tree[id].state.now[1]]
     // -- 2. it sets the colour for those svg-shapes
     for (const p of foliages) {
-        else if(tree[id].state.now[0] >= /* tree is dry (or worse) */ 2) p.style.fill = tree[id].properties.colour.foliageDry
-        else /* tree is normal */ p.style.fill = tree[id].properties.colour.foliageNormal
         if (tree[id].isProtected) {
             p.style.fill = interpolateHSLColour(
                 tree[id].properties.colour.foliageProtected, 
@@ -665,6 +682,19 @@ function updateTree(svgelement) {
                 1, 1, 1
             )
         }
+        else if (tree[id].state.now[0] == 2) {
+            p.style.fill = interpolateHSLColour(
+                tree[id].properties.colour.foliageNormal, // start colour. e.g. "hsl(41, 65%, 39%)"
+                tree[id].properties.colour.foliageDry, // end colour.
+                stepstodryout,
+                tree[id].state.drySubstateCounter,
+                1/8, 8, 2
+            )
+        }
+        else if (tree[id].state.now[0] > 2) {
+            p.style.fill = tree[id].properties.colour.foliageDry
+        }
+        else /* tree is normal */ p.style.fill = tree[id].properties.colour.foliageNormal
     }
     for (const p of stumps) { p.style.fill = tree[id].properties.colour.stump }
     // -- 3. sound feedback:
@@ -1429,6 +1459,8 @@ for (let i = 0; loopRunner; i++) {
             default:    /* [state, substate] */ [0,0],
             previous:   /* [state, substate] */ [0,0],
             now:        /* [state, substate] */ [0,0],
+            /* state-specific parameters */
+            drySubstateCounter: 1, // when a tree is drying out, this helps us keep track of how dry it is. (it helps us assign a suitable colour to the tree.)
             totalProtectionTime: approx(protectionDuration, 20), 
             protectionTime: 0, // how much time has this tree been protected for
         },
