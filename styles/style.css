@@ -162,6 +162,9 @@ svg {
     stroke-width:2px;
 }
 
+#forest .tree svg .invisible {
+    opacity: 0;
+}
 #forest .tree svg .foliage {
     fill: var(--green);
 }
@@ -173,6 +176,9 @@ svg {
 }
 #forest .tree svg.burning .foliage {
     fill: var(--autumn);
+}
+#forest .tree svg.burning .stump {
+    opacity: .05;
 }
 #forest .tree svg.protected .foliage {
     fill: var(--protected);
