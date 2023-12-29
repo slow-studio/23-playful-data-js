@@ -545,6 +545,7 @@ function updateTree(svgelement) {
     // 2. update state based on set-behaviour
     if (tree[id].behaviour != 0) {
         tree[id].state.now[0] += tree[id].behaviour
+        // console.log(`updated tree-${id}'s state to ${tree[id].state.now[0]}.`)
         if(tree[id].state.now[0] < 0 || tree[id].state.now[0] > svgtree.src.innerhtml.length - 1)
             tree[id].state.now[0] = 0
         switch(tree[id].behaviour) {
@@ -578,7 +579,7 @@ function updateTree(svgelement) {
             )
             ||
             (
-                // if the tree is fully-grown
+                // if it is a normal tree
                 tree[id].state.now[0] == 1
                 // and is also a resilient tree (i.e., likely to take some time to dry-out)
                 && Math.random() > 1 / (NORMAL_TIME_MULTIPLIER * tree[id].properties.resilience)
@@ -610,10 +611,11 @@ function updateTree(svgelement) {
         else {
             // move it to the next state
             tree[id].behaviour = 1
+            // console.log(`(auto-cycle) tree[id].behaviour: ${tree[id].behaviour}`)
         }
     }
 
-    /* update the class attached to the tree's html-element  */
+    /* update the class attached to the tree's svg-element  */
     // 1. erase all previous classes:
     const classes = svgelement.classList
     for (let i = 0; i < classes.length; i++) {
@@ -646,9 +648,6 @@ function updateTree(svgelement) {
     if(classs.length>0) // this condition should always evaluate to true, but it's good to still check
         svgelement.classList.add(...classs)
     else console.log(`warning!: tree-${id} did not get assigned a state-class. please check source-code.`)
-
-    // console.log("change t# " + id)
-    // console.log(tree[id])
 
     /* tree changes appearance: */
     // -- 1. it updates its svg shape
@@ -1434,7 +1433,7 @@ for (let i = 0; loopRunner; i++) {
             protectionTime: 0, // how much time has this tree been protected for
         },
         properties: {
-            resilience: /* placeholder */ 1, // min value = 1
+            resilience: /*  must be an integer (i.e., min value = 1). the value here is a placeholder. actual value set by updateTree(). */ 1, 
             colour: {
                 foliageProtected: randomiseHSLColour('--protected', 5, 15, forestSettings.orderly.colour),
                 foliageNormal: randomiseHSLColour('--green', 3, 15, forestSettings.orderly.colour),
@@ -1695,10 +1694,10 @@ function updateForest() {
         //     if (
         //         // if the tree is fully grown
         //         treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
-        //         &&
-        //         Math.random() > THRESHOLD_MAKEDRY
         //         // and it is not protected
         //         && tree[treeid].isProtected == false
+        //         // and we can overcome this threshold (so that only a few trees starting drying at any given time)
+        //         && Math.random() > THRESHOLD_MAKEDRY
         //     ) {
         //         tree[normals[i].getAttribute('tree-id')].behaviour = 1
         //     }
