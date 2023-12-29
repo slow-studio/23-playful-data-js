@@ -11,6 +11,7 @@ forest:
     [✓] absent trees have fully-grown-tree svg-path in them, but it is invisible. (use class='invisible' for this.)
 [✓] state-change from normal to dry should be gradual. (interpolate colour.)
 [✓] tap on an absent-tree to make it grow. (because it has a larger clickable-area.)
+[ ] when tapped on, an absent tree respawns BUT ONLY at the start of the game.
 [ ] seed dryness in a single spot, and let the dryness spread organically
 [ ] content should be different depending on the person's behaviour: { played at all, clicked at all, saved the forest well, did poorly, played for long, etc }.
 
