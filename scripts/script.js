@@ -367,7 +367,7 @@ function spreadInfection(trees, state, immunity, spreadDistance, spreadUniformly
                 for(let k=_y-spreadDistance ; k<=_y+spreadDistance ; k++) {
                     const neighbourSvg = document.querySelector(`[data-pos="${j},${k}"]`)
                     if (
-                        Math.random() > (spreadUniformly ? 0 : immunity)
+                        true
                         && neighbourSvg
                         // and we're not selecting the tree itself
                         && (j == _x && k == _y) == false
@@ -379,45 +379,56 @@ function spreadInfection(trees, state, immunity, spreadDistance, spreadUniformly
                         // and to handle the staggered arangement of trees
                         && (_y%2==0 ? j>=_x : j<=_x)
                     ) {
-                        const id = neighbourSvg.getAttribute('tree-id')
-                        if (state == 3 || state == 2) {
-                            if (
-                                neighbourSvg.classList.contains("charred")
-                                ||
-                                neighbourSvg.classList.contains("absent")
-                                ||
-                                neighbourSvg.classList.contains("protected")
-                            ) {
-                                // can't do anything
-                            }
-                            else if (
-                                neighbourSvg.classList.contains("normal")
-                            ) {
-                                // console.log(`spreading dryness. making tree-${id} dry.`)
-                                tree[id].behaviour = 1
-                            }
-                            else if (
-                                state == 3
-                                &&
-                                neighbourSvg.classList.contains("dry")
-                            ) {
-                                // console.log(`spreading fire. tree-${id} catches fire.`)
-                                tree[id].behaviour = 1
-                            }
-                        }
-                        else if (state == 1) {
-                            if (
-                                neighbourSvg.classList.contains("absent")
-                            ) {
-                                // console.log(`spreading health. tree-${id} is seeded.`)
-                                tree[id].behaviour = 1
-                            }
-                            // if (
-                            //     neighbourSvg.classList.contains("dry")
-                            // ) {
-                            //     // console.log(`spreading health. dry tree-${id} becomes healthy again.`)
-                            //     tree[id].behaviour = -1
-                            // }
+                        const n_id = neighbourSvg.getAttribute('tree-id')
+                        const probablyhappens = Math.random() > (spreadUniformly ? 0 : immunity)
+                        switch(state) {
+                            case 1: // tree is normal, and so is trying to spread its normal'ness to neighbours
+                                if (neighbourSvg.classList.contains("absent") && probablyhappens) {
+                                    // console.log(`spreading health. tree-${n_id} is seeded.`)
+                                    tree[n_id].behaviour = 1
+                                }
+                                if (neighbourSvg.classList.contains("dry") && probablyhappens) {
+                                    // console.log(`spreading health. dry tree-${n_id} becomes healthy again.`)
+                                    tree[n_id].behaviour = -1
+                                }
+                                break;
+                            case 2: // tree is dry, and so is trying to dry-out its neighbours
+                                if (
+                                    neighbourSvg.classList.contains("charred")
+                                    ||
+                                    neighbourSvg.classList.contains("absent")
+                                    ||
+                                    neighbourSvg.classList.contains("protected")
+                                ) {
+                                    // can't do anything
+                                } 
+                                else if (neighbourSvg.classList.contains("normal") && probablyhappens) {
+                                    // console.log(`spreading dryness. making tree-${n_id} dry.`)
+                                    tree[n_id].behaviour = 1
+                                }
+                                break;
+                            case 3: // tree is on fire, and is affecting neighbouring trees
+                                if (
+                                    neighbourSvg.classList.contains("charred")
+                                    ||
+                                    neighbourSvg.classList.contains("absent")
+                                    ||
+                                    neighbourSvg.classList.contains("protected")
+                                ) {
+                                    // can't do anything
+                                }
+                                else {
+                                    /* logic: when a tree is on fire, its neighbours all dry out (probability = 1). if they are already dry, they may (i.e., probability < 1) start burning themselves. */
+                                    if (neighbourSvg.classList.contains("normal")) {
+                                        // console.log(`spreading fire. making tree-${n_id} dry.`)
+                                        tree[n_id].behaviour = 1
+                                    }
+                                    if (neighbourSvg.classList.contains("dry") && probablyhappens) {
+                                        // console.log(`spreading fire. tree-${n_id} catches fire.`)
+                                        tree[n_id].behaviour = 1
+                                    }
+                                }
+                                break;
                         }
                     }
                 }
