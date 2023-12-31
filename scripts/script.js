@@ -33,39 +33,33 @@ function cheatcodes(e) {
         console.log(`update infoBox content: set introductory info.`)
         setInfo(infoBox, 1)
         console.log(`show #infoBox.`)
-        showBox(infoBox, false)
+        showBox(infoBox)
         break;
-    case '3':
-        console.log(`update infoBox content: set 'good' news.`)
-        setInfo(infoBox, 3)
+    case '8':
+        console.log(`update infoBox content: nudging person to tap the screen.`)
+        setInfo(infoBox, 8)
         console.log(`show #infoBox.`)
-        showBox(infoBox, false)
-        break;
-    case '4':
-        console.log(`update infoBox content: set 'bad' news.`)
-        setInfo(infoBox, 4)
-        console.log(`show #infoBox.`)
-        showBox(infoBox, false)
+        showBox(infoBox)
         break;
     case '2':
-        console.log(`update infoBox content: nudging person to tap the screen.`)
+        console.log(`update infoBox content: display goal.`)
         setInfo(infoBox, 2)
         console.log(`show #infoBox.`)
-        showBox(infoBox, false)
+        showBox(infoBox)
         break;
     case '0':
         console.log(`update infoBox content: conclusion.`)
         setInfo(infoBox, 0)
         console.log(`show #infoBox.`)
-        showBox(infoBox, false)
+        showBox(infoBox)
         break;
     case 'z': 
         console.log(`show #infoBox.`)
-        showBox(infoBox, false)
+        showBox(infoBox)
         break;
     case 'x': 
         console.log(`hide #infoBox.`)
-        hideBox(infoBox, false)
+        hideBox(infoBox)
         break;
   }
 }
@@ -99,17 +93,20 @@ const CHARRED_TIME_MULTIPLIER = 25
  * game state variables
  */
 let gameState = {
+    print: false,
     userHasBeenActive: false,
-    startTime: new Date().getTime(),
-    playTime: 0,
+    startTime: Date.now(), // milliseconds
+    playTime: 0, // milliseconds
+    playTimeSeconds: 0, // seconds
     starthealth: 1,
     health: 1,
     clicks: 0,
     clicksontrees: 0,
     clicksonsicktrees: 0,
-    infoBoxSeenCounter: 0,
-    goodNewsCounter: 0,
-    shownMessage2: false
+    shownInfo1: false,
+    shownInfo2: false,
+    shownInfo8: false,
+    shownInfo0: false,
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
@@ -118,9 +115,6 @@ const TREELIMIT = 7500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 180000 * IDEAL_REFRESH_RATE / REFRESH_RATE // e.g. 180000 ms = 3 min
-
-/** @type {number} if the infoBox is shown these many times, we offer a button to show #content */
-const INFOBOXCOUNTLIMIT = 0
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
@@ -281,6 +275,14 @@ function showcontent(show) {
 // don't show #content at the start : show the #playarea (and #forest) only.
 showcontent(false)
 
+function startExperience() {
+    gameState.startTime = Date.now()
+    gameState.playTime = Date.now() - gameState.startTime
+    gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
+    gameState.health = gameState.starthealth
+    gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
+}
+
 /**
  * randomly convert some "normal" trees to their "dry" state
  * @param {number} [n=1] - number of trees to seed
@@ -387,10 +389,10 @@ function spreadInfection(trees, state, immunity, spreadDistance, spreadUniformly
                                     // console.log(`spreading health. tree-${n_id} is seeded.`)
                                     tree[n_id].behaviour = 1
                                 }
-                                if (neighbourSvg.classList.contains("dry") && probablyhappens) {
-                                    // console.log(`spreading health. dry tree-${n_id} becomes healthy again.`)
-                                    tree[n_id].behaviour = -1
-                                }
+                                // if (neighbourSvg.classList.contains("dry") && probablyhappens) {
+                                //     // console.log(`spreading health. dry tree-${n_id} becomes healthy again.`)
+                                //     tree[n_id].behaviour = -1
+                                // }
                                 break;
                             case 2: // tree is dry, and so is trying to dry-out its neighbours
                                 if (
@@ -523,7 +525,7 @@ function updateTree(svgelement) {
                 // the tree should grow, till it reaches full size.
                 if (tree[id].state.now[1] < svgtree.src.innerhtml[1].length - 1) 
                 {
-                    if (FRAMECOUNT % tree[id].properties.resilience == 0)
+                    if (FRAMECOUNT % tree[id].properties.resilience == 0 && Math.random() > .15)
                     tree[id].state.now[1]++
                     // and, at this time, don't let the tree progress to another state
                     tree[id].behaviour = 0
@@ -780,331 +782,6 @@ function playSound(sound, volume) {
     infoBox
     ------------------------------------------------------------  */
 
-const headlines = {
-    good: [
-        /**
-         * note: generated by openai's chatgpt in 202311
-         * prompt ~ 
-         * news headlines describing human activities that are helpful for the environment and mitigate climate change (5–12 words in length). with each "headline", add a longer "byline" (which is 90–120 words long), that better explains the activity; it can also include names of ministers, companies, organisations; it can also refer to specific regions or countries in the world. in the byline, try to include some statistics about the issue being described. also: for each item, please include a "source", which is a name of a newspaper, journal, or publication. also include an "author", which can be the name of a single person, or multiple (2–3) people. and, finally, include a "date" which comprises a month and a date (but do not specify a year). an example of the typical date format is "Sep 17".
-         */
-        {
-            "headline": "Solar Revolution Powers India's Green Future",
-            "byline": "India's Ministry of New and Renewable Energy, in collaboration with leading solar companies, has installed over 35 gigawatts of solar capacity across the nation. This ambitious initiative aims to reduce greenhouse gas emissions by 30% in 10 years, helping combat climate change. The solar industry now employs over 300,000 people, providing a substantial boost to the economy while contributing to India's commitment to cleaner energy sources. This transition to solar power has already saved the country 55 million tons of CO2 emissions annually, making it a crucial step in India's commitment to environmental sustainability and a greener future.",
-            "source": "The Times of Bharat",
-            "author": "Priya Sharma",
-            "date": "Mar 15"
-        },
-        {
-            "headline": "Urban Forests Thrive: London Plants One Million Trees",
-            "byline": "London's Mayor, Boris Khan, has launched a city-wide initiative to plant one million trees within 5 years. These trees will capture an estimated 2,500 tons of CO2 annually and enhance urban biodiversity. The effort involves community engagement, schools, and partnerships with environmental organizations, demonstrating that cities can be part of the solution to climate change. London's urban forest initiative, which has already planted 500,000 trees, is expected to reduce the city's annual CO2 emissions by an impressive 150,000 tons, providing a greener and healthier future for its residents.",
-            "source": "The British Guardian",
-            "author": "John Smith and Emma Wilson",
-            "date": "Apr 22"
-        },
-        {
-            "headline": "Electric Car Sales Soar, Norway Leads the Charge",
-            "byline": "Norway has become a global leader in electric vehicle adoption, with 85% of new car sales being electric or hybrid vehicles. Government incentives, including tax breaks and toll exemptions, have encouraged this shift, reducing carbon emissions and air pollution. As a result, Norway's CO2 emissions from the transportation sector have significantly decreased. This transition to electric cars has led to a remarkable 40% reduction in urban air pollution levels, contributing to better public health and quality of life.",
-            "source": "Energy Watch",
-            "author": "Maria Andersen",
-            "date": "Jul 9"
-        },
-        {
-            "headline": "Plastic Waste Declines as Global Cleanup Campaign Gains Traction",
-            "byline": "Environmental organizations and companies worldwide have organized massive cleanup efforts, removing millions of tons of plastic waste from oceans and coastlines. The United Nations reports a 30% reduction in ocean plastic pollution, highlighting the success of these campaigns. This collective action has contributed to the protection of marine ecosystems and mitigated climate change impacts. The reduction in ocean plastic pollution has led to a 15% decrease in harm to marine wildlife, preserving fragile ecosystems and ensuring a healthier planet.",
-            "source": "International Geographic",
-            "author": "David Wilson",
-            "date": "Oct 4"
-        },
-        {
-            "headline": "Reforestation Boom in Brazil's Amazon Rainforest",
-            "byline": "Brazil's government, in partnership with international conservation organizations, is investing in large-scale reforestation projects in the Amazon. They aim to restore 100 million acres of rainforest in 10 years, with a focus on preserving biodiversity and absorbing CO2. This effort is critical in combating deforestation and safeguarding the planet's vital carbon sinks. Reforestation in the Amazon is already showing results, with a 25% reduction in deforestation rates and the preservation of countless species in one of the world's most biodiverse regions.",
-            "source": "BARC News",
-            "author": "Maria Santos and Juan Hernandez",
-            "date": "Nov 20"
-        },
-        {
-            "headline": "Renewable Energy Surpasses Fossil Fuels in Germany",
-            "byline": "Germany has reached a milestone in its transition to clean energy. Renewable energy sources, including wind and solar, now produce more electricity than fossil fuels. This shift has significantly reduced carbon emissions and is a major step towards Germany's goal of becoming carbon-neutral within 25 years. With renewable energy contributing to 52% of the country's electricity supply, Germany sets an example for a sustainable energy future.",
-            "source": "Der Spiel",
-            "author": "Hans Müller",
-            "date": "May 8"
-        },
-        {
-            "headline": "China's Green Belt Initiative Aims to Combat Desertification",
-            "byline": "China's Ministry of Ecology and Environment is leading a nationwide effort to combat desertification through its Green Belt initiative. By planting trees and vegetation in arid regions, the program aims to restore 50 million acres of land in 10 years, reducing soil erosion and sequestering carbon. This initiative is crucial in the fight against desertification and its adverse effects on climate and agriculture.",
-            "source": "Southern Chinese Morning Post",
-            "author": "Li Wei",
-            "date": "Jun 14"
-        },
-        {
-            "headline": "Netherlands Invests in Coastal Protection to Counter Rising Sea Levels",
-            "byline": "The Netherlands is implementing an extensive coastal protection plan to adapt to rising sea levels. Investments in dikes, storm surge barriers, and beach nourishment aim to safeguard the low-lying country from the threats of climate change. These measures are part of the Dutch Delta Program, which is considered one of the world's most comprehensive strategies to address sea level rise and protect coastal communities.",
-            "source": "Scandinavian News Network",
-            "author": "Sophie van der Meer",
-            "date": "Aug 30"
-        },
-        {
-            "headline": "Australia's Great Barrier Reef Shows Signs of Recovery",
-            "byline": "Efforts to protect and restore Australia's Great Barrier Reef are showing progress. Coral restoration projects and reductions in pollution have led to an increase in coral cover. While challenges persist, including climate change impacts, these conservation initiatives provide hope for the world's largest coral reef system and the diverse marine life it supports.",
-            "source": "The Sydney Morning Owl",
-            "author": "James Cooper",
-            "date": "Sep 12"
-        },
-        {
-            "headline": "Kenya's Reforestation Efforts Combat Deforestation and Boost Economy",
-            "byline": "Kenya's government, in partnership with organizations and local communities, is planting millions of trees to combat deforestation and promote sustainable forestry. The initiative has led to increased forest cover, reduced soil erosion, and the creation of jobs in the forestry sector. In 10 years, Kenya aims to restore 5.1 million acres of degraded land and enhance its natural carbon sequestration capacity.",
-            "source": "Press Office, UNAfrica",
-            "author": "Alice Mwangi",
-            "date": "Jul 27"
-        },
-        {
-            "headline": "Green Buildings on the Rise Worldwide",
-            "byline": "The construction industry is increasingly adopting sustainable building practices, with a growing number of green buildings and eco-friendly construction materials. This trend is reducing the carbon footprint of the built environment and improving energy efficiency. Green buildings not only help mitigate climate change but also offer cost savings and enhanced quality of life for occupants.",
-            "source": "Green Architectural Digest",
-            "author": "Michael Chen",
-            "date": "Apr 5"
-        },
-        {
-            "headline": "Sweden's Carbon Tax Encourages Emissions Reduction",
-            "byline": "Sweden's carbon tax, introduced in the early 1990s, has played a significant role in curbing greenhouse gas emissions. The tax incentivizes businesses and individuals to reduce their carbon footprint by taxing emissions from fossil fuels. This policy has led to a substantial decrease in emissions and demonstrates the potential of carbon pricing as a tool to combat climate change.",
-            "source": "Swedish Fika Times",
-            "author": "Eva Eriksson",
-            "date": "Oct 19"
-        },
-        {
-            "headline": "Eco-Friendly Agriculture Practices Flourish in India",
-            "byline": "Indian farmers are embracing eco-friendly agriculture practices, including organic farming and sustainable crop rotation. These methods reduce the use of chemical pesticides and fertilizers, preserving soil health and biodiversity. Such practices contribute to mitigating the environmental impact of agriculture while promoting food security and sustainability.",
-            "source": "The Non-Fascist Hindu",
-            "author": "Rajesh Patel",
-            "date": "Feb 11"
-        },
-        {
-            "headline": "Costa Rica Achieves Carbon Neutrality and Sets New Goals",
-            "byline": "Costa Rica has become one of the first countries to achieve carbon neutrality. This accomplishment was reached through a combination of renewable energy sources, reforestation efforts, and sustainable land use practices. The country's commitment to sustainability is evident in its plans to become fully fossil fuel-free and achieve even greater carbon neutrality in the coming years.",
-            "source": "CR Times",
-            "author": "Ana Rodriguez",
-            "date": "Nov 7"
-        },
-        {
-            "headline": "Innovative Water Recycling Solutions Combat Drought in California",
-            "byline": "California is tackling water scarcity and drought with innovative water recycling technologies. These systems purify wastewater to make it safe for drinking and irrigation, reducing the strain on traditional water sources. As California faces increasingly severe droughts due to climate change, these solutions are crucial for ensuring water sustainability in the state.",
-            "source": "The Greater Floridian Times",
-            "author": "Daniel Martinez",
-            "date": "Jun 3"
-        },
-        {
-            "headline": "Green Transportation Initiatives Transform New York City",
-            "byline": "New York City is undergoing a green transportation revolution, with expanded bike lanes, electric buses, and incentives for carpooling. These initiatives are reducing congestion, air pollution, and greenhouse gas emissions. New York City aims to create a more sustainable and accessible urban environment while mitigating the impacts of climate change.",
-            "source": "The NNY Times",
-            "author": "Jennifer Lee",
-            "date": "Aug 9"
-        },
-        {
-            "headline": "Indonesia's Mangrove Reforestation Fights Coastal Erosion",
-            "byline": "Indonesia is investing in mangrove reforestation to combat coastal erosion and protect communities from rising sea levels. Mangrove forests act as natural buffers, absorbing wave energy and reducing the impact of storms. This effort not only helps mitigate climate change but also safeguards the livelihoods of coastal residents.",
-            "source": "Djakarta News Network",
-            "author": "Rizki Pratama",
-            "date": "Sep 28"
-        },
-        {
-            "headline": "South Africa's Renewable Energy Boom Reduces Coal Dependency",
-            "byline": "South Africa is experiencing a renewable energy boom, with significant investments in wind and solar power. This transition reduces the country's dependency on coal and decreases carbon emissions. South Africa's commitment to green energy aligns with global efforts to combat climate change and transition to cleaner energy sources.",
-            "source": "The Times of South African",
-            "author": "Lungelo Nkosi",
-            "date": "Jul 17"
-        },
-        {
-            "headline": "Ecuador's Yasuni-ITT Initiative Protects Amazon Rainforest",
-            "byline": "Ecuador's Yasuni-ITT initiative pledges to keep oil reserves beneath the Amazon rainforest untapped, protecting one of the world's most biodiverse regions. This initiative aims to reduce carbon emissions by preserving the rainforest and preventing deforestation. By doing so, Ecuador contributes to global climate change mitigation and sets an example for conservation efforts worldwide.",
-            "source": "The Ecuadorian Times",
-            "author": "Carlos Lopez",
-            "date": "Dec 2"
-        },
-        {
-            "headline": "Efforts to Reduce Food Waste Gain Momentum Worldwide",
-            "byline": "Efforts to reduce food waste are gaining momentum globally, with governments, businesses, and individuals taking action to prevent food loss. Reducing food waste not only conserves resources and reduces methane emissions from landfills but also addresses food insecurity and contributes to sustainability.",
-            "source": "World Foods Journal",
-            "author": "Lucia Rodriguez",
-            "date": "Mar 19"
-        },
-        {
-            "headline": "Japan's Green Roofs Initiative Enhances Urban Biodiversity",
-            "byline": "Japan's green roofs initiative promotes the installation of vegetation on rooftops, enhancing urban biodiversity and mitigating the urban heat island effect. These green roofs improve air quality, reduce energy consumption, and provide habitat for wildlife. Japan's efforts in urban greening align with global goals to create more sustainable cities.",
-            "source": "So-so Tokyo",
-            "author": "Yuki Nakamura",
-            "date": "Jun 27"
-        },
-        {
-            "headline": "Clean Energy Transforms Portugal into a Renewable Powerhouse",
-            "byline": "Portugal has become a renewable energy powerhouse, with over 50% of its electricity coming from wind, solar, and hydropower. This transition has significantly reduced carbon emissions and made Portugal a leader in clean energy production. The country's efforts to transition to green energy are instrumental in mitigating climate change.",
-            "source": "Portuguese e-Gazette",
-            "author": "Carlos Silva",
-            "date": "Oct 14"
-        },
-        {
-            "headline": "Green Technology Spurs Sustainable Farming in the Netherlands",
-            "byline": "The Netherlands is embracing green technology in agriculture, using precision farming, drones, and sustainable practices. These innovations reduce the environmental impact of farming, lower pesticide use, and enhance crop yields. The Netherlands sets an example for sustainable agriculture practices and climate-conscious farming.",
-            "source": "Dutch Agriculturalists Today",
-            "author": "Marta van den Berg",
-            "date": "Apr 30"
-        },
-        {
-            "headline": "Chile's Protected Marine Areas Preserve Ocean Ecosystems",
-            "byline": "Chile is expanding its network of protected marine areas to safeguard ocean ecosystems and combat overfishing. These conservation efforts help maintain biodiversity and mitigate climate change by protecting vital marine habitats. Chile's commitment to marine preservation is vital for the health of the world's oceans.",
-            "source": "Associated Press Chile",
-            "author": "Diego Rodriguez",
-            "date": "Aug 16"
-        }
-    ],
-    bad: [
-        /** 
-         * note: generated by openai's chatgpt in 202311
-         * prompt ~ 
-         * news headlines describing human activities that are ultimately harmful for the environment and cause climate change. with a longer byline for each headline, that better explains the issue (and can also includes names of ministers, companies, organisations). try to include some statistics about the issue being described. also: for each item, please include a "source", which is a name of a newspaper, journal, or publication. also include an "author", which can be the name of a single person, or multiple (2–3) people.
-        */
-        {
-            "headline": "Brazil's Deforestation Spurs Climate Crisis",
-            "byline": "Rising deforestation rates in the Amazon, led by Environment Minister Carlos Silva, have resulted in a concerning 30% increase in greenhouse gas emissions. Environmental organizations like GreenWatch urge Brazil to take immediate action to combat climate change, as the country's deforestation is contributing to the loss of 50,000 square kilometers of forest each year.",
-            "source": "EcoWorld News",
-            "author": "Maria Santos",
-            "date": "Jul 10"
-        },
-        {
-            "headline": "Caribbean Plastics Imperil Marine Life and Climate",
-            "byline": "The plastic waste crisis engulfs the Caribbean as islands grapple with 8 million tons of plastic pollution yearly. Oceanographer Dr. Maria Rodriguez warns that this environmental disaster not only threatens marine life but also contributes to the region's escalating climate issues. Approximately 1,000 marine species are affected, and the plastic pollution contributes to a 1.5% annual increase in the Caribbean's sea surface temperature.",
-            "source": "Oceanic Observer",
-            "author": "John Martinez",
-            "date": "Sep 18"
-        },
-        {
-            "headline": "Southeast Asia's Rapid Urban Growth Intensifies Climate Challenges",
-            "byline": "In the face of unprecedented urban expansion, cities in Southeast Asia are grappling with the consequences. Climate experts, like Professor James Chen, highlight how the region's urban sprawl leads to habitat fragmentation, increased energy consumption, and heightened climate challenges. With urban populations set to reach 455 million in 10 years, this rapid growth results in a 35% increase in carbon emissions.",
-            "source": "Urban Insights",
-            "author": "Lisa Chang",
-            "date": "Mar 5"
-        },
-        {
-            "headline": "Emissions Surge Tied to Unregulated Chinese Industries",
-            "byline": "A recent study, led by climate scientist Dr. Li Wei, reveals the alarming role of unregulated industries in China. These sectors have contributed to a sharp rise in global emissions, accounting for 30% of the world's carbon footprint. Calls for international cooperation to mitigate climate change intensify. China's unregulated industries are responsible for a 40% increase in CO2 emissions in the past 15 years.",
-            "source": "Climate Impact Journal",
-            "author": "David Wang and Emily Liu",
-            "date": "Nov 14"
-        },
-        {
-            "headline": "Global Meat Supply Chain Linked to Methane Emissions",
-            "byline": "The global meat supply chain, controlled by fast-food giants like BurgerDeluxe, is under scrutiny as methane emissions from cattle rearing reach concerning levels. Environmentalists and experts, including Sarah Anderson, warn that these emissions are a significant contributor to climate change, demanding a reevaluation of food production practices. The meat industry alone is responsible for 14.5% of global greenhouse gas emissions.",
-            "source": "Sustainable Living Gazette",
-            "author": "Sophia Reynolds",
-            "date": "Jun 27"
-        },
-        {
-            "headline": "Indonesia's Forest Fires Stoke Climate Crisis",
-            "byline": "Annual forest fires in Indonesia, worsened by palm oil companies, release staggering amounts of carbon dioxide. Dr. Adi Kusumo, a leading environmental scientist, asserts that urgent action is needed to protect both the country's rich biodiversity and global climate stability. Indonesia's forest fires contribute to 1.8 gigatons of CO2 emissions annually.",
-            "source": "Environmental Pulse",
-            "author": "Liam Brown",
-            "date": "Oct 8"
-        },
-        {
-            "headline": "Plastic Pollution in Southeast Asian Rivers Amplifies Climate Concerns",
-            "byline": "Southeast Asia grapples with plastic waste suffocating its rivers, with a shocking 80% originating from corporations like PlastiCorp. Environmental advocates, including Dr. Priya Sharma, raise alarms as this plastic onslaught negatively impacts ecosystems and climate change. It's estimated that over 3 million metric tons of plastic are dumped into Southeast Asian waters each year.",
-            "source": "EcoWatch Asia",
-            "author": "Anna Nguyen and Daniel Smith",
-            "date": "Apr 19"
-        },
-        {
-            "headline": "African Mining Boom Fuels Carbon Emissions Crisis",
-            "byline": "The mining industry's rapid expansion across Africa, supported by major players like GoldEx, contributes to an alarming surge in carbon emissions. Climate researchers, including Professor Mohammed Diop, emphasize the urgent need to address this growing environmental threat. The mining sector in Africa has witnessed a 20% increase in emissions in the last decade.",
-            "source": "African Environmental Review",
-            "author": "Kwame Nkrumah",
-            "date": "Jul 12"
-        },
-        {
-            "headline": "European Aviation's Carbon Footprint Soars Amidst Low-Cost Travel Boom",
-            "byline": "Low-cost airlines, including FlyGreen, drive a dramatic rise in Europe's aviation carbon emissions. Experts like Dr. Elena Petrov highlight the connection between affordable air travel and increased climate impact, urging airlines to adopt greener practices. The aviation industry accounts for 2.5% of global carbon emissions, and Europe's low-cost carriers are among the fastest-growing contributors.",
-            "source": "Air Travel Insights",
-            "author": "Sophie Brown",
-            "date": "Feb 4"
-        },
-        {
-            "headline": "Overfishing in the North Atlantic Threatens Ecosystems and Climate Stability",
-            "byline": "The North Atlantic faces a severe overfishing crisis, with fisheries driven by corporations like SeaHarvest. Marine biologists, such as Dr. Maria Vargas, stress the repercussions on marine ecosystems and the broader impact on climate change. Overfishing has led to a 30% decline in North Atlantic fish populations in the past decade.",
-            "source": "Marine Life Monitor",
-            "author": "Mark Roberts",
-            "date": "Sep 21"
-        },
-        {
-            "headline": "Permafrost Thaw in Russia Accelerates Methane Release",
-            "byline": "As Russia's permafrost continues to thaw due to warming temperatures, methane emissions surge, according to the findings of Dr. Ivan Petrov. This vicious cycle intensifies climate concerns, calling for immediate action to mitigate the consequences. The thawing permafrost releases over 2 million metric tons of methane annually.",
-            "source": "Climate Science Digest",
-            "author": "Olga Ivanova",
-            "date": "May 15"
-        },
-        {
-            "headline": "Mining in the Amazon Basin Spurs Mercury Pollution and Climate Impact",
-            "byline": "Illegal gold mining operations in the Amazon Basin, linked to companies like GoldRush Ltd., have resulted in mercury pollution. Climate scientist Dr. Sofia Ramirez underscores how this toxic element amplifies environmental and climate crises. Mercury pollution from mining is responsible for a 10% increase in Amazonian water toxicity and a 5% rise in regional temperatures.",
-            "source": "Rainforest Watch",
-            "author": "Carlos Martinez",
-            "date": "Nov 9"
-        },
-        {
-            "headline": "Melting Glaciers in the Himalayas Trigger Water Scarcity and Climate Anxiety",
-            "byline": "Himalayan glaciers are melting at an alarming rate, causing water scarcity in the region. Dr. Raj Patel, a glaciologist, warns that this alarming trend is not only a threat to the livelihoods of millions but also a contributor to global climate concerns. The melting glaciers result in a 20% reduction in freshwater availability in the Himalayan region.",
-            "source": "Mountain Times",
-            "author": "Nina Gupta",
-            "date": "Apr 30"
-        },
-        {
-            "headline": "South American Cattle Ranching Expands, Contributing to Methane Emissions",
-            "byline": "The expansion of cattle ranching in South America, driven by meat industry giants like BeefWorld, leads to a surge in methane emissions. Environmentalists, including Maria Alvarez, emphasize the urgent need for sustainable farming practices. Methane emissions from cattle ranching contribute to a 15% increase in overall South American greenhouse gas emissions.",
-            "source": "Agricultural Insight",
-            "author": "Pedro Rodriguez",
-            "date": "Jul 7"
-        },
-        {
-            "headline": "Oil and Gas Extraction in the Arctic Amplifies Climate Crisis",
-            "byline": "Arctic oil and gas extraction operations, led by companies like ArcticDrill Corp, escalate greenhouse gas emissions. Climate scientists, including Dr. Emma Larsson, stress the dire consequences of Arctic resource exploitation on global climate stability. Arctic oil and gas extraction is responsible for a 12% increase in overall global carbon emissions.",
-            "source": "Polar Energy Review",
-            "author": "Olivia White",
-            "date": "Oct 11"
-        },
-        {
-            "headline": "Coal Mining in India's Heartland Fuels Air Pollution and Climate Change",
-            "byline": "Extensive coal mining in India's heartland, largely driven by companies such as CoalPower Ltd., results in severe air pollution and greenhouse gas emissions. Environmental advocates and health experts, including Dr. Anika Verma, call for cleaner energy alternatives. Coal mining in India contributes to a 7% rise in air pollution levels and a 6% increase in the country's greenhouse gas emissions.",
-            "source": "Indian Environmental News",
-            "author": "Rajesh Sharma and Priya Gupta",
-            "date": "Mar 3"
-        },
-        {
-            "headline": "Agricultural Intensive in the American Midwest Aggravates Climate Change",
-            "byline": "Intensive agriculture in the American Midwest, under the influence of agribusiness giants like AgriCo, contributes to soil degradation and greenhouse gas emissions. Soil scientist Dr. Mark Thompson underscores the critical need for sustainable farming practices. The extensive agricultural activities in the American Midwest lead to a 10% decrease in soil quality and an 8% increase in regional greenhouse gas emissions.",
-            "source": "Midwest Farming Gazette",
-            "author": "Michael Johnson",
-            "date": "Aug 20"
-        },
-        {
-            "headline": "Illegal Wildlife Trade Across Southeast Asia Poses Threat to Biodiversity and Climate",
-            "byline": "Illegal wildlife trade across Southeast Asia, aided by underground networks, threatens both biodiversity and global climate stability. Conservationist Dr. Leanne Nguyen highlights the profound ecological and climate impacts. The illegal wildlife trade leads to a 5% decrease in Southeast Asia's biodiversity and a 3% rise in wildlife-related carbon emissions.",
-            "source": "Wildlife Watch Weekly",
-            "author": "Emily Wilson and James Chen",
-            "date": "Apr 2"
-        },
-        {
-            "headline": "Australia's Expanding Coal Industry Sparks Climate Controversy",
-            "byline": "Australia's coal industry expansion, supported by major companies like OzCoal Ltd., raises climate concerns. Environmentalists, including Dr. James Turner, argue that Australia's commitment to combating climate change is at odds with its coal exports. The expansion of Australia's coal industry contributes to a 10% increase in the country's carbon emissions and a 7% rise in global coal consumption.",
-            "source": "Australian Climate Herald",
-            "author": "Sophia Reynolds",
-            "date": "Jun 29"
-        },
-        {
-            "headline": "Microplastics in European Waterways Compound Marine Ecosystem Stress and Climate Impact",
-            "byline": "The presence of microplastics in European waterways, largely attributed to industries like PlastiTech, deepens the stress on marine ecosystems and contributes to the climate crisis. Researchers, including Dr. Elena Petrov, emphasize the need for comprehensive solutions to tackle this issue. The microplastics in European waterways are responsible for a 5% increase in marine ecosystem stress and a 2% rise in regional temperatures.",
-            "source": "Waterway Watch Europe",
-            "author": "Lucas Martinez and Maria Andersen",
-            "date": "Dec 13"
-        }
-    ]
-};
-
 /** @type {HTMLElement} */
 const infoBox = document.getElementById('infoBox')
 
@@ -1113,25 +790,11 @@ const showBoxDelayDuration = 600
 updateStyle(infoBox,"transition-duration",infoBoxTransitionDuration+'ms')
 
 // sets the content and display-position of the infoBox at startup
-setInfo(infoBox, 0)
-hideBox(infoBox, true)
-
-/** 
- * @returns {object} 
- * @param {number} infotype
-*/
-function fetchHeadline(infotype) {
-    let newstype = /* placeholder */ ""
-    switch(infotype) {
-        case 3: newstype = "good"; break;
-        case 4: newstype = "bad"; break;
-    }
-    return headlines[newstype][Math.floor(headlines[newstype].length * Math.random())]
-}
+setInfo(infoBox, 1)
 
 /**
  * @param {*} box
- * @param {number} infotype - 1: intro | 2: instructions to tap | 3: good news | 4: bad news | 0: conclusion
+ * @param {number} infotype - 1: intro | 2: display task | 8: instructions to tap | 0: conclusion
  */
 function setInfo(box, infotype) {
     box.setAttribute('infotype', infotype)
@@ -1140,44 +803,31 @@ function setInfo(box, infotype) {
     // populate the box
     switch(infotype) {
         case 1:
-            // add info
-            let i1 = addChildTag("h3")
-            i1.innerHTML = `our world is like a forest.<br>what we do in our world,<br>we do to the forest too.`
-            let i2 = addChildTag("p")
-            i2.innerHTML = `when needed, please nurture a tree by tapping on it.`
+            // introduction
+            let i1 = addChildTag(box, 'h3')
+            i1.innerHTML = `plant your forest.`
+            let i2 = addChildTag(box, 'p')
+            i2.innerHTML = `tap on the earth to help nurture a tree.`
             break;
         case 2:
-            // add instructions
-            let p1 = addChildTag("h3")
-            p1.innerHTML = `you can save the forest.`
-            let p2 = addChildTag("p")
-            p2.innerHTML = `please tap on a dry or burning tree to save it.`
+            // display task
+            let g1 = addChildTag(box, 'h3')
+            g1.innerHTML = `take care of your forest.`
+            let g2 = addChildTag(box, 'p')
+            g2.innerHTML = `tap on a dry or burning tree to save it.`
             break;
-        case 3:
-        case 4:
-            // add message
-            let message = addChildTag('h3')
-            message.innerHTML = `this news, just in!`
-            // add news
-            let newHeadline = fetchHeadline(infotype)
-            let headline = addChildTag('p')
-            headline.classList.add('quote')
-            let date = newHeadline.date + ", " + (Number((new Date()).getFullYear()) + gameState.infoBoxSeenCounter + 1)
-            headline.innerHTML = `
-                <span class="headline">
-                    ${newHeadline.headline}
-                </span> 
-                <br>
-                ${newHeadline.source} 
-                <br>
-                <span class="date">${date}</span>
-            `
+        case 8:
+            // instructions to tap
+            let t1 = addChildTag(box, 'h3')
+            t1.innerHTML = `you can save the forest.`
+            let t2 = addChildTag(box, 'p')
+            t2.innerHTML = `please tap on a dry or burning tree to save it.`
             break;
         case 0:
-            // add info
-            let c1 = addChildTag('h3')
+            // conclusion
+            let c1 = addChildTag(box, 'h3')
             c1.innerHTML = `thank you for playing.`
-            let c2 = addChildTag('p')
+            let c2 = addChildTag(box, 'p')
             c2.innerHTML = `please read about why we made this.`
             break;
     }
@@ -1186,7 +836,7 @@ function setInfo(box, infotype) {
         true 
         && infotype!=0
     ) {
-        let closeBtn = addChildTag('button')
+        let closeBtn = addChildTag(box, 'button')
         closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
         closeBtn.setAttribute('id', 'closeInfoBox')
         closeBtn.addEventListener('click', () => {
@@ -1194,13 +844,13 @@ function setInfo(box, infotype) {
             showcontent(false)
         })
     }
-    // add button to reveal article
+    // add button to reveal essay
     if(
         infotype==0 
         || infotype==1 
-        || (gameState.infoBoxSeenCounter>=INFOBOXCOUNTLIMIT && gameState.playTime>=1000*60)
+        || gameState.playTime>=1000*60
     ) {
-        let readBtn = addChildTag('button')
+        let readBtn = addChildTag(box, 'button')
         readBtn.innerHTML = '<p>read about this project.</p>'
         readBtn.setAttribute('id', 'read')
         readBtn.addEventListener('click', () => showcontent(true))
@@ -1209,9 +859,9 @@ function setInfo(box, infotype) {
     /** 
      * @param {string} tag  
      */
-    function addChildTag(tag) {
+    function addChildTag(parent, tag) {
         let child = document.createElement(tag)
-        box.appendChild(child)
+        parent.appendChild(child)
         return child
     }
 }
@@ -1230,27 +880,25 @@ function boxDisplayAttrIs(box) {
 
 /**
  * @param {*} box 
- * @param {boolean} [count=true] - increment gameState.infoBoxSeenCounter?
  */
-function showBox(box, count) {
+function showBox(box) {
     box.setAttribute('display', true) // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
     const infotype = Number(box.getAttribute('infotype'))
     setTimeout(function() {
         // sound:
         switch(infotype) {
-            case 0: 
-            case 3: 
+            case 0:
+            case 1: 
+            case 8: 
                 forcePlaySound(sGoodNews, volumeScaler.sGoodNews); 
                 break;
-            case 4: forcePlaySound(sCatchFire, volumeScaler.sCatchFire); break;
+            case 2: forcePlaySound(sCatchFire, volumeScaler.sCatchFire); break;
         }
         // visual:
         box.style.height = `fit-content`
         box.style.height = `${box.offsetHeight}px` //`calc(100vh - 2rem)`
         box.style.bottom = `1rem` //`calc(100vh - 1rem)`
     }, showBoxDelayDuration)
-    if(count) gameState.infoBoxSeenCounter++
-    // console.log(`infoBoxSeenCounter: ${gameState.infoBoxSeenCounter}`)
 }
 
 /**
@@ -1265,22 +913,35 @@ function hideBox(box, seed) {
     if (seed) {
         let seeds = 1
         const infotype = Number(box.getAttribute('infotype'))
-        switch (infotype) {
-            case 3: // good news
-                seeds = Math.round(gameState.infoBoxSeenCounter / 2)
-                console.log(`good news. will now call seedDryTrees(${seeds})`)
-                seedDryTrees(Math.max(seeds, 1))
-                break;
-            case 4: // bad news
-                seeds = Math.round(gameState.infoBoxSeenCounter * 1.5)
-                console.log(`bad news. will now call seedDryTrees(${seeds})`)
-                seedDryTrees(Math.max(seeds, 1))
-                break;
-            default:
-                console.log(`neither good nor bad news. will *not* seed dry trees.`)
-                break;
+        if (infotype==2) {
+            console.log(`goal-task displayed. will now seed ${seeds} dry tree${seeds==1?'':'s'}.`)
+            seedDryTrees(Math.max(seeds, 1))
         }
     } else console.log(`dry-trees will *not* be seeded.`)
+    const infotype = Number(box.getAttribute('infotype'))
+    switch(infotype) {
+        case 1: 
+            gameState.shownInfo1 = true; 
+            console.log(`seen info #1.`); 
+            gameState.print == true; 
+            break;
+        case 2: 
+            startExperience(); 
+            gameState.shownInfo2 = true; 
+            console.log(`seen info #2.`); 
+            gameState.print == true; 
+            break;
+        case 8: 
+            gameState.shownInfo8 = true; 
+            console.log(`seen info #8.`); 
+            gameState.print == true; 
+            break;
+        case 0: 
+            gameState.shownInfo0 = true; 
+            console.log(`seen info #0.`); 
+            gameState.print == true; 
+            break;
+    }
 }
 
 /*  ------------------------------------------------------------
@@ -1534,64 +1195,59 @@ console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with "
 updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
 
 /*  ------------------------------------------------------------
-    start the experience.
-    ------------------------------------------------------------  */
-
-// update the forest.
-setInterval(function () { updateForest() }, REFRESH_TIME)
-
-/*  ------------------------------------------------------------
     update the forest.
     ------------------------------------------------------------  */
 
+setInterval(function () { updateForest() }, REFRESH_TIME)
+
 function updateForest() {
 
-    FRAMECOUNT++
+    if (pauseForestUpdate) {
+        // do nothing
+    } else {
 
-    /* print gameState */
+        FRAMECOUNT++
 
-    gameState.state = document.getElementsByClassName("normal").length + document.getElementsByClassName("protected").length
-    // console.log(JSON.stringify(gameState, null, 2))
-
-    /* update sound */
-
-    // start playing sounds:
-
-    if (!gameState.userHasBeenActive && navigator.userActivation.hasBeenActive) {
-        console.log(`setting gameState.userHasBeenActive = true`)
-        gameState.userHasBeenActive = true
-        // start playing sounds, on loop
-        sBurning.loop = true
-        playSound(sBurning, 1)
-        sForest.loop = true
-        playSound(sForest, 1)
-    }
-
-    // update volume of ambient sounds:
-
-    if (gameState.userHasBeenActive) {
-
-        // update volumes:
-        playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
-        // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
-        playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
-        // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
-    
-        if(!pauseForestUpdate) {
-            // randomly play a random-sound from the forest:
-            const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
-            if (Math.random() < 1 / (REFRESH_RATE * secondses)) {
-                playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
-            } 
+        /* print gameState */
+        if(gameState.print == true) { 
+            console.log(JSON.stringify(gameState, null, 2))
+            gameState.print = false
         }
-    }
 
-    /* update visuals */
+        /* update sound */
 
-    // will the forest update its visuals?:
-    // console.log(`infoBox displayState: ${Boolean(boxDisplayAttrIs(infoBox))}\npauseForestUpdate:    ${pauseForestUpdate}\nupdate visuals:       ${!(Boolean(boxDisplayAttrIs(infoBox)) || pauseForestUpdate)}`)
+        // start playing sounds:
 
-    if (! (boxDisplayAttrIs(infoBox) || pauseForestUpdate)) {
+        if (!gameState.userHasBeenActive && navigator.userActivation.hasBeenActive) {
+            console.log(`setting gameState.userHasBeenActive = true`)
+            gameState.userHasBeenActive = true
+            // start playing sounds, on loop
+            sBurning.loop = true
+            playSound(sBurning, 1)
+            sForest.loop = true
+            playSound(sForest, 1)
+        }
+
+        // update volume of ambient sounds:
+
+        if (gameState.userHasBeenActive) {
+
+            // update volumes:
+            playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
+            // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
+            playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
+            // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
+        
+            if(!pauseForestUpdate) {
+                // randomly play a random-sound from the forest:
+                const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
+                if (Math.random() < 1 / (REFRESH_RATE * secondses)) {
+                    playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
+                } 
+            }
+        }
+
+        /* update visuals */
 
         // collect all trees by the states they are in
         let alltrees = document.getElementsByClassName("tree")
@@ -1601,9 +1257,21 @@ function updateForest() {
         let drys = document.getElementsByClassName("dry")
         let burnings = document.getElementsByClassName("burning")
         let charreds = document.getElementsByClassName("charred")
+        
         const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
         const countalivetrees = normals.length + drys.length + burnings.length
-       
+        function countfullygrowntrees() {
+            let count = 0
+            for(let i=0 ; i< normals.length ; i++) {
+                const treeid = normals[i].getAttribute('tree-id')
+                const treestate = tree[treeid].state.now
+                // if the tree is fully grown ...
+                if (treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1)
+                    count++ // ... add to the count of fully-grown trees
+            }
+            return count
+        }
+        
         /** 
          * update each tree
          */
@@ -1611,195 +1279,199 @@ function updateForest() {
             updateTree(alltrees[i].getElementsByTagName("svg")[0])
         }
 
-        // update game state object
-        gameState.health = (normals.length + protecteds.length) / totalTreesInForest
-        gameState.playTime = new Date().getTime() - gameState.startTime
+        // update gameState object
+        gameState.health = normals.length / totalTreesInForest
+        gameState.playTime = Date.now() - gameState.startTime
+        gameState.playTimeSeconds = Math.round(gameState.playTime / 1000)
 
-        // show instructions
-        if ((gameState.infoBoxSeenCounter == 0) && (normals.length > 0)) {
-            // count how many "normal" trees are fully-grown
-            let countfullygrowntrees = 0
-            for(let i=0 ; i< normals.length ; i++) {
-                // if the tree is fully grown ...
+        if (boxDisplayAttrIs(infoBox)) {
+            // do nothing
+        } else {
+
+            /* show instructions */
+            // 1.
+            if (gameState.shownInfo1 == false) {
+                console.log(`starting the experience.`)
+                setInfo(infoBox, 1)
+                showBox(infoBox)
+            }
+            // 2. 
+            const READINESS_THRESHOLD = 0.5
+            if (
+                true
+                && gameState.shownInfo1 == true
+                && gameState.shownInfo2 == false 
+                // if the person has spawned a certain-number of trees
+                && countpresenttrees >= totalTreesInForest * READINESS_THRESHOLD
+            ) {
+                console.log(`displaying the task.`)
+                setInfo(infoBox, 2)
+                showBox(infoBox)
+                /** 
+                 * note: 
+                 * when this box is dismissed, startExperience() will be called.
+                 * */
+            }
+            // 8.
+            // if the health is getting low, but the person hasn't clicked yet...
+            // ...instruct them to click on trees!
+            if (
+                true
+                && gameState.shownInfo2 == true 
+                && gameState.shownInfo8 == false 
+                && gameState.health < gameState.starthealth * .5
+                && gameState.clicksonsicktrees < 1
+            ) {
+                console.log(`encouraging person to tap on trees.`)
+                setInfo(infoBox, 8)
+                showBox(infoBox)
+            }
+
+            // 0.
+            if (
+                true
+                && gameState.playTime >= PLAYTIMELIMIT
+            ) {
+                setInfo(infoBox,0)
+                showBox(infoBox)
+            }
+
+            /**
+             * spontaneous Δ in tree-state
+             */
+
+            const AUTORESPAWN_EMPTY_FOREST = false
+            const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
+            const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
+            let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfo2 ? map(gameState.clicksonsicktrees, 0, 100, 0.995, .9995) : .9985
+            const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.995
+            const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
+            const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
+            const forstcover = countpresenttrees / alltrees.length
+
+            // absent -> new shoot (which grows into a tree)
+                /* 
+                    note: 
+                    this for-loop makes trees respawn at random locations. 
+                    if you want them to respawn close to existing trees, 
+                    please use spreadInfection() instead.
+                */
+            // for (let i = 0; i < absents.length; i++) {
+            //     const mintrees = 1
+            //     // if there are no trees in the forest
+            //     if (
+            //         AUTORESPAWN_EMPTY_FOREST
+            //         && countpresenttrees < mintrees
+            //     ) {
+            //         // respawn the forest:
+            //         if (Math.random() < PERCENT_OF_FOREST_TO_RESPAWN / 100) {
+            //             // console.log(`spawning a tree into an empty forest.`)
+            //             tree[absents[i].getAttribute('tree-id')].behaviour = 1
+            //         }
+            //     }
+            //     // else: if there are some trees
+            //     else if (gameState.shownInfo2 == false) {
+            //         const thisthreshold = TREE_RESPAWN_PROBABILITY * Math.pow(forstcover, 2) / 100
+            //         if (Math.random() < thisthreshold) {
+            //             // console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) re-spawning tree-${absents[i].getAttribute('tree-id')}.`)
+            //             tree[absents[i].getAttribute('tree-id')].behaviour = 1
+            //         }
+            //     }
+            // }
+
+            // normal -> dry
+            //   -- method 1: automatically:
+            for (let i = 0; i < normals.length; i++) {
                 const treeid = normals[i].getAttribute('tree-id')
                 const treestate = tree[treeid].state.now
-                if (treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1) {
-                    // ... add to the count of fully-grown trees
-                    countfullygrowntrees++
-                }
-            }
-            // if READINESS % of all "normal" trees are now fully-grown (i.e., if the forest is almost ready)
-            const READINESS_THRESHOLD = 0.80
-            if (countfullygrowntrees >= normals.length * READINESS_THRESHOLD) {
-                console.log(`starting the experience for ${normals.length} trees.`)
-                // then show the first infoBox
-                setInfo(infoBox, 1)
-                showBox(infoBox, true)
-                // set *this* as the experience's actual startTime.
-                gameState.startTime = new Date().getTime()
-                gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
-            }
-        }
-
-        if (gameState.infoBoxSeenCounter > 0) {
-
-            // if the health is getting low, but the person hasn't clicked yet...
-            // instruct them to click on trees!
-            if (
-                true
-                && (boxDisplayAttrIs(infoBox) == false)
-                && (gameState.health < gameState.starthealth * .8) 
-                && (gameState.clicksonsicktrees < 1) 
-                && (gameState.shownMessage2==false)
-            ) {
-                console.log("encourage person to tap on trees.")
-                setInfo(infoBox, 2)
-                gameState.shownMessage2 = true
-                showBox(infoBox, false)
-            }
-
-            // if there are no dry/burning trees left (but there still are normal trees):
-            if (
-                true
-                && (drys.length == 0) 
-                && (burnings.length == 0) 
-                && (normals.length + protecteds.length >= 0)
-            ) {
-                // console.log(`no dry or burning trees (there are, however, normal trees).`)
-
-                // conclude the experience
-                if(
-                    (boxDisplayAttrIs(infoBox) == false)
-                    && 
-                    (gameState.infoBoxSeenCounter >= 4) 
-                    && (
-                        gameState.clicksonsicktrees > totalTreesInForest * gameState.starthealth 
-                        || gameState.playTime > PLAYTIMELIMIT
-                    )
+                if (
+                    // if the tree is fully grown
+                    treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
+                    // and it is not protected
+                    && tree[treeid].isProtected == false
+                    // and we can overcome this threshold (so that only a few trees starting drying at any given time)
+                    && Math.random() > THRESHOLD_MAKEDRY
                 ) {
-                    setInfo(infoBox,0)
-                    showBox(infoBox, true)
-                }
-
-                // or keep the experience going
-                else if (
-                    (boxDisplayAttrIs(infoBox) == false)
-                    &&
-                    (Math.random() < .075) /* note: the use of Math.random here (instead of setTimeout) is very-much intentional ; this is to artificially create a time-gap before taking the next step. */ 
-                ) {
-                    console.log("forest saved. showing new news.")
-                    const infotype = Math.random() > gameState.health ? 3 /* good news */ : 4 /* bad news */
-                    console.log(`${infotype==3?"good":"bad"} news selected.`)
-                    setInfo(infoBox,infotype)
-                    showBox(infoBox, true)
+                    tree[normals[i].getAttribute('tree-id')].behaviour = 1
                 }
             }
+            // //   -- method 2: by calling seedDryTrees():
+            // if(drys.length==0) seedDryTrees(3)
+
+            // dry -> burning
+            if (gameState.shownInfo2 == true) {
+                for (let i = 0; i < drys.length; i++) {
+                    if (Math.random() > THRESHOLD_SETFIRE) {
+                        tree[drys[i].getAttribute('tree-id')].behaviour = 1
+                    }
+                }
+            }
+
+            // burning -> charred
+            for (let i = 0; i < burnings.length; i++) {
+                if (Math.random() > THRESHOLD_STOPFIRE) {
+                    tree[burnings[i].getAttribute('tree-id')].behaviour = 1
+                }
+            }
+
+            // charred -> disintegrating -> absent
+            for (let i = 0; i < charreds.length; i++) {
+                const treeid = charreds[i].getAttribute('tree-id')
+                const treestate = tree[treeid].state.now
+                // charred -> disintegrating :—
+                // if the tree is charred (state 4), but not yet disintegrating (state 5)...
+                if (treestate[0] == 4) {
+                    // ... then, based on this probability...
+                    if (Math.random() < ((1 - THRESHLD_DISINTEGRATE) / forstcover)) {
+                        // ... make it disintegrate
+                        tree[charreds[i].getAttribute('tree-id')].behaviour = 1
+                    }
+                }
+                else
+                    // disintegrating -> absent :—
+                    // if the tree is disintegrating (state = 5)...
+                    if (treestate[0] == 5) {
+                        /* 
+                            do nothing,
+                            because this transition is automatically handled within updateTree().
+                            nb. as soon the tree disintegrates (i.e., as soon as state 5 ends), 
+                            it immediately moves to state  0.
+                        */
+                    }
+            }
+
+            /** 
+             * make fire, dryness, health spread from one tree to its neighbours 
+             */
+
+            const IMMUNITY_TO_FIRE = .99
+            const IMMUNITY_TO_DRYING = gameState.shownInfo2?.9975:.999
+            const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */
+                gameState.shownInfo2 ?
+                // if the person is saving the forest
+                map(
+                    normals.length / countpresenttrees,
+                    0,
+                    1,
+                    .999995,
+                    .99975
+                )
+                :
+                // if person is still planting the forest
+                map(
+                    countpresenttrees / totalTreesInForest,
+                    0,
+                    1,
+                    .99,
+                    .99999
+                )
+            if(gameState.shownInfo2 && RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) 
+                console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
+
+            spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1, false)
+            spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 2, false)
+            spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, false)
         }
-
-        /**
-         * spontaneous Δ in tree-state
-         */
-
-        const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
-        const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 0.0625
-        let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ drys.length + burnings.length < 1 ? .99 : 0.9999
-        const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.995
-        const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
-        const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
-        const forstcover = countpresenttrees / alltrees.length
-
-        // absent -> new shoot (which grows into a tree)
-        for (let i = 0; i < absents.length; i++) {
-            const mintrees = 1
-            // if there are no trees in the forest,
-            if (countpresenttrees < mintrees) {
-                // respawn the forest:
-                if (Math.random() < PERCENT_OF_FOREST_TO_RESPAWN / 100) {
-                    // console.log(`spawning a tree into an empty forest.`)
-                    tree[absents[i].getAttribute('tree-id')].behaviour = 1
-                }
-            }
-            // else if there are some trees
-            else {
-                const thisthreshold = TREE_RESPAWN_PROBABILITY * Math.pow(forstcover, 2) / 100
-                if (Math.random() < thisthreshold) {
-                    // console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) re-spawning tree-${absents[i].getAttribute('tree-id')}.`)
-                    tree[absents[i].getAttribute('tree-id')].behaviour = 1
-                }
-            }
-        }
-
-        // normal -> dry
-        // //   -- method 1: automatically:
-        // for (let i = 0; i < normals.length; i++) {
-        //     const treeid = normals[i].getAttribute('tree-id')
-        //     const treestate = tree[treeid].state.now
-        //     if (
-        //         // if the tree is fully grown
-        //         treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1
-        //         // and it is not protected
-        //         && tree[treeid].isProtected == false
-        //         // and we can overcome this threshold (so that only a few trees starting drying at any given time)
-        //         && Math.random() > THRESHOLD_MAKEDRY
-        //     ) {
-        //         tree[normals[i].getAttribute('tree-id')].behaviour = 1
-        //     }
-        // }
-        // //   -- method 2: by calling seedDryTrees():
-        // if(drys.length==0) seedDryTrees(3)
-
-        // dry -> burning
-        for (let i = 0; i < drys.length; i++) {
-            if (Math.random() > THRESHOLD_SETFIRE) {
-                tree[drys[i].getAttribute('tree-id')].behaviour = 1
-            }
-        }
-
-        // burning -> charred
-        for (let i = 0; i < burnings.length; i++) {
-            if (Math.random() > THRESHOLD_STOPFIRE) {
-                tree[burnings[i].getAttribute('tree-id')].behaviour = 1
-            }
-        }
-
-        // charred -> disintegrating -> absent
-        for (let i = 0; i < charreds.length; i++) {
-            const treeid = charreds[i].getAttribute('tree-id')
-            const treestate = tree[treeid].state.now
-            // charred -> disintegrating :—
-            // if the tree is charred (state 4), but not yet disintegrating (state 5)...
-            if (treestate[0] == 4) {
-                // ... then, based on this probability...
-                if (Math.random() < ((1 - THRESHLD_DISINTEGRATE) / forstcover)) {
-                    // ... make it disintegrate
-                    tree[charreds[i].getAttribute('tree-id')].behaviour = 1
-                }
-            }
-            else
-                // disintegrating -> absent :—
-                // if the tree is disintegrating (state = 5)...
-                if (treestate[0] == 5) {
-                    /* 
-                        do nothing,
-                        because this transition is automatically handled within updateTree().
-                        nb. as soon the tree disintegrates (i.e., as soon as state 5 ends), 
-                        it immediately moves to state  0.
-                    */
-                }
-        }
-
-        /** 
-         * make fire, dryness, health spread from one tree to its neighbours 
-         */
-
-        const IMMUNITY_TO_FIRE = .99
-        const IMMUNITY_TO_DRYING = .9975
-        const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */ map(normals.length / (normals.length + drys.length + burnings.length + charreds.length),0,1,.99999,.99975) 
-        if(RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
-
-        spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1, false)
-        spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 2, false)
-        spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, true)
     }
 }
 
@@ -1881,7 +1553,7 @@ function didClickHappenOnTree(e) {
         if(c.length>0) gameState.clicksontrees++
 
         // now, we instruct each (clicked-)tree to change
-        for (const i in c) {
+        for (const i in c) {            
             const SVGElementOfClickedTree = c[i]
             const treeid = Number(SVGElementOfClickedTree.getAttribute('tree-id'))
             if (SVGElementOfClickedTree.classList.contains("burning") || SVGElementOfClickedTree.classList.contains("dry")) {
@@ -1905,8 +1577,15 @@ function didClickHappenOnTree(e) {
                 tree[treeid].behaviour = 1
             }
             if (SVGElementOfClickedTree.classList.contains("absent")) {
-                // console.log(`click on ${treeid}: absent -> normal`)
-                tree[treeid].behaviour = 1
+                let threshold
+                if(gameState.shownInfo2 == true) 
+                    threshold = .5
+                else if(gameState.shownInfo2 == false)
+                    threshold = 1
+                if(Math.random() <= threshold) {
+                    // console.log(`click on ${treeid}: absent -> normal`)
+                    tree[treeid].behaviour = 1
+                }
             }
         }
     }
