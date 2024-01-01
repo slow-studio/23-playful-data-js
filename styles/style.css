@@ -49,10 +49,10 @@ body {
     font-weight: 300;
     line-height: 1.15rem;
     color: var(--blackish);
-}
 
-body * {
-    touch-action: manipulation; /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation, https://stackoverflow.com/a/53236027, and https://endtimes.dev/you-can-use-css-to-remove-the-double-tap-zoom-feature-on-ios/ */
+    * {
+        touch-action: manipulation; /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation, https://stackoverflow.com/a/53236027, and https://endtimes.dev/you-can-use-css-to-remove-the-double-tap-zoom-feature-on-ios/ */
+    }
 }
 
 h1, h2, h3, p {
@@ -83,6 +83,14 @@ p {
     line-height: 145%;
 }
 
+svg {
+    fill-rule: evenodd;
+    clip-rule: evenodd;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-miterlimit: 1.5;
+}
+
 #playarea {
     margin: 0; 
     padding: 0;
@@ -93,13 +101,71 @@ p {
     display: flex; 
     flex-direction: column;
     z-index: 0; /* z-index for #playarea should be lower than for #content */ position: relative; /* ∵ z-index can not have an effect if position is 'static'. */
-}
 
-#playarea * {
-    width: 100%;
-    max-width: calc(var(--fontscale) * 40rem);
-    margin-left: auto;
-    margin-right: auto;
+    * {
+        width: 100%;
+        max-width: calc(var(--fontscale) * 40rem);
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #forest {
+        /* background-color: var(--green); */
+        max-width: 100%;
+        flex: 1 1 auto;
+        cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer;
+
+        .tree {
+            /* opacity: .8; */
+            /* background-color: var(--yellow); */
+            /* border: 1px solid black; */
+            width: /* placeholder */ var(--treewidth);
+            height:fit-content;
+            position: absolute; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
+
+            svg {
+                height:fit-content;
+
+                path, polyline, polygon {
+                    fill:#000;
+                    stroke:#000;
+                    stroke-width:2px;
+                }
+        
+                .invisible {
+                    opacity: 0;
+                }
+                .foliage {
+                    fill: var(--green);
+                }
+                .fire {
+                    fill: var(--fire);
+                    opacity: .8333;
+                }
+                .stump {
+                    fill: var(--blackish);
+                }
+
+                &&.normal .foliage {
+                    fill: var(--green);
+                }
+                &&.protected .foliage {
+                    fill: var(--protected);
+                }
+                &&.dry .foliage {
+                    fill: var(--autumn);
+                }
+                &&.burning {
+                    .foliage {
+                        fill: var(--autumn);
+                    }
+                    .stump {
+                        opacity: .05;
+                    }
+                }
+            }
+        }
+    }    
 }
 
 #content {
@@ -112,83 +178,18 @@ p {
     overflow: /* placeholder */ hidden; 
     transition: all 300ms ease-in-out 0ms;
     z-index: 1; /* z-index for #content should be higher than for #playarea */ position: relative; /* ∵ z-index can not have an effect if position is 'static'. */
-}
 
-#content > * {
-    flex: 0 0 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
-    width: 100%;
-    max-width: calc(var(--fontscale) * 40rem);
-    text-align: left;
-}
+    > * {
+        flex: 0 0 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
+        width: 100%;
+        max-width: calc(var(--fontscale) * 40rem);
+        text-align: left;
+    }
 
-#footer {
-    border-top: .1rem solid black;
-    margin-top: 1rem;
-}
-
-#forest {
-    /* background-color: var(--green); */
-    max-width: 100%;
-    flex: 1 1 auto;
-    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer;
-}
-
-svg {
-    fill-rule: evenodd;
-    clip-rule: evenodd;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-miterlimit: 1.5;
-}
-
-#forest .tree {
-    /* opacity: .8; */
-    /* background-color: var(--yellow); */
-    /* border: 1px solid black; */
-    width: /* placeholder */ var(--treewidth);
-    height:fit-content;
-    position: absolute; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
-}
-
-#forest .tree svg {
-    height:fit-content;
-}
-
-#forest .tree svg path,
-#forest .tree svg polyline,
-#forest .tree svg polygon {
-    fill:#000;
-    stroke:#000;
-    stroke-width:2px;
-}
-
-#forest .tree svg .invisible {
-    opacity: 0;
-}
-#forest .tree svg .foliage {
-    fill: var(--green);
-}
-#forest .tree svg.normal .foliage {
-    fill: var(--green);
-}
-#forest .tree svg.dry .foliage {
-    fill: var(--autumn);
-}
-#forest .tree svg.burning .foliage {
-    fill: var(--autumn);
-}
-#forest .tree svg.burning .stump {
-    opacity: .05;
-}
-#forest .tree svg.protected .foliage {
-    fill: var(--protected);
-}
-#forest .tree svg .fire {
-    fill: var(--fire);
-    opacity: .8333;
-}
-#forest .tree svg .stump {
-    fill: var(--blackish);
+    #footer {
+        border-top: .1rem solid black;
+        margin-top: 1rem;
+    }
 }
 
 #info {
@@ -204,74 +205,75 @@ svg {
     margin: 0 auto;
     padding: 0;
     text-align: center;
-}
 
-#infoBox {
-    position: absolute;
-    width: var(--infoWidth);
-    bottom: /* placeholder */ -100vh;
-    height: /* placeholder */ calc(100vh - 2rem);
-    overflow: hidden;
-    opacity: /* placeholder */ 1;
-    transition: all /* transition-duration = placeholder */300ms ease-in-out 0ms;
-    background: rgba(255,255,255,.95);
-    padding: 0 0 .5rem 0rem;
-    border: 1px solid black;
-    border-top: .67rem solid black;
-    cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 8 8' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' xmlns:serif='http://www.serif.com/' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3E%3Ccircle cx='3.84' cy='3.84' r='3.84' style='fill:%23fff;' /%3E%3Cpath d='M3.84,0c2.119,0 3.84,1.721 3.84,3.84c0,2.119 -1.721,3.84 -3.84,3.84c-2.119,0 -3.84,-1.721 -3.84,-3.84c0,-2.119 1.721,-3.84 3.84,-3.84Zm0,0.5c1.843,0 3.34,1.497 3.34,3.34c0,1.843 -1.497,3.34 -3.34,3.34c-1.843,0 -3.34,-1.497 -3.34,-3.34c0,-1.843 1.497,-3.34 3.34,-3.34Z' /%3E%3Cpath d='M4.823,5.507l-0,0.625l-1.805,-0l0,-0.625l0.558,-0l-0,-2.318l-0.558,-0l0,-0.629l1.261,0l0,2.947l0.544,-0Z' /%3E%3Cpath d='M4.32,1.681c-0,0.115 -0.042,0.215 -0.126,0.299c-0.084,0.084 -0.183,0.126 -0.299,0.126c-0.115,-0 -0.214,-0.042 -0.296,-0.126c-0.081,-0.084 -0.122,-0.184 -0.122,-0.299c0,-0.116 0.041,-0.216 0.122,-0.299c0.082,-0.084 0.181,-0.126 0.296,-0.126c0.12,-0 0.221,0.041 0.303,0.122c0.081,0.082 0.122,0.183 0.122,0.303Z' /%3E%3C/svg%3E") 16 16, pointer;
-}
-#infoBox[infotype='1'] {
-    background-color: var(--paper-light);
-}
-#infoBox[infotype='2'] {
-    background-color: var(--paper-light);
-}
-#infoBox[infotype='3'] {
-    background-color: var(--green);
-}
-#infoBox[infotype='4'] {
-    background-color: var(--fire);
-}
-#infoBox[infotype='0'] {
-    background-color: var(--paper-dark);
-}
-#infoBox p,
-#infoBox h3 {
-    padding: 0 1.5rem;
-}
-#infoBox *.headline {
-    /* background-color: lightblue; */
-    margin: .75rem auto auto;
-    font-weight: bold;
-}
-#infoBox *.quote {
-    --leftmargin: 1.5rem;
-    margin-left: var(--leftmargin); 
-    width: calc(100% - var(--leftmargin));
-    border-left: 1px solid black;
-    padding: 0.03125rem .5rem;
-}
-#infoBox *.date {
-    font-style: italic;
-}
-
-#infoBox button {
-    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer; 
-    padding: .25rem 1rem;
-    border-radius: .5rem;
-    box-shadow: none;
-    width:calc(100% - 3rem);
-    background-color: inherit;
-    margin: 1rem auto;
-    text-align: center;
-    color: black;
-    font-weight: bold;
-    /* font-style: italic; */
-    border: 1px solid black;
-}
-#infoBox button+button {
-    margin-top: 0;
-}
-#infoBox button p {
-    padding: 0;
+    #infoBox {
+        position: absolute;
+        width: var(--infoWidth);
+        bottom: /* placeholder */ -100vh;
+        height: /* placeholder */ calc(100vh - 2rem);
+        overflow: hidden;
+        opacity: /* placeholder */ 1;
+        transition: all /* transition-duration = placeholder */300ms ease-in-out 0ms;
+        background: rgba(255,255,255,.95);
+        padding: 0 0 .5rem 0rem;
+        border: 1px solid black;
+        border-top: .67rem solid black;
+        cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 8 8' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' xmlns:serif='http://www.serif.com/' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3E%3Ccircle cx='3.84' cy='3.84' r='3.84' style='fill:%23fff;' /%3E%3Cpath d='M3.84,0c2.119,0 3.84,1.721 3.84,3.84c0,2.119 -1.721,3.84 -3.84,3.84c-2.119,0 -3.84,-1.721 -3.84,-3.84c0,-2.119 1.721,-3.84 3.84,-3.84Zm0,0.5c1.843,0 3.34,1.497 3.34,3.34c0,1.843 -1.497,3.34 -3.34,3.34c-1.843,0 -3.34,-1.497 -3.34,-3.34c0,-1.843 1.497,-3.34 3.34,-3.34Z' /%3E%3Cpath d='M4.823,5.507l-0,0.625l-1.805,-0l0,-0.625l0.558,-0l-0,-2.318l-0.558,-0l0,-0.629l1.261,0l0,2.947l0.544,-0Z' /%3E%3Cpath d='M4.32,1.681c-0,0.115 -0.042,0.215 -0.126,0.299c-0.084,0.084 -0.183,0.126 -0.299,0.126c-0.115,-0 -0.214,-0.042 -0.296,-0.126c-0.081,-0.084 -0.122,-0.184 -0.122,-0.299c0,-0.116 0.041,-0.216 0.122,-0.299c0.082,-0.084 0.181,-0.126 0.296,-0.126c0.12,-0 0.221,0.041 0.303,0.122c0.081,0.082 0.122,0.183 0.122,0.303Z' /%3E%3C/svg%3E") 16 16, pointer;
+    
+        &&[infotype='1'] {
+            background-color: var(--paper-light);
+        }
+        &&[infotype='2'] {
+            background-color: var(--paper-light);
+        }
+        &&[infotype='3'] {
+            background-color: var(--green);
+        }
+        &&[infotype='4'] {
+            background-color: var(--fire);
+        }
+        &&[infotype='0'] {
+            background-color: var(--paper-dark);
+        }
+        p, h3 {
+            padding: 0 1.5rem;
+        }
+        .headline {
+            /* background-color: lightblue; */
+            margin: .75rem auto auto;
+            font-weight: bold;
+        }
+        .quote {
+            --leftmargin: 1.5rem;
+            margin-left: var(--leftmargin); 
+            width: calc(100% - var(--leftmargin));
+            border-left: 1px solid black;
+            padding: 0.03125rem .5rem;
+        }
+        .date {
+            font-style: italic;
+        }
+        
+        button {
+            cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer; 
+            padding: .25rem 1rem;
+            border-radius: .5rem;
+            box-shadow: none;
+            width:calc(100% - 3rem);
+            background-color: inherit;
+            margin: 1rem auto;
+            text-align: center;
+            color: black;
+            font-weight: bold;
+            /* font-style: italic; */
+            border: 1px solid black;
+    
+            p {
+                padding: 0;
+            }
+        }
+        button+button {
+            margin-top: 0;
+        }
+    }
 }
