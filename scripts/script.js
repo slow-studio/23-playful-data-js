@@ -65,10 +65,7 @@ function cheatcodes(e) {
 }
 document.body.setAttribute('onkeydown','cheatcodes(event)')
 
-const IDEAL_REFRESH_RATE = 10
-const REFRESH_RATE = 10 // fps
-const REFRESH_TIME = 1000 / REFRESH_RATE // time in millisecond
-var FRAMECOUNT = 0
+let FRAMECOUNT = 0
 
 /** @type {number} duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
@@ -114,7 +111,7 @@ let gameState = {
 const TREELIMIT = 7500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
-const PLAYTIMELIMIT = 180000 * IDEAL_REFRESH_RATE / REFRESH_RATE // e.g. 180000 ms = 3 min
+const PLAYTIMELIMIT = 180000 // e.g. 180000 ms = 3 min
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
@@ -498,7 +495,7 @@ function updateTree(svgelement) {
         svgelement.classList.contains("protected") == true
     ) {
         // console.log(`the tree is within the protected state. protectionTime ${tree[id].state.protectionTime} out of ${tree[id].state.totalProtectionTime}`)
-        tree[id].state.protectionTime += REFRESH_TIME
+        tree[id].state.protectionTime += protectionDuration
         if (tree[id].state.protectionTime <= 0) 
             tree[id].state.protectionTime = 0
         if (tree[id].state.protectionTime >= tree[id].state.totalProtectionTime) 
@@ -1198,8 +1195,9 @@ updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettin
     update the forest.
     ------------------------------------------------------------  */
 
-setInterval(function () { updateForest() }, REFRESH_TIME)
+updateForest();
 
+/** calls itself at the end of each animation frame */
 function updateForest() {
 
     if (pauseForestUpdate) {
@@ -1241,7 +1239,7 @@ function updateForest() {
             if(!pauseForestUpdate) {
                 // randomly play a random-sound from the forest:
                 const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
-                if (Math.random() < 1 / (REFRESH_RATE * secondses)) {
+                if (Math.random() < 1 / secondses) {
                     playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
                 } 
             }
@@ -1473,6 +1471,8 @@ function updateForest() {
             spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, false)
         }
     }
+
+    window.requestAnimationFrame(updateForest);
 }
 
 /*  ------------------------------------------------------------
