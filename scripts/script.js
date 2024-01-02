@@ -57,7 +57,7 @@ const gameState = {
 // console.log(JSON.stringify(gameState, null, 2))
 
 /** maximum number of trees to draw. (we can keep this number arbitarily large.) */
-const TREELIMIT = 7500;
+const TREELIMIT = 7500
 
 /** time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
@@ -66,7 +66,7 @@ const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
 const CLICKLIMIT = { upper: 120, lower: 10 }
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
-var totalTreesInForest = 0;
+var totalTreesInForest = 0
 
 /** an array. stores one object (each) for every tree. the object contains all info/settings for that tree. */
 const tree = []
@@ -85,7 +85,7 @@ function showcontent(show) {
         top: show ? window.innerHeight * 4 / 5 : 0,
         left: 0,
         behavior: "smooth",
-    });
+    })
 }
 // don't show #content at the start : show the #playarea (and #forest) only.
 showcontent(false)
@@ -141,7 +141,7 @@ function seedDryTrees(n) {
             // fraction of trees to turn from normal to dry
             let fr = n / allnormaltrees.length
             // a counter which will track how many trees we do make dry
-            let conversioncounter = 0;
+            let conversioncounter = 0
 
             // for each healthy tree, decide whether it turns dry
             for(let i=0 ; i<seedableTrees.length ; i++) {
@@ -161,7 +161,7 @@ function seedDryTrees(n) {
                         }
                     }
                 }
-                else break;
+                else break
             }
             console.log(`seedDryTrees: seeded ${conversioncounter} dry tree${n!=1?'s':''}.`)
         }
@@ -210,7 +210,7 @@ function spreadInfection(trees, state, immunity, spreadDistance, spreadUniformly
                                 //     // console.log(`spreading health. dry tree-${n_id} becomes healthy again.`)
                                 //     tree[n_id].behaviour = -1
                                 // }
-                                break;
+                                break
                             case 2: // tree is dry, and so is trying to dry-out its neighbours
                                 if (
                                     neighbourSvg.classList.contains("charred")
@@ -225,7 +225,7 @@ function spreadInfection(trees, state, immunity, spreadDistance, spreadUniformly
                                     // console.log(`spreading dryness. making tree-${n_id} dry.`)
                                     tree[n_id].behaviour = 1
                                 }
-                                break;
+                                break
                             case 3: // tree is on fire, and is affecting neighbouring trees
                                 if (
                                     neighbourSvg.classList.contains("charred")
@@ -247,7 +247,7 @@ function spreadInfection(trees, state, immunity, spreadDistance, spreadUniformly
                                         tree[n_id].behaviour = 1
                                     }
                                 }
-                                break;
+                                break
                         }
                     }
                 }
@@ -336,7 +336,7 @@ function updateTree(svgelement) {
             tree[id].properties.resilience = 1 //+ Math.floor(3 * Math.random())
             // the next statement seems unnecessary, but i've written it, just, to be double-sure.
             tree[id].state.now[1] = 0
-            break;
+            break
         case 1:
             /* state-specific stuff */
                 // the tree should grow, till it reaches full size.
@@ -353,14 +353,14 @@ function updateTree(svgelement) {
             /* other stuff */
                 // if the tree were to start drying, this variable helps the tree start at its least dry state
                 tree[id].state.drySubstateCounter = 0
-            break;
+            break
         case 2:
             // calculate how dry the tree is, i.e., its dryness-substate
             tree[id].state.drySubstateCounter++
             // keep drySubstateCounter within bounds
             if (tree[id].state.drySubstateCounter <= 0) tree[id].state.drySubstateCounter = 0
             if (tree[id].state.drySubstateCounter >= stepstodryout) tree[id].state.drySubstateCounter = stepstodryout
-            break;
+            break
         case 3:
             /* state-specific stuff */
                 // keep cycling through all fire levels:
@@ -371,9 +371,9 @@ function updateTree(svgelement) {
             /* other stuff */
                 // if/when the tree stops burning, this variable sets it to its dryest state
                 tree[id].state.drySubstateCounter = stepstodryout
-            break;
+            break
         case 4:
-            break;
+            break
         case 5:
             // the tree should disintegrate, till it is a heap of ash:
             if (tree[id].state.now[1] < svgtree.src.innerhtml[5].length - 1) {
@@ -388,7 +388,7 @@ function updateTree(svgelement) {
                 tree[id].state.now[0] = 0
                 tree[id].state.now[1] = 0
             }
-            break;
+            break
     }
     
     // 2. update state based on set-behaviour
@@ -400,10 +400,10 @@ function updateTree(svgelement) {
         switch(tree[id].behaviour) {
             case 1:
                 tree[id].state.now[1] = 0
-                break;
+                break
             case -1:
                 tree[id].state.now[1] = (svgtree.src.innerhtml[tree[id].state.now[0]]).length -1
-                break;
+                break
         }
         tree[id].behaviour = 0
     }
@@ -475,22 +475,22 @@ function updateTree(svgelement) {
     switch (tree[id].state.now[0]) {
         case 0:
             classs.push("absent")
-            break;
+            break
         case 1:
             classs.push("normal")
-            break;
+            break
         case 2:
             classs.push("dry")
-            break;
+            break
         case 3:
             classs.push("burning")
-            break;
+            break
         case 4:
             classs.push("charred")
-            break;
+            break
         case 5:
             classs.push("charred")
-            break;
+            break
     }
     if (tree[id].isProtected == true)
         classs.push("protected")
@@ -551,11 +551,11 @@ function updateTree(svgelement) {
     ------------------------------------------------------------  */
 
 const soundsrc = "assets/sound/"
-let sCatchFire = new Audio(soundsrc + 'catchfire.mp3');
-let sGoodNews = new Audio(soundsrc + 'twinkle.mp3');
-let sBurning = new Audio(soundsrc + 'ambient-burning.mp3');
-let sForest = new Audio(soundsrc + 'ambient-forest.mp3');
-let sEagle = new Audio(soundsrc + 'eagle.mp3');
+let sCatchFire = new Audio(soundsrc + 'catchfire.mp3')
+let sGoodNews = new Audio(soundsrc + 'twinkle.mp3')
+let sBurning = new Audio(soundsrc + 'ambient-burning.mp3')
+let sForest = new Audio(soundsrc + 'ambient-forest.mp3')
+let sEagle = new Audio(soundsrc + 'eagle.mp3')
 
 const volumeScaler = {
     sCatchFire: .03125,
@@ -625,28 +625,28 @@ export function setInfo(box, infotype) {
             i1.innerHTML = `plant your forest.`
             let i2 = addChildTag(box, 'p')
             i2.innerHTML = `tap on the earth to help nurture a tree.`
-            break;
+            break
         case 2:
             // display task
             let g1 = addChildTag(box, 'h3')
             g1.innerHTML = `take care of your forest.`
             let g2 = addChildTag(box, 'p')
             g2.innerHTML = `tap on a dry or burning tree to save it.`
-            break;
+            break
         case 8:
             // instructions to tap
             let t1 = addChildTag(box, 'h3')
             t1.innerHTML = `you can save the forest.`
             let t2 = addChildTag(box, 'p')
             t2.innerHTML = `please tap on a dry or burning tree to save it.`
-            break;
+            break
         case 0:
             // conclusion
             let c1 = addChildTag(box, 'h3')
             c1.innerHTML = `thank you for playing.`
             let c2 = addChildTag(box, 'p')
             c2.innerHTML = `please read about why we made this.`
-            break;
+            break
     }
     // add close-button to dismiss box
     if(
@@ -690,8 +690,8 @@ export function setInfo(box, infotype) {
 function boxDisplayAttrIs(box) {
     const attr = box.getAttribute('display')
     switch(attr) {
-        case "true": return true;
-        case "false": return false;
+        case "true": return true
+        case "false": return false
     }
 }
 
@@ -707,9 +707,11 @@ export function showBox(box) {
             case 0:
             case 1: 
             case 8: 
-                forcePlaySound(sGoodNews, volumeScaler.sGoodNews); 
-                break;
-            case 2: forcePlaySound(sCatchFire, volumeScaler.sCatchFire); break;
+                forcePlaySound(sGoodNews, volumeScaler.sGoodNews)
+                break
+            case 2: 
+                forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
+                break
         }
         // visual:
         box.style.height = `fit-content`
@@ -738,28 +740,28 @@ export function hideBox(box, seed) {
     const infotype = Number(box.getAttribute('infotype'))
     switch(infotype) {
         case 1: 
-            startExperience(); 
-            gameState.shownInfo1 = true; 
+            startExperience() 
+            gameState.shownInfo1 = true 
             gameState.shownInfo2 = false
-            console.log(`seen info #1.`); 
-            gameState.print == true; 
-            break;
+            console.log(`seen info #1.`) 
+            gameState.print == true 
+            break
         case 2: 
-            startExperience(); 
-            gameState.shownInfo2 = true; 
-            console.log(`seen info #2.`); 
-            gameState.print == true; 
-            break;
+            startExperience() 
+            gameState.shownInfo2 = true 
+            console.log(`seen info #2.`) 
+            gameState.print == true 
+            break
         case 8: 
-            gameState.shownInfo8 = true; 
-            console.log(`seen info #8.`); 
-            gameState.print == true; 
-            break;
+            gameState.shownInfo8 = true 
+            console.log(`seen info #8.`) 
+            gameState.print == true 
+            break
         case 0: 
-            gameState.shownInfo0 = true; 
-            console.log(`seen info #0.`); 
-            gameState.print == true; 
-            break;
+            gameState.shownInfo0 = true 
+            console.log(`seen info #0.`) 
+            gameState.print == true 
+            break
     }
 }
 
@@ -819,7 +821,7 @@ forestSettings.padding.l += (maxWidthOfForest-widthOfTreesInRow)/2
 forestSettings.padding.r += (maxWidthOfForest-widthOfTreesInRow)/2
 
 /** @type {number} keeps track of the highest z-index assigned to any tree */
-var highestZIndexOnTree = 0;
+var highestZIndexOnTree = 0
 
 /*  spawn all trees. */
 
@@ -830,7 +832,7 @@ let loopRunner = true
 
 for (let i = 0; loopRunner; i++) {
     // sanity check
-    if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break; }
+    if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break }
     // create new div
     /** @type {HTMLDivElement} */
     const newDiv = document.createElement("div")
@@ -927,7 +929,7 @@ updateStyle(infoBox.parentElement, "z-index", (highestZIndexOnTree + forestSetti
     update the forest.
     ------------------------------------------------------------  */
 
-updateForest();
+updateForest()
 
 /** calls itself at the end of each animation frame */
 function updateForest() {
@@ -1248,14 +1250,14 @@ function updateForest() {
         }
     }
 
-    window.requestAnimationFrame(updateForest);
+    window.requestAnimationFrame(updateForest)
 }
 
 /*  ------------------------------------------------------------
     if the person taps on the screen
     ------------------------------------------------------------  */
 
-document.addEventListener("click", handleClicks);
+document.addEventListener("click", handleClicks)
 
 /** @param {MouseEvent} e */
 function handleClicks(e) {
@@ -1289,11 +1291,11 @@ function didClickHappenOnTree(e) {
     const clickedOnInfosBox = c.some(element => {
         if (element.id === 'infoBox' || element.id === 'closeInfoBox') {
             console.log(`clicked on #${element.id} | did not click on #forest`)
-            return true;
+            return true
         }
 
-        return false;
-    });
+        return false
+    })
 
     // if we didn't click on the #infoBox, then we may continue checking whether the click happened on a tree in the #forest:
     if (!clickedOnInfosBox) {
@@ -1305,13 +1307,13 @@ function didClickHappenOnTree(e) {
                 || x.constructor.toString().indexOf("SVGPolylineElement()") > -1
                 || x.constructor.toString().indexOf("SVGPolygonElement()") > -1
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-            );
+            )
         })
         // console.log("removed -1's:")
         // console.log(c)
 
         // return <path>'s parent (which is an <svg>)
-        .map(function (e) { return e.parentElement; })
+        .map(function (e) { return e.parentElement })
         // console.log("gathered parent svg-nodes for path elements:")
         // console.log(c)
 
