@@ -111,7 +111,6 @@ const gameState = {
 const TREELIMIT = 7500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
-
 const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
 
 /** @type {{upper: number; lower: number}} clicks (on sick trees) after which the conclusion wants to show up */
