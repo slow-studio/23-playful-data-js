@@ -16,6 +16,8 @@ import { svgtree } from "./svgtree.js";
 
 document.body.addEventListener('keydown', function(event) {cheatcodes(event)})
 
+const REFRESH_RATE = 10 // fps
+const REFRESH_TIME = 1000 / REFRESH_RATE // time in millisecond
 let FRAMECOUNT = 0
 
 /** duration for which a protected tree stays protected */
@@ -41,6 +43,7 @@ const CHARRED_TIME_MULTIPLIER = 25
 const gameState = {
     print: false,
     userHasBeenActive: false,
+    lastUpdatedAt: 0, // time when updateForest was last run
     startTime: Date.now(), // milliseconds
     playTime: 0, // milliseconds
     playTimeSeconds: 0, // seconds
@@ -934,6 +937,10 @@ updateForest()
 /** calls itself at the end of each animation frame */
 function updateForest() {
 
+    if(Date.now() - gameState.lastUpdatedAt < REFRESH_TIME) {
+        // do nothing
+    } else {
+
     if (pauseForestUpdate) {
         // do nothing
     } else {
@@ -1248,6 +1255,9 @@ function updateForest() {
             spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 2, false)
             spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, false)
         }
+    }
+    
+    gameState.lastUpdatedAt = Date.now()
     }
 
     window.requestAnimationFrame(updateForest)
