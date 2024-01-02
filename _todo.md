@@ -2,6 +2,7 @@
 
 publish:
 [ ] host on https://playforgood.news
+[ ] disable play-experience on desktop devices
 
 environment:
 [ ] improve sounds. build soundscape. find more randomSounds. 
