@@ -1244,7 +1244,7 @@ function updateForest() {
                     console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
 
                 spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1, false)
-                spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 2, false)
+                spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 1, false)
                 spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, false)
             }
         }
