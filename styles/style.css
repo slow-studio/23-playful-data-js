@@ -109,6 +109,71 @@ svg {
         margin-right: auto;
     }
 
+    #status {
+        --borderColour: var(--blackish);
+        margin-left: auto; margin-right: auto; 
+        flex: 0 0 auto;
+        width: calc(100% - 2rem);
+        position: relative; top: 1rem;
+        /* background: yellow; */
+        border-top:1px solid var(--borderColour);
+    
+        .row {
+            display:block;
+            height: 1rem;
+            margin-top: 0rem;
+            position: unset;
+            overflow: hidden;
+            border-bottom:1px solid var(--borderColour);
+            text-align: left;
+
+            p.label {
+                z-index: 2;
+                position: absolute;
+                font-size:50%;
+                font-weight: bold;
+                margin-left: 0.1875rem;
+                margin-top: 0.03125rem;
+            }
+    
+            .bar {
+                z-index:1;
+                display: inline-block;
+                height: inherit;
+                margin: 0;
+                opacity: .67;
+                transition: width 300ms ease-in-out 0ms;
+            }
+        }
+    }
+
+    #statusHealth {
+        display: none !important;
+    }
+
+    #barNormals {
+        background-color: var(--green);
+        width: /* updated by script */ 0%;
+    }
+    #barDrys {
+        display: none !important;
+        background-color: var(--autumn);
+        width: /* updated by script */ 0%;
+    }
+    #barBurnings {
+        display: none !important;
+        background-color: var(--fire);
+        width: /* updated by script */ 0%;
+    }
+    #barTime {
+        background-color: grey;
+        width: /* updated by script */ 0%;
+    }
+    #barClicks {
+        background-color: var(--protected);
+        width: /* updated by script */ 0%;
+    }
+
     #forest {
         /* background-color: var(--green); */
         max-width: 100%;
@@ -194,13 +259,13 @@ svg {
 
 #info {
     --infoWidth: calc(var(--fontscale) * 24rem);
+    width: var(--infoWidth);
+    left: calc(50vw - var(--infoWidth)/2);
     /* background-color: #fcc00077; */
     position: fixed;
     overflow: visible;
     bottom:0;
     /* top:calc(100vh - 5rem); */
-    width: var(--infoWidth);
-    left: calc(50vw - var(--infoWidth)/2);
     height: 0;
     margin: 0 auto;
     padding: 0;
@@ -224,16 +289,13 @@ svg {
             background-color: var(--paper-light);
         }
         &&[infotype='2'] {
-            background-color: var(--paper-light);
+            background-color: var(--autumn);
         }
-        &&[infotype='3'] {
-            background-color: var(--green);
-        }
-        &&[infotype='4'] {
-            background-color: var(--fire);
+        &&[infotype='8'] {
+            background-color: var(--paper-dark);
         }
         &&[infotype='0'] {
-            background-color: var(--paper-dark);
+            background-color: var(--green);
         }
         p, h3 {
             padding: 0 1.5rem;

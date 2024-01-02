@@ -114,12 +114,12 @@ let gameState = {
 const TREELIMIT = 7500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
-const PLAYTIMELIMIT = 180000 * IDEAL_REFRESH_RATE / REFRESH_RATE // e.g. 180000 ms = 3 min
+const PLAYTIMELIMIT = 90000 * IDEAL_REFRESH_RATE / REFRESH_RATE // e.g. 180000 ms = 3 min
 
 /** 
  * @type {object} clicks (on sick trees) after which the conclusion wants to show up 
 */
-const CLICKLIMIT = { upper: 100, lower: 10 }
+const CLICKLIMIT = { upper: 120, lower: 10 }
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
@@ -148,14 +148,19 @@ function approx(n, p) {
  * @param {number} max1 - upper limit in source range
  * @param {number} min2 - lower limit of destination range
  * @param {number} max2 - upper limit of destination range
+ * @param {boolean} [clamp=false] 
  */
-function map(value1, min1, max1, min2, max2) {
+function map(value1, min1, max1, min2, max2, clamp) {
     if(min1==max1) {
         console.log(`the source range is invalid. (min and max values in the range must not be equal.) returning unchanged value.`)
         return value1
     }
     const gradient = (max2-min2) / (max1-min1)
     let value2 = min2 + ((value1 - min1) * gradient)
+    if (clamp==true) {
+        if(value2>=max2) value2 = max2
+        if(value2<=min2) value2 = min2
+    }
     return value2
 }
 // console.log(map(5,0,10,-1,-.9))
@@ -284,6 +289,8 @@ function startExperience() {
     gameState.startTime = Date.now()
     gameState.playTime = Date.now() - gameState.startTime
     gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
+    gameState.clicksontrees = 0
+    gameState.clicksonsicktrees = 0
     gameState.health = gameState.starthealth
     gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
 }
@@ -926,7 +933,9 @@ function hideBox(box, seed) {
     const infotype = Number(box.getAttribute('infotype'))
     switch(infotype) {
         case 1: 
+            startExperience(); 
             gameState.shownInfo1 = true; 
+            gameState.shownInfo2 = false
             console.log(`seen info #1.`); 
             gameState.print == true; 
             break;
@@ -1265,7 +1274,7 @@ function updateForest() {
         
         const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
         const countalivetrees = normals.length + drys.length + burnings.length
-        function countfullygrowntrees() {
+        function countfullygrownnormaltrees() {
             let count = 0
             for(let i=0 ; i< normals.length ; i++) {
                 const treeid = normals[i].getAttribute('tree-id')
@@ -1288,6 +1297,26 @@ function updateForest() {
         gameState.health = normals.length / totalTreesInForest
         gameState.playTime = Date.now() - gameState.startTime
         gameState.playTimeSeconds = Math.round(gameState.playTime / 1000)
+
+        // update status bars
+        const barNormals = document.getElementById('barNormals')
+        const barDrys = document.getElementById('barDrys')
+        const barBurnings = document.getElementById('barBurnings')
+        const barTime = document.getElementById('barTime')
+        const barClicks = document.getElementById('barClicks')
+        const statusNormals = normals.length / totalTreesInForest
+        const statusDrys = drys.length / totalTreesInForest
+        const statusBurnings = burnings.length / totalTreesInForest
+        const statusTime = gameState.playTime / PLAYTIMELIMIT
+        const statusClicks = gameState.clicksonsicktrees / CLICKLIMIT.upper
+        updateStyle(barNormals, "width", `${100 * statusNormals}%`)
+        updateStyle(barDrys, "width", `${100 * statusDrys}%`)
+        updateStyle(barBurnings, "width", `${100 * statusBurnings}%`)
+        updateStyle(barTime, "width", `${100 * statusTime}%`)
+        // console.log(`${Math.round(100 * statusTime)}%`)
+        updateStyle(barClicks, "width", `${100 * statusClicks}%`)
+        // console.log(`${Math.round(100 * statusClicks)}%`)
+        
 
         if (boxDisplayAttrIs(infoBox)) {
             // do nothing
@@ -1331,7 +1360,6 @@ function updateForest() {
                 setInfo(infoBox, 8)
                 showBox(infoBox)
             }
-
             // 0.
             if (
                 true
@@ -1339,7 +1367,10 @@ function updateForest() {
                 && (
                     gameState.playTime >= PLAYTIMELIMIT
                     ||
-                    (normals.length == countalivetrees && (
+                    (
+                        drys.length + burnings.length == 0
+                        && normals.length / countalivetrees >= READINESS_THRESHOLD
+                        && (
                         gameState.clicksonsicktrees >= CLICKLIMIT.upper
                         ||
                         gameState.clicksonsicktrees >= CLICKLIMIT.lower && gameState.playTime >= 10000
@@ -1349,6 +1380,16 @@ function updateForest() {
                     countalivetrees == 0
                 )
             ) {
+                if (drys.length + burnings.length <= 2) {
+                    for(let i=0 ; i<drys.length ; i++) {
+                        const treeid = drys[i].getAttribute('tree-id')
+                        tree[treeid].behaviour = -1
+                    }
+                    for(let i=0 ; i<burnings.length ; i++) {
+                        const treeid = burnings[i].getAttribute('tree-id')
+                        tree[treeid].behaviour = -2
+                    }
+                }
                 setInfo(infoBox,0)
                 showBox(infoBox)
             }
@@ -1360,8 +1401,8 @@ function updateForest() {
             const AUTORESPAWN_EMPTY_FOREST = false
             const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
             const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
-            let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfo2 ? map(gameState.clicksonsicktrees, 0, CLICKLIMIT.upper, 0.995, .9995) : .9985
-            const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.995
+            let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfo2 == false ? .9985 : map(gameState.clicksonsicktrees, 0, CLICKLIMIT.upper, 0.995, 1)
+            const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995)
             const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
             const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
             const forstcover = countpresenttrees / alltrees.length
