@@ -708,16 +708,16 @@ export function showBox(box) {
     setTimeout(function() {
         // sound:
         if(gameState.userHasBeenActive) {
-        switch(infotype) {
-            case 0:
-            case 1: 
-            case 8: 
-                forcePlaySound(sGoodNews, volumeScaler.sGoodNews)
-                break
-            case 2: 
-                forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
-                break
-        }
+            switch(infotype) {
+                case 0:
+                case 1: 
+                case 8: 
+                    forcePlaySound(sGoodNews, volumeScaler.sGoodNews)
+                    break
+                case 2: 
+                    forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
+                    break
+            }
         }
         // visual:
         box.style.height = `fit-content`
