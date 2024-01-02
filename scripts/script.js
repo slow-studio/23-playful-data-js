@@ -89,7 +89,7 @@ const CHARRED_TIME_MULTIPLIER = 25
 /**
  * game state variables
  */
-let gameState = {
+const gameState = {
     print: false,
     userHasBeenActive: false,
     startTime: Date.now(), // milliseconds
@@ -111,7 +111,11 @@ let gameState = {
 const TREELIMIT = 7500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
-const PLAYTIMELIMIT = 180000 // e.g. 180000 ms = 3 min
+
+const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
+
+/** @type {object} clicks (on sick trees) after which the conclusion wants to show up */
+const CLICKLIMIT = { upper: 120, lower: 10 }
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
@@ -140,21 +144,26 @@ function approx(n, p) {
  * @param {number} max1 - upper limit in source range
  * @param {number} min2 - lower limit of destination range
  * @param {number} max2 - upper limit of destination range
+ * @param {boolean} [clamp=false] 
  */
-function map(value1, min1, max1, min2, max2) {
+function map(value1, min1, max1, min2, max2, clamp) {
     if(min1==max1) {
         console.log(`the source range is invalid. (min and max values in the range must not be equal.) returning unchanged value.`)
         return value1
     }
     const gradient = (max2-min2) / (max1-min1)
     let value2 = min2 + ((value1 - min1) * gradient)
+    if (clamp==true) {
+        if(value2>=max2) value2 = max2
+        if(value2<=min2) value2 = min2
+    }
     return value2
 }
 // console.log(map(5,0,10,-1,-.9))
 
 /** 
  * fetch the value of a property in the stylesheet 
- * @param {*} element
+ * @param {'root' | HTMLElement} element
  * @param {string} property
  * @returns {string}
  * |  
@@ -216,7 +225,7 @@ function randomiseHSLColour(c, rhby, rlby, blocker) {
 
 /**
  * @param {string} start - colour to start with, in hsl() format
- * @param {*} end - colour to end at, in hsl() format
+ * @param {string} end - colour to end at, in hsl() format
  * @param {number} totalSteps - total number of steps
  * @param {number} currentStep - current step (to calculate colour at)
  * @param {number} [factorForH=1]
@@ -225,6 +234,7 @@ function randomiseHSLColour(c, rhby, rlby, blocker) {
  * @returns {string}
  */
 function interpolateHSLColour(start, end, totalSteps, currentStep, factorForH,factorForS, factorForL) {
+    /** @param {string} c */
     function splitHSL(c) {
         const hsl = c.split(",")
         let h = Number(hsl[0].split("(")[1])
@@ -244,9 +254,9 @@ function interpolateHSLColour(start, end, totalSteps, currentStep, factorForH,fa
 
 /**
  * update an element's style
- * @param {*} e - element
+ * @param {'root' | HTMLElement} e - element
  * @param {string} p - parameter 
- * @param {string|number} v - value
+ * @param {string} v - value
  */
 function updateStyle(e, p, v) {
     if (e == 'root') e = document.documentElement
@@ -260,8 +270,8 @@ function updateStyle(e, p, v) {
 function showcontent(show) {
     const contentdiv = document.getElementById('content')
     updateStyle(contentdiv, 'border-top', show ? '.5rem solid black' : 'none')
-    updateStyle(contentdiv, 'height', show ? 'fit-content' : 0)
-    updateStyle(contentdiv, 'padding', show ? '1rem' : 0)
+    updateStyle(contentdiv, 'height', show ? 'fit-content' : '0')
+    updateStyle(contentdiv, 'padding', show ? '1rem' : '0')
     updateStyle(contentdiv, 'overflow', show ? 'visible' : 'hidden')
     window.scroll({
         top: show ? window.innerHeight * 4 / 5 : 0,
@@ -276,6 +286,8 @@ function startExperience() {
     gameState.startTime = Date.now()
     gameState.playTime = Date.now() - gameState.startTime
     gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
+    gameState.clicksontrees = 0
+    gameState.clicksonsicktrees = 0
     gameState.health = gameState.starthealth
     gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
 }
@@ -754,7 +766,7 @@ function percentageOfTrees(state) {
 
 /**
  * even if the sound is currently playing, stop it and play it again.
- * @param {*} sound 
+ * @param {HTMLAudioElement} sound 
  * @param {number} [volume=1] 
  */
 function forcePlaySound(sound, volume) {
@@ -763,7 +775,7 @@ function forcePlaySound(sound, volume) {
 }
 
 /**
- * @param {*} sound 
+ * @param {HTMLAudioElement} sound 
  * @param {number} [volume=1] 
  */
 function playSound(sound, volume) {
@@ -790,11 +802,11 @@ updateStyle(infoBox,"transition-duration",infoBoxTransitionDuration+'ms')
 setInfo(infoBox, 1)
 
 /**
- * @param {*} box
+ * @param {HTMLElement} box
  * @param {number} infotype - 1: intro | 2: display task | 8: instructions to tap | 0: conclusion
  */
 function setInfo(box, infotype) {
-    box.setAttribute('infotype', infotype)
+    box.setAttribute('infotype', infotype.toString())
     // first, empty-out the box
     box.innerHTML = ``
     // populate the box
@@ -865,7 +877,7 @@ function setInfo(box, infotype) {
 
 /**
  * @returns {boolean} tracks whether the element is displayed or not 
- * @param {*} box
+ * @param {HTMLElement} box
  */
 function boxDisplayAttrIs(box) {
     const attr = box.getAttribute('display')
@@ -876,7 +888,7 @@ function boxDisplayAttrIs(box) {
 }
 
 /**
- * @param {*} box 
+ * @param HTMLElement} box 
  */
 function showBox(box) {
     box.setAttribute('display', true) // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
@@ -899,11 +911,11 @@ function showBox(box) {
 }
 
 /**
- * @param {*} box 
+ * @param {HTMLElement} box 
  * @param {boolean} [seed=true] - seedDryTrees when box closes?
  */
 function hideBox(box, seed) {
-    box.setAttribute('display', false)
+    box.setAttribute('display', 'false')
     console.log(`hiding infoBox.`)
     box.style.bottom = `-100vh`
     box.style.height = "0"
@@ -918,7 +930,9 @@ function hideBox(box, seed) {
     const infotype = Number(box.getAttribute('infotype'))
     switch(infotype) {
         case 1: 
+            startExperience(); 
             gameState.shownInfo1 = true; 
+            gameState.shownInfo2 = false
             console.log(`seen info #1.`); 
             gameState.print == true; 
             break;
@@ -1189,7 +1203,7 @@ for (let i = 0; loopRunner; i++) {
 console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
 
 /** #infoBox should have a z-index higher than all spawned trees */
-updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
+updateStyle(infoBox.parentElement, "z-index", (highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1).toString())
 
 /*  ------------------------------------------------------------
     update the forest.
@@ -1258,7 +1272,7 @@ function updateForest() {
         
         const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
         const countalivetrees = normals.length + drys.length + burnings.length
-        function countfullygrowntrees() {
+        function countfullygrownnormaltrees() {
             let count = 0
             for(let i=0 ; i< normals.length ; i++) {
                 const treeid = normals[i].getAttribute('tree-id')
@@ -1281,6 +1295,26 @@ function updateForest() {
         gameState.health = normals.length / totalTreesInForest
         gameState.playTime = Date.now() - gameState.startTime
         gameState.playTimeSeconds = Math.round(gameState.playTime / 1000)
+
+        // update status bars
+        const barNormals = document.getElementById('barNormals')
+        const barDrys = document.getElementById('barDrys')
+        const barBurnings = document.getElementById('barBurnings')
+        const barTime = document.getElementById('barTime')
+        const barClicks = document.getElementById('barClicks')
+        const statusNormals = normals.length / totalTreesInForest
+        const statusDrys = drys.length / totalTreesInForest
+        const statusBurnings = burnings.length / totalTreesInForest
+        const statusTime = gameState.playTime / PLAYTIMELIMIT
+        const statusClicks = gameState.clicksonsicktrees / CLICKLIMIT.upper
+        updateStyle(barNormals, "width", `${100 * statusNormals}%`)
+        updateStyle(barDrys, "width", `${100 * statusDrys}%`)
+        updateStyle(barBurnings, "width", `${100 * statusBurnings}%`)
+        updateStyle(barTime, "width", `${100 * statusTime}%`)
+        // console.log(`${Math.round(100 * statusTime)}%`)
+        updateStyle(barClicks, "width", `${100 * statusClicks}%`)
+        // console.log(`${Math.round(100 * statusClicks)}%`)
+        
 
         if (boxDisplayAttrIs(infoBox)) {
             // do nothing
@@ -1324,12 +1358,36 @@ function updateForest() {
                 setInfo(infoBox, 8)
                 showBox(infoBox)
             }
-
             // 0.
             if (
                 true
-                && gameState.playTime >= PLAYTIMELIMIT
+                && gameState.shownInfo2 == true
+                && (
+                    gameState.playTime >= PLAYTIMELIMIT
+                    ||
+                    (
+                        drys.length + burnings.length == 0
+                        && normals.length / countalivetrees >= READINESS_THRESHOLD
+                        && (
+                        gameState.clicksonsicktrees >= CLICKLIMIT.upper
+                        ||
+                        gameState.clicksonsicktrees >= CLICKLIMIT.lower && gameState.playTime >= 10000
+                        )
+                    )
+                    ||
+                    countalivetrees == 0
+                )
             ) {
+                if (drys.length + burnings.length <= 2) {
+                    for(let i=0 ; i<drys.length ; i++) {
+                        const treeid = drys[i].getAttribute('tree-id')
+                        tree[treeid].behaviour = -1
+                    }
+                    for(let i=0 ; i<burnings.length ; i++) {
+                        const treeid = burnings[i].getAttribute('tree-id')
+                        tree[treeid].behaviour = -2
+                    }
+                }
                 setInfo(infoBox,0)
                 showBox(infoBox)
             }
@@ -1341,8 +1399,8 @@ function updateForest() {
             const AUTORESPAWN_EMPTY_FOREST = false
             const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
             const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
-            let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfo2 ? map(gameState.clicksonsicktrees, 0, 100, 0.995, .9995) : .9985
-            const THRESHOLD_SETFIRE = /* suggested: .99  */ 0.995
+            let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfo2 == false ? .9985 : map(gameState.clicksonsicktrees, 0, CLICKLIMIT.upper, 0.995, 1)
+            const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995)
             const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
             const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
             const forstcover = countpresenttrees / alltrees.length
@@ -1505,56 +1563,51 @@ function didClickHappenOnTree(e) {
     // console.log("clicked on: (" + x + ", " + y + ")")
 
     // get array of all elements that are present where the mouseclick happened ...
-    /** @type {*} */
-    let c = []
-    c = document.elementsFromPoint(x, y)
+    const c = document.elementsFromPoint(x, y)
     // console.log("here are all clicked-on elements:")
     // console.log(c)
 
     // check if the click happened on #infoBox
-    let clickedOnInfosBox = false;
-    for (let i = 0; i < c.length; i++) {
-        if (c[i].id === 'infoBox' || c[i].id === 'closeInfoBox') {
-            clickedOnInfosBox = true
-            console.log(`clicked on #${c[i].id} | did not click on #forest`)
-            break;
+    const clickedOnInfosBox = c.some(element => {
+        if (element.id === 'infoBox' || element.id === 'closeInfoBox') {
+            console.log(`clicked on #${element.id} | did not click on #forest`)
+            return true;
         }
-    }
+
+        return false;
+    });
 
     // if we didn't click on the #infoBox, then we may continue checking whether the click happened on a tree in the #forest:
-    if (clickedOnInfosBox == false) {
+    if (!clickedOnInfosBox) {
 
         // in the array, we are checking which element is an "SVG Path/Polyline/Polygon Element" (i.e., is a <path>, <polyline> or <polygon>).
-        c = c.map(function (x) {
-            if (
+        const filteredElements = c.filter(function (x) {
+            return (
                 x.constructor.toString().indexOf("SVGPathElement()") > -1
                 || x.constructor.toString().indexOf("SVGPolylineElement()") > -1
                 || x.constructor.toString().indexOf("SVGPolygonElement()") > -1
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-            )
-                // return <path>'s parent (which is an <svg>)
-                return x.parentNode
-            else return -1
-        });
-        // console.log("gathered parent svg-nodes for path elements:")
-        // console.log(c)
-
-        // filter out all non-svg elements (which we'd already replaced with -1)
-        c = c.filter(function (e) { return e != -1; })
+            );
+        })
         // console.log("removed -1's:")
         // console.log(c)
 
+        // return <path>'s parent (which is an <svg>)
+        .map(function (e) { return e.parentElement; })
+        // console.log("gathered parent svg-nodes for path elements:")
+        // console.log(c)
+
         // ensure that all elements in the array are unique
-        c = c.filter(function (x, i, a) { return a.indexOf(x) == i })
+        .filter(function (x, i, a) { return a.indexOf(x) === i })
         // console.log("removed duplicates:")
         // console.log(c)
 
         // count the click
-        if(c.length>0) gameState.clicksontrees++
+        if(filteredElements.length>0) gameState.clicksontrees++
 
         // now, we instruct each (clicked-)tree to change
-        for (const i in c) {            
-            const SVGElementOfClickedTree = c[i]
+        for (const i in filteredElements) {            
+            const SVGElementOfClickedTree = filteredElements[i]
             const treeid = Number(SVGElementOfClickedTree.getAttribute('tree-id'))
             if (SVGElementOfClickedTree.classList.contains("burning") || SVGElementOfClickedTree.classList.contains("dry")) {
                 gameState.clicksonsicktrees++
