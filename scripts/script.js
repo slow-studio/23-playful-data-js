@@ -114,7 +114,7 @@ const TREELIMIT = 7500;
 
 const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
 
-/** @type {object} clicks (on sick trees) after which the conclusion wants to show up */
+/** @type {{upper: number; lower: number}} clicks (on sick trees) after which the conclusion wants to show up */
 const CLICKLIMIT = { upper: 120, lower: 10 }
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
