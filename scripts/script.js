@@ -63,7 +63,7 @@ function cheatcodes(e) {
         break;
   }
 }
-document.body.setAttribute('onkeydown','cheatcodes(event)')
+document.body.addEventListener('keydown', function(event) {cheatcodes(event)})
 
 let FRAMECOUNT = 0
 
