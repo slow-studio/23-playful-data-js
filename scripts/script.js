@@ -318,7 +318,7 @@ function updateTree(svgelement) {
         svgelement.classList.contains("protected") == true
     ) {
         // console.log(`the tree is within the protected state. protectionTime ${tree[id].state.protectionTime} out of ${tree[id].state.totalProtectionTime}`)
-        tree[id].state.protectionTime += protectionDuration
+        tree[id].state.protectionTime += REFRESH_TIME
         if (tree[id].state.protectionTime <= 0) 
             tree[id].state.protectionTime = 0
         if (tree[id].state.protectionTime >= tree[id].state.totalProtectionTime) 
