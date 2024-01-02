@@ -1,5 +1,8 @@
 # todo
 
+publish:
+[ ] host on https://playforgood.news
+
 environment:
 [ ] improve sounds. build soundscape. find more randomSounds. 
 
