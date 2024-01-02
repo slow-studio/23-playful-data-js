@@ -23,8 +23,6 @@ const protectionDuration = 7500 // time in millisecond
 
 /** @type {number} steps a tree takes to dry out */
 const STEPSTODRYOUT = 20
-/** @type {number} step that a dry tree is at (out of a total of STEPSTODRYOUT number of steps) */
-let drySubstateCounter = /* placeholder*/ 0
 
 /** @type {number} a heap of mud/ash takes ✕ times longer to begin growing into a tree */
 const ABSENT_TIME_MULTIPLIER = 10
