@@ -707,6 +707,7 @@ export function showBox(box) {
     const infotype = Number(box.getAttribute('infotype'))
     setTimeout(function() {
         // sound:
+        if(gameState.userHasBeenActive) {
         switch(infotype) {
             case 0:
             case 1: 
@@ -716,6 +717,7 @@ export function showBox(box) {
             case 2: 
                 forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
                 break
+        }
         }
         // visual:
         box.style.height = `fit-content`
