@@ -503,7 +503,8 @@ function updateTree(svgelement) {
 
     /* tree changes appearance: */
     // -- 1. it updates its svg shape
-    svgelement.innerHTML = svgtree.src.innerhtml[tree[id].state.now[0]][tree[id].state.now[1]]
+    if(tree[id].state.now[0]!=tree[id].state.previous[0] || tree[id].state.now[1]!=tree[id].state.previous[1])
+        svgelement.innerHTML = svgtree.src.innerhtml[tree[id].state.now[0]][tree[id].state.now[1]]
     // -- 2. it sets the colour for those svg-shapes
     for (const p of foliages) {
         if (tree[id].isProtected) {
@@ -887,7 +888,7 @@ for (let i = 0; loopRunner; i++) {
     newDiv.setAttribute('id', tree[i].id)
 
     // add the placeholder svg-element into newDiv
-    newDiv.innerHTML = svgtree.src.starttag + svgtree.src.endtag
+    newDiv.innerHTML = svgtree.src.starttag + svgtree.src.innerhtml[tree[i].state.now[0]][tree[i].state.now[1]] + svgtree.src.endtag
     // then, grab the svg-element...
     const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
     svgelement.setAttribute('tree-id',`${i}`)
