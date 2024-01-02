@@ -1094,7 +1094,7 @@ function updateForest() {
                             )
                         )
                         ||
-                        countalivetrees == 0
+                        (gameState.clicksonsicktrees >= CLICKLIMIT.lower && countalivetrees == 0)
                     )
                 ) {
                     if (drys.length + burnings.length <= 2) {
