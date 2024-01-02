@@ -999,17 +999,6 @@ function updateForest() {
             
             const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
             const countalivetrees = normals.length + drys.length + burnings.length
-            // function countfullygrownnormaltrees() {
-            //     let count = 0
-            //     for(let i=0 ; i< normals.length ; i++) {
-            //         const treeid = normals[i].getAttribute('tree-id')
-            //         const treestate = tree[treeid].state.now
-            //         // if the tree is fully grown ...
-            //         if (treestate[1] >= (svgtree.src.innerhtml[treestate[0]]).length - 1)
-            //             count++ // ... add to the count of fully-grown trees
-            //     }
-            //     return count
-            // }
             
             /** 
              * update each tree
