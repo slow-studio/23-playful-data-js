@@ -92,7 +92,7 @@ const CHARRED_TIME_MULTIPLIER = 25
 /**
  * game state variables
  */
-let gameState = {
+const gameState = {
     print: false,
     userHasBeenActive: false,
     startTime: Date.now(), // milliseconds
@@ -167,7 +167,7 @@ function map(value1, min1, max1, min2, max2, clamp) {
 
 /** 
  * fetch the value of a property in the stylesheet 
- * @param {*} element
+ * @param {'root' | HTMLElement} element
  * @param {string} property
  * @returns {string}
  * |  
@@ -229,7 +229,7 @@ function randomiseHSLColour(c, rhby, rlby, blocker) {
 
 /**
  * @param {string} start - colour to start with, in hsl() format
- * @param {*} end - colour to end at, in hsl() format
+ * @param {string} end - colour to end at, in hsl() format
  * @param {number} totalSteps - total number of steps
  * @param {number} currentStep - current step (to calculate colour at)
  * @param {number} [factorForH=1]
@@ -238,6 +238,7 @@ function randomiseHSLColour(c, rhby, rlby, blocker) {
  * @returns {string}
  */
 function interpolateHSLColour(start, end, totalSteps, currentStep, factorForH,factorForS, factorForL) {
+    /** @param {string} c */
     function splitHSL(c) {
         const hsl = c.split(",")
         let h = Number(hsl[0].split("(")[1])
@@ -257,9 +258,9 @@ function interpolateHSLColour(start, end, totalSteps, currentStep, factorForH,fa
 
 /**
  * update an element's style
- * @param {*} e - element
+ * @param {'root' | HTMLElement} e - element
  * @param {string} p - parameter 
- * @param {string|number} v - value
+ * @param {string} v - value
  */
 function updateStyle(e, p, v) {
     if (e == 'root') e = document.documentElement
@@ -273,8 +274,8 @@ function updateStyle(e, p, v) {
 function showcontent(show) {
     const contentdiv = document.getElementById('content')
     updateStyle(contentdiv, 'border-top', show ? '.5rem solid black' : 'none')
-    updateStyle(contentdiv, 'height', show ? 'fit-content' : 0)
-    updateStyle(contentdiv, 'padding', show ? '1rem' : 0)
+    updateStyle(contentdiv, 'height', show ? 'fit-content' : '0')
+    updateStyle(contentdiv, 'padding', show ? '1rem' : '0')
     updateStyle(contentdiv, 'overflow', show ? 'visible' : 'hidden')
     window.scroll({
         top: show ? window.innerHeight * 4 / 5 : 0,
@@ -769,7 +770,7 @@ function percentageOfTrees(state) {
 
 /**
  * even if the sound is currently playing, stop it and play it again.
- * @param {*} sound 
+ * @param {HTMLAudioElement} sound 
  * @param {number} [volume=1] 
  */
 function forcePlaySound(sound, volume) {
@@ -778,7 +779,7 @@ function forcePlaySound(sound, volume) {
 }
 
 /**
- * @param {*} sound 
+ * @param {HTMLAudioElement} sound 
  * @param {number} [volume=1] 
  */
 function playSound(sound, volume) {
@@ -805,11 +806,11 @@ updateStyle(infoBox,"transition-duration",infoBoxTransitionDuration+'ms')
 setInfo(infoBox, 1)
 
 /**
- * @param {*} box
+ * @param {HTMLElement} box
  * @param {number} infotype - 1: intro | 2: display task | 8: instructions to tap | 0: conclusion
  */
 function setInfo(box, infotype) {
-    box.setAttribute('infotype', infotype)
+    box.setAttribute('infotype', infotype.toString())
     // first, empty-out the box
     box.innerHTML = ``
     // populate the box
@@ -880,7 +881,7 @@ function setInfo(box, infotype) {
 
 /**
  * @returns {boolean} tracks whether the element is displayed or not 
- * @param {*} box
+ * @param {HTMLElement} box
  */
 function boxDisplayAttrIs(box) {
     const attr = box.getAttribute('display')
@@ -891,7 +892,7 @@ function boxDisplayAttrIs(box) {
 }
 
 /**
- * @param {*} box 
+ * @param HTMLElement} box 
  */
 function showBox(box) {
     box.setAttribute('display', true) // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
@@ -914,11 +915,11 @@ function showBox(box) {
 }
 
 /**
- * @param {*} box 
+ * @param {HTMLElement} box 
  * @param {boolean} [seed=true] - seedDryTrees when box closes?
  */
 function hideBox(box, seed) {
-    box.setAttribute('display', false)
+    box.setAttribute('display', 'false')
     console.log(`hiding infoBox.`)
     box.style.bottom = `-100vh`
     box.style.height = "0"
@@ -1206,7 +1207,7 @@ for (let i = 0; loopRunner; i++) {
 console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
 
 /** #infoBox should have a z-index higher than all spawned trees */
-updateStyle(infoBox.parentElement, "z-index", highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1)
+updateStyle(infoBox.parentElement, "z-index", (highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1).toString())
 
 /*  ------------------------------------------------------------
     update the forest.
@@ -1563,56 +1564,51 @@ function didClickHappenOnTree(e) {
     // console.log("clicked on: (" + x + ", " + y + ")")
 
     // get array of all elements that are present where the mouseclick happened ...
-    /** @type {*} */
-    let c = []
-    c = document.elementsFromPoint(x, y)
+    const c = document.elementsFromPoint(x, y)
     // console.log("here are all clicked-on elements:")
     // console.log(c)
 
     // check if the click happened on #infoBox
-    let clickedOnInfosBox = false;
-    for (let i = 0; i < c.length; i++) {
-        if (c[i].id === 'infoBox' || c[i].id === 'closeInfoBox') {
-            clickedOnInfosBox = true
-            console.log(`clicked on #${c[i].id} | did not click on #forest`)
-            break;
+    const clickedOnInfosBox = c.some(element => {
+        if (element.id === 'infoBox' || element.id === 'closeInfoBox') {
+            console.log(`clicked on #${element.id} | did not click on #forest`)
+            return true;
         }
-    }
+
+        return false;
+    });
 
     // if we didn't click on the #infoBox, then we may continue checking whether the click happened on a tree in the #forest:
-    if (clickedOnInfosBox == false) {
+    if (!clickedOnInfosBox) {
 
         // in the array, we are checking which element is an "SVG Path/Polyline/Polygon Element" (i.e., is a <path>, <polyline> or <polygon>).
-        c = c.map(function (x) {
-            if (
+        const filteredElements = c.filter(function (x) {
+            return (
                 x.constructor.toString().indexOf("SVGPathElement()") > -1
                 || x.constructor.toString().indexOf("SVGPolylineElement()") > -1
                 || x.constructor.toString().indexOf("SVGPolygonElement()") > -1
                 // for more info about the 'constructor' property, and about this condition-check, please read: https://www.w3schools.com/js/js_typeof.asp.
-            )
-                // return <path>'s parent (which is an <svg>)
-                return x.parentNode
-            else return -1
-        });
-        // console.log("gathered parent svg-nodes for path elements:")
-        // console.log(c)
-
-        // filter out all non-svg elements (which we'd already replaced with -1)
-        c = c.filter(function (e) { return e != -1; })
+            );
+        })
         // console.log("removed -1's:")
         // console.log(c)
 
+        // return <path>'s parent (which is an <svg>)
+        .map(function (e) { return e.parentElement; })
+        // console.log("gathered parent svg-nodes for path elements:")
+        // console.log(c)
+
         // ensure that all elements in the array are unique
-        c = c.filter(function (x, i, a) { return a.indexOf(x) == i })
+        .filter(function (x, i, a) { return a.indexOf(x) === i })
         // console.log("removed duplicates:")
         // console.log(c)
 
         // count the click
-        if(c.length>0) gameState.clicksontrees++
+        if(filteredElements.length>0) gameState.clicksontrees++
 
         // now, we instruct each (clicked-)tree to change
-        for (const i in c) {            
-            const SVGElementOfClickedTree = c[i]
+        for (const i in filteredElements) {            
+            const SVGElementOfClickedTree = filteredElements[i]
             const treeid = Number(SVGElementOfClickedTree.getAttribute('tree-id'))
             if (SVGElementOfClickedTree.classList.contains("burning") || SVGElementOfClickedTree.classList.contains("dry")) {
                 gameState.clicksonsicktrees++
