@@ -522,7 +522,7 @@ function updateTree(svgelement) {
                 tree[id].properties.colour.foliageDry, // end colour.
                 stepstodryout,
                 tree[id].state.drySubstateCounter,
-                1/8, 8, 2
+                1/8, 1/2, 2
             )
         }
         else if (tree[id].state.now[0] > 2) {
