@@ -18,21 +18,21 @@ document.body.addEventListener('keydown', function(event) {cheatcodes(event)})
 
 let FRAMECOUNT = 0
 
-/** @type {number} duration for which a protected tree stays protected */
+/** duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
-/** @type {number} steps a tree takes to dry out */
+/** steps a tree takes to dry out */
 const STEPSTODRYOUT = 20
 
-/** @type {number} a heap of mud/ash takes ✕ times longer to begin growing into a tree */
+/** a heap of mud/ash takes ✕ times longer to begin growing into a tree */
 const ABSENT_TIME_MULTIPLIER = 10
-/** @type {number} a fully-grown tree resists drying for these many ✕ times longer */
+/** a fully-grown tree resists drying for these many ✕ times longer */
 const NORMAL_TIME_MULTIPLIER = 25
-/** @type {number} a dry tree resists catching fire for these many ✕ times longer */
+/** a dry tree resists catching fire for these many ✕ times longer */
 const DRY_TIME_MULTIPLIER = 12.5
-/** @type {number} make fires burn for these many ✕ times longer */
+/** make fires burn for these many ✕ times longer */
 const FIRE_BURN_TIME_MULTIPLIER = 2.0
-/** @type {number} a tree remains charred for these many ✕ times longer */
+/** a tree remains charred for these many ✕ times longer */
 const CHARRED_TIME_MULTIPLIER = 25
 
 /**
@@ -56,10 +56,10 @@ const gameState = {
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
-/** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
+/** maximum number of trees to draw. (we can keep this number arbitarily large.) */
 const TREELIMIT = 7500;
 
-/** @type {number} time (in millisecond) after which the conclusion wants to show up */
+/** time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
 
 /** @type {{upper: number; lower: number}} clicks (on sick trees) after which the conclusion wants to show up */
@@ -68,7 +68,7 @@ const CLICKLIMIT = { upper: 120, lower: 10 }
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0;
 
-/** @type {*} an array. stores one object (each) for every tree. the object contains all info/settings for that tree. */
+/** an array. stores one object (each) for every tree. the object contains all info/settings for that tree. */
 const tree = []
 
 /**
