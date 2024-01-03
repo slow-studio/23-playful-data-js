@@ -6,9 +6,14 @@ console.log("script.js loaded.")
 let scrollFactor = 0.1
 console.log(`scrollFactor (at start): ${scrollFactor}`)
 const windowHeight = window.innerHeight
-const documentHeight = document.documentElement.scrollHeight
-const scrollableHeight = documentHeight - windowHeight
-console.log(`scrollableHeight: ${scrollableHeight}`)
+function documentHeight() {
+  return parseInt(document.documentElement.scrollHeight)
+}
+function scrollableHeight() {
+  return parseInt(documentHeight() - windowHeight)
+}
+
+console.log(`documentHeight: \t\t${documentHeight()}\nwindowHeight: \t\t\t ${windowHeight}\n∴ scrollableHeight: \t${scrollableHeight()}`)
 
 /* function to define custom scroll-behaviour on mouse/tap events */
 function preventDefault(e) {
@@ -26,9 +31,9 @@ function preventDefault(e) {
       0.5
       *
       /* this is the basic calculation for scrollFactor */
-      ((scrollableHeight - currentlyAt) / scrollableHeight)
+      ((scrollableHeight() - currentlyAt) / scrollableHeight())
     )
-  console.log(`currentlyAt: ${currentlyAt}px out of ${scrollableHeight}px | scrollFactor: ${scrollFactor}`)
+  console.log(`currentlyAt: ${currentlyAt}px out of ${scrollableHeight()}px | scrollFactor: ${scrollFactor}`)
 
   // and: scroll slowly (reduced by the scrollFactor variable)
   window.scrollBy({ top: e.deltaY * scrollFactor }); //scroll based on a nuber of pixels
