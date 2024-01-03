@@ -55,7 +55,7 @@ function preventDefault(e) {
 			newtime = e.timeStamp
 			delta = newy - oldy
 			if(Math.abs(delta)>=120) delta = 0
-			window.scrollBy({ top: -.5*delta/*, behavior: 'smooth'*/ })
+			window.scrollBy({ top: -delta * scrollFactor/*, behavior: 'smooth'*/ })
 			oldy = newy
 			oldtime = newtime
 			break;
