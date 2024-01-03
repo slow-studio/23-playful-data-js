@@ -8,29 +8,67 @@ function documentHeight() { return parseInt(document.documentElement.scrollHeigh
 function scrollableHeight() { return parseInt(documentHeight() - windowHeight) }
 console.log(`documentHeight: \t\t${documentHeight()}\nwindowHeight: \t\t\t ${windowHeight}\n∴ scrollableHeight: \t${scrollableHeight()}`)
 
+// during a touchmove event, these record the y position of a touch 
+let oldy = 0
+let oldtime = 0
+let newy = 0
+let newtime = 0
+let delta = newy - oldy
+
 /* function to define custom scroll-behaviour on mouse/tap events */
 function preventDefault(e) {
-  console.log(e)
 
-  // prevent default scroll/touchmove behaviour
-  e.preventDefault();
-  
-  // calculate where the person is currentlyAt
-  let currentlyAt = document.documentElement.scrollTop
-  
-  // calculate scroll factor
-  scrollFactor = /*the 0.01 is there so that scrollFactor never becomes 0*/ 0.09 + (/* the 0.3 is what replicates normal scrolling speed */ 0.5 * /* this is the basic calculation for scrollFactor */ ((scrollableHeight() - currentlyAt) / scrollableHeight()) )
+	// calculate where the person is currentlyAt
+	let currentlyAt = document.documentElement.scrollTop
 
-  // and: scroll slowly (reduced by the scrollFactor variable)
-  window.scrollBy({ top: e.deltaY * scrollFactor/*, behavior: 'smooth'*/ });
+	// calculate scroll factor
+	scrollFactor = /*the 0.01 is there so that scrollFactor never becomes 0*/ 0.09 + (/* the 0.3 is what replicates normal scrolling speed */ 0.5 * /* this is the basic calculation for scrollFactor */ ((scrollableHeight() - currentlyAt) / scrollableHeight()))
+	scrollFactor = 1
 
-  console.log(`currentlyAt: ${Math.round(currentlyAt)}px | custom scrollFactor: ${scrollFactor}`)
+	// and: scroll slowly (reduced by the scrollFactor variable)
+	switch (e.type) {
+		case ('keydown'):
+			e.preventDefault(); // prevent default scroll/touchmove behaviour
+			const keyPressed = e.keyCode
+			switch (keyPressed) {
+				case 32: // spacebar to move down
+					scrollFactor *= 20
+					break
+				case 38:
+					scrollFactor *= -2
+					break
+				case 40:
+					scrollFactor *= 2
+					break
+			}
+			window.scrollBy({ top: 10 * scrollFactor, behavior: 'smooth' })
+			console.log(`${keyPressed} was pressed.`)
+			break;
+		case ('wheel'):
+			console.log(e.type)
+			e.preventDefault(); // prevent default scroll/touchmove behaviour
+			window.scrollBy({ top: e.deltaY * scrollFactor/*, behavior: 'smooth'*/ });
+			break;
+		case ('touchmove'):
+			e.preventDefault()
+			newy = e.touches[0].clientY
+			newtime = e.timeStamp
+			delta = newy - oldy
+			if(Math.abs(delta)>=120) delta = 0
+			window.scrollBy({ top: -.5*delta/*, behavior: 'smooth'*/ })
+			oldy = newy
+			oldtime = newtime
+			break;
+	}
+
+	console.log(`currentlyAt: ${Math.round(currentlyAt)}px | custom scrollFactor: ${scrollFactor}`)
 }
 
 
 // left: 37, up: 38, right: 39, down: 40,
 // spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
-var keys = { 32: 1, 37: 1, 38: 1, 39: 1, 40: 1 };
+// shift: 16
+var keys = { 32: 1, 38: 1, 40: 1 };
 
 /* function to define custom scroll-behaviour (when keyboard keys are pressed) */
 function preventDefaultForScrollKeys(e) {
