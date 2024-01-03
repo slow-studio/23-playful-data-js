@@ -114,7 +114,7 @@ let gameState = {
 // console.log(JSON.stringify(gameState, null, 2))
 
 /** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
-const TREELIMIT = 7500;
+const TREELIMIT = 2500;
 
 /** @type {number} time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 180000 * IDEAL_REFRESH_RATE / REFRESH_RATE // e.g. 180000 ms = 3 min
