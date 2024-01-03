@@ -969,9 +969,9 @@ function updateForest() {
             if (gameState.userHasBeenActive) {
 
                 // update volumes:
-                playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
+                // playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
                 // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
-                playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
+                // playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
                 // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
             
                 if(!pauseForestUpdate) {
