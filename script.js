@@ -3,9 +3,8 @@ console.log("script.js loaded.")
 // get full page height-window height
 // reduce speed by oercentage - scrollfactor=* 0.9
 
-let scrollFactor = 0.1;
-console.log(scrollFactor)
-
+let scrollFactor = 0.1
+console.log(`scrollFactor (at start): ${scrollFactor}`)
 const windowHeight = window.innerHeight
 const documentHeight = document.documentElement.scrollHeight
 const scrollableHeight = documentHeight - windowHeight
