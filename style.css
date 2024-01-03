@@ -17,14 +17,14 @@ body {
     left: 0;
     text-align: left; 
     border-bottom: 1px solid black;
+}
 
-    h2 {
-        width: fit-content;
-        max-width:100%;
-        margin: 0;
-        font-size: 1rem;
-        text-align: left;
-    }
+#header h2 {
+    width: fit-content;
+    max-width:100%;
+    margin: 0;
+    font-size: 1rem;
+    text-align: left;
 }
 
 #content {
