@@ -55,6 +55,8 @@ body * {
     touch-action: manipulation; /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation, https://stackoverflow.com/a/53236027, and https://endtimes.dev/you-can-use-css-to-remove-the-double-tap-zoom-feature-on-ios/ */
 }
 
+audio { display: none; }
+
 h1, h2, h3, p {
     text-align: left;
 }
