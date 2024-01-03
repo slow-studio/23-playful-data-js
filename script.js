@@ -72,19 +72,19 @@ var keys = { 32: 1, 38: 1, 40: 1 };
 
 /* function to define custom scroll-behaviour (when keyboard keys are pressed) */
 function preventDefaultForScrollKeys(e) {
-  if (keys[e.keyCode]) {
-    preventDefault(e);
-    return false;
-  }
+	if (keys[e.keyCode]) {
+		preventDefault(e);
+		return false;
+	}
 }
 
 // (not sure, but we think this) checks if the current browser is a Chrome browser.
 // ∵ modern Chrome requires { passive: false } when adding event
 var supportsPassive = false;
 try {
-  window.addEventListener("test", null, Object.defineProperty({}, 'passive', {
-    get: function () { supportsPassive = true; }
-  }));
+	window.addEventListener("test", null, Object.defineProperty({}, 'passive', {
+		get: function () { supportsPassive = true; }
+	}));
 } catch (e) { }
 
 var wheelOpt = supportsPassive ? { passive: false } : false;
@@ -92,20 +92,20 @@ var wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewh
 
 // call this to Enable
 function enableScroll() {
-  window.removeEventListener('DOMMouseScroll', preventDefault, false);
-  window.removeEventListener(wheelEvent, preventDefault, wheelOpt);
-  window.removeEventListener('touchmove', preventDefault, wheelOpt);
-  window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
+	window.removeEventListener('DOMMouseScroll', preventDefault, false);
+	window.removeEventListener(wheelEvent, preventDefault, wheelOpt);
+	window.removeEventListener('touchmove', preventDefault, wheelOpt);
+	window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
 }
 
 /* this function attached eventListeners to the window. whenever a scroll (or similar) event is detected, these eventListeners call the preventDefault() funtion.
 */
 function disableScroll() {
-  console.log(`disableScroll() has worked its magic.`)
-  window.addEventListener('DOMMouseScroll', preventDefault, false); // older FF
-  window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
-  window.addEventListener('touchmove', preventDefault, wheelOpt); // mobile
-  window.addEventListener('keydown', preventDefaultForScrollKeys, false);
+	console.log(`disableScroll() has worked its magic.`)
+	window.addEventListener('DOMMouseScroll', preventDefault, false); // older FF
+	window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
+	window.addEventListener('touchmove', preventDefault, wheelOpt); // mobile
+	window.addEventListener('keydown', preventDefaultForScrollKeys, false);
 }
 
 // when the script loads, call the disableScroll() function
