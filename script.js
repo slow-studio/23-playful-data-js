@@ -22,8 +22,23 @@ function preventDefault(e) {
 	let currentlyAt = document.documentElement.scrollTop
 
 	// calculate scroll factor
-	scrollFactor = /*the 0.01 is there so that scrollFactor never becomes 0*/ 0.09 + (/* the 0.3 is what replicates normal scrolling speed */ 0.5 * /* this is the basic calculation for scrollFactor */ ((scrollableHeight() - currentlyAt) / scrollableHeight()))
-	scrollFactor = 1
+	const scrollFactorAtTop = 1
+	const scrollFactorAtBottom = .1
+	const rateOfScrollFactorChange = 2
+	scrollFactor = 
+		scrollFactorAtBottom
+		+ 
+		(
+			(scrollFactorAtTop - scrollFactorAtBottom)
+			* 
+			/* this is the basic calculation for scrollFactor */ 
+			Math.pow(
+				(scrollableHeight() - currentlyAt) / scrollableHeight(),rateOfScrollFactorChange
+			)
+		)
+	// round the value to make it readable in the console
+	const decimalPlaces = 4
+	scrollFactor = Math.round(Math.pow(10,decimalPlaces)*(scrollFactor))/Math.pow(10,decimalPlaces)
 
 	// and: scroll slowly (reduced by the scrollFactor variable)
 	switch (e.type) {
