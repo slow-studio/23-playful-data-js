@@ -65,11 +65,11 @@ function preventDefault(e) {
 			window.scrollBy({ top: e.deltaY * scrollFactor/*, behavior: 'smooth'*/ });
 			break;
 		case ('touchmove'):
-			e.preventDefault()
 			newy = e.touches[0].clientY
 			newtime = e.timeStamp
 			delta = newy - oldy
 			if(Math.abs(delta)>=120) delta = 0
+			e.preventDefault()
 			window.scrollBy({ top: -delta * scrollFactor/*, behavior: 'smooth'*/ })
 			oldy = newy
 			oldtime = newtime
