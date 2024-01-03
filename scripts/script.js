@@ -59,8 +59,8 @@ const gameState = {
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
-/** maximum number of trees to draw. (we can keep this number arbitarily large.) */
-const TREELIMIT = 7500
+/** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
+const TREELIMIT = 2500;
 
 /** time (in millisecond) after which the conclusion wants to show up */
 const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min

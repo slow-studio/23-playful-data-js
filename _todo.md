@@ -6,6 +6,7 @@ publish:
 
 environment:
 [ ] improve sounds. build soundscape. find more randomSounds. 
+[ ] add message: "please open on a phone. if you open it on a larger screen, it will greedily eat up your battery and memory (much like how we're eating up the environment)."
 
 forest:
 [✓] add variation in tree-colour
