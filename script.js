@@ -61,7 +61,7 @@ function preventDefault(e) {
 			break;
 	}
 
-	console.log(`currentlyAt: ${Math.round(currentlyAt)}px | custom scrollFactor: ${scrollFactor}`)
+	console.log(`currentlyAt: ${Math.round(currentlyAt)}px | scrollFactor: ${scrollFactor}`)
 }
 
 
