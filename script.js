@@ -1,56 +1,31 @@
 console.log("script.js loaded.")
 
-// get full page height-window height
-// reduce speed by oercentage - scrollfactor=* 0.9
-
+// variables and helpers
 let scrollFactor = 0.1
 console.log(`scrollFactor (at start): ${scrollFactor}`)
 const windowHeight = window.innerHeight
-function documentHeight() {
-  return parseInt(document.documentElement.scrollHeight)
-}
-function scrollableHeight() {
-  return parseInt(documentHeight() - windowHeight)
-}
-
+function documentHeight() { return parseInt(document.documentElement.scrollHeight) }
+function scrollableHeight() { return parseInt(documentHeight() - windowHeight) }
 console.log(`documentHeight: \t\t${documentHeight()}\nwindowHeight: \t\t\t ${windowHeight}\n∴ scrollableHeight: \t${scrollableHeight()}`)
 
 /* function to define custom scroll-behaviour on mouse/tap events */
 function preventDefault(e) {
-  // prevent default scrolling 
-  // console.log(`preventing default scroll-behaviour.`)
+  console.log(e)
+
+  // prevent default scroll/touchmove behaviour
   e.preventDefault();
-  // calculate scroll speed based on where the person is currentlyAt
+  
+  // calculate where the person is currentlyAt
   let currentlyAt = document.documentElement.scrollTop
-  scrollFactor =
-    /*the 0.01 is there so that scrollFactor never becomes 0*/
-    0.09
-    +
-    (
-      /* the 0.3 is what replicates normal scrolling speed */
-      0.5
-      *
-      /* this is the basic calculation for scrollFactor */
-      ((scrollableHeight() - currentlyAt) / scrollableHeight())
-    )
-  console.log(`currentlyAt: ${currentlyAt}px out of ${scrollableHeight()}px | scrollFactor: ${scrollFactor}`)
+  
+  // calculate scroll factor
+  scrollFactor = /*the 0.01 is there so that scrollFactor never becomes 0*/ 0.09 + (/* the 0.3 is what replicates normal scrolling speed */ 0.5 * /* this is the basic calculation for scrollFactor */ ((scrollableHeight() - currentlyAt) / scrollableHeight()) )
 
   // and: scroll slowly (reduced by the scrollFactor variable)
-  window.scrollBy({ top: e.deltaY * scrollFactor }); //scroll based on a nuber of pixels
-}
+  window.scrollBy({ top: e.deltaY * scrollFactor/*, behavior: 'smooth'*/ });
 
-// /* function to define custom scroll-behaviour on mouse/tap events */
-// function preventDefault(e) {
-//   if (
-//     // if the #women div comes into view:
-//     document.getElementById("women").getBoundingClientRect().y - innerHeight < 0
-//   ) {
-//     // then: prevent default scrolling 
-//     e.preventDefault();
-//     // and: scroll slowly (reduced by the scrollFactor variable)
-//     window.scrollBy({ top: e.deltaY * scrollFactor, behavior: 'smooth' });
-//   }
-// } 
+  console.log(`currentlyAt: ${Math.round(currentlyAt)}px | custom scrollFactor: ${scrollFactor}`)
+}
 
 
 // left: 37, up: 38, right: 39, down: 40,
