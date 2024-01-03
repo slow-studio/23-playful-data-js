@@ -286,7 +286,7 @@ function updateTree(svgelement) {
     )
     {
         // console.log(`protecting tree-${id}`)
-        // playSound(sGoodNews, volumeScaler.sGoodNews)
+        // can playSound here
         svgelement.classList.add("protected")
         // it remains protected for 'protectionDuration' time only
         setTimeout(function() {
@@ -534,7 +534,7 @@ function updateTree(svgelement) {
     // -- 3. sound feedback:
     //      -- tree catches fire (i.e., was not burning before, but is now)
     if (tree[id].state.previous[0] != 3 && tree[id].state.now[0] == 3) { 
-        playSound(sCatchFire, volumeScaler.sCatchFire)
+        // can playSound here
     }
 
     /*  state-specific behaviour:
@@ -555,18 +555,12 @@ function updateTree(svgelement) {
     ------------------------------------------------------------  */
 
 const soundsrc = "assets/sound/"
-let sCatchFire = new Audio(soundsrc + 'catchfire.mp3')
-let sGoodNews = new Audio(soundsrc + 'twinkle.mp3')
 let sBurning = new Audio(soundsrc + 'ambient-burning.mp3')
 let sForest = new Audio(soundsrc + 'ambient-forest.mp3')
-let sEagle = new Audio(soundsrc + 'eagle.mp3')
 
 const volumeScaler = {
-    sCatchFire: .03125,
-    sGoodNews: .03125,
     sBurning: 1,
     sForest: .25,
-    sEagle: .125
 }
 
 // count the number of trees in any particular state
@@ -712,10 +706,10 @@ export function showBox(box) {
                 case 0:
                 case 1: 
                 case 8: 
-                    forcePlaySound(sGoodNews, volumeScaler.sGoodNews)
+                    // can playSound here
                     break
                 case 2: 
-                    forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
+                    // can playSound here
                     break
             }
         }
@@ -984,7 +978,7 @@ function updateForest() {
                     // randomly play a random-sound from the forest:
                     const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
                     if (Math.random() < 1 / secondses) {
-                        playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
+                        // can playSound here
                     } 
                 }
             }
