@@ -6,11 +6,22 @@ body {
     color: #222;
 }
 
-.header {
-    padding: 1px;
-    background: #e7e7e7;
-    color: #000000;
-    font-size: 70%;
+#header {
+    width: 100vw;
+    margin: 0;
+    padding: .5rem .25rem .5rem 1rem;
+    background-color: rgba(255,255,255,.9);
+    position: fixed;
+    text-align: left; 
+    border-bottom: 1px solid black;
+
+    h2 {
+        width: fit-content;
+        max-width:100%;
+        margin: 0;
+        font-size: 1rem;
+        text-align: left;
+    }
 }
 
 .footer {
