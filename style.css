@@ -1,17 +1,28 @@
+:root {
+    --headerheight: 2rem;
+    --headerPaddingTop: .5rem;
+}
+
 body {
     margin: 0; padding:0;
     text-align: center;
     line-height: 1.5;
-    font-size:200%;
+    font-size:150%;
     color: #222;
+    background-color: rgb(255, 250, 240);
+}
+
+body > * {
+    padding-left: 5vw;
+    padding-right: 5vw;
 }
 
 #header {
     width: 100vw;
-    height: calc(2rem - 1px);
+    height: calc(var(--headerheight) - 1px);
     margin: 0;
-    padding: .5rem .25rem 0 1rem;
-    background-color: rgba(255,255,255,.9);
+    padding-top: var(--headerPaddingTop);
+    background-color: rgba(255,250,240,.9);
     position: fixed;
     top:0;
     left: 0;
@@ -28,48 +39,59 @@ body {
 }
 
 #content {
-    padding-top: 2.5rem;
+    padding-top: /* to accommodate the fixed header */ calc(var(--headerheight) + var(--headerPaddingTop)); 
+    text-align: center;
 }
 
-.footer {
-    font-size: 40%;
-    padding-top: 30px;
-}
-
-#women {
-    width: 40rem;
-    max-width: 90vw;
-    margin: 2rem auto;
-}
-
-#women>* {
-    margin-left: auto;
-    margin-right: auto;
-    width: 40rem;
-    max-width: 100%;
+#content > * ,
+#content > #articleText > * {
+    margin-left: auto; margin-right: auto;
 }
 
 h1 {
     font-family: Georgia, 'Times New Roman', Times, serif;
     font-size: 130%;
-    background-color: rgb(255, 255, 255);
-    padding: 40px;
+    line-height: 108%; 
+}
+
+p.author {
+    text-align: center;
+    font-size: 1rem;
+}
+p+h1 {
+    margin-top: -.75rem;
+}
+
+hr {
+    max-width: 40rem;
+}
+
+#articleText { 
+    margin-top: 2rem;
 }
 
 p {
+    max-width: 40rem;
     font-family: Georgia, 'Times New Roman', Times, serif;
     font-size: 70%;
     text-align: left;
-    background-color: rgb(255, 255, 255);
 }
 
-.sticky {
-    position: fixed;
-    top: 0;
-    width: 100%
+p.aboutProject {
+    background-color: #fcc000;
+    border-radius: .5rem;
+    padding: 1rem;
 }
 
-/* Add some top padding to the page content to prevent sudden quick movement (as the header gets a new position at the top of the page (position:fixed and top:0) */
-.sticky+.content {
-    padding-top: 102px;
+img {
+    width: 100%;
+}
+
+footer {
+    margin-left: auto; margin-right: auto;
+    border-top: 1px solid black;
+    width :fit-content;
+    padding-top: 1rem;
+    margin-bottom: 1.5rem;
+    margin-top: 3.3rem;
 }
