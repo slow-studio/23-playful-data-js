@@ -286,7 +286,7 @@ function updateTree(svgelement) {
     )
     {
         // console.log(`protecting tree-${id}`)
-        // playSound(sGoodNews, volumeScaler.sGoodNews)
+        // can playSound here
         svgelement.classList.add("protected")
         // it remains protected for 'protectionDuration' time only
         setTimeout(function() {
@@ -534,7 +534,7 @@ function updateTree(svgelement) {
     // -- 3. sound feedback:
     //      -- tree catches fire (i.e., was not burning before, but is now)
     if (tree[id].state.previous[0] != 3 && tree[id].state.now[0] == 3) { 
-        playSound(sCatchFire, volumeScaler.sCatchFire)
+        // can playSound here
     }
 
     /*  state-specific behaviour:
@@ -554,20 +554,50 @@ function updateTree(svgelement) {
     sound
     ------------------------------------------------------------  */
 
-const soundsrc = "assets/sound/"
-let sCatchFire = new Audio(soundsrc + 'catchfire.mp3')
-let sGoodNews = new Audio(soundsrc + 'twinkle.mp3')
-let sBurning = new Audio(soundsrc + 'ambient-burning.mp3')
-let sForest = new Audio(soundsrc + 'ambient-forest.mp3')
-let sEagle = new Audio(soundsrc + 'eagle.mp3')
+/* create an instance of the audio context, to get access to all the features and functionality of the Web Audio API */
+// @ts-ignore
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = []
+audioCtx[0] = new AudioContext();
+audioCtx[1] = new AudioContext();
 
-const volumeScaler = {
-    sCatchFire: .03125,
-    sGoodNews: .03125,
-    sBurning: 1,
-    sForest: .25,
-    sEagle: .125
-}
+// get the audio element 
+const audioElement = []
+audioElement[0] = document.querySelector("audio[data-type='ambience'][data-name='forest']");
+audioElement[1] = document.querySelector("audio[data-type='ambience'][data-name='burning']");
+
+// pass it into the audio context
+const track = []
+track[0] = audioCtx[0].createMediaElementSource(audioElement[0]);
+track[1] = audioCtx[1].createMediaElementSource(audioElement[1]);
+
+// add the play and pause functionality
+document.body.addEventListener('click', () => {
+    
+    // ensure that gameState.userHasBeenActive is set to be true
+    gameState.userHasBeenActive = true
+
+    // Check if context is in suspended state (autoplay policy)
+    if (audioCtx[0].state === "suspended") {
+        audioCtx[0].resume();
+    }
+	if (audioCtx[1].state === "suspended") {
+        audioCtx[1].resume();
+    }
+    // Play track
+    audioElement[0].play();
+	audioElement[1].play();
+})
+
+// what to do when the track finishes playing. Our HTMLMediaElement fires an ended event once it's finished playing, so we can listen for that and run code accordingly:
+audioElement[0].addEventListener("ended", () => {
+    // Play track. essentially, looping it.
+    audioElement[0].play();
+});
+audioElement[1].addEventListener("ended", () => {
+    // Play track. essentially, looping it.
+    audioElement[1].play();
+});
 
 // count the number of trees in any particular state
 /** @param {string} state */
@@ -576,28 +606,18 @@ function percentageOfTrees(state) {
     return Number(trees.length / totalTreesInForest)
 }
 
-/**
- * even if the sound is currently playing, stop it and play it again.
- * @param {HTMLAudioElement} sound 
- * @param {number} [volume=1] 
- */
-function forcePlaySound(sound, volume) {
-    sound.currentTime = 0
-    playSound(sound, volume)
-}
+// volume
+const gainNode = []
+gainNode[0] = audioCtx[0].createGain();
+gainNode[1] = audioCtx[1].createGain();
 
-/**
- * @param {HTMLAudioElement} sound 
- * @param {number} [volume=1] 
- */
-function playSound(sound, volume) {
-    // if(sound.ended) {
-    // sound.currentTime = 0
-    // note: mute audio if the document loses focus (e.g., if the person switches tabs)
-    sound.volume = (document.hasFocus() && gameState.userHasBeenActive) ? volume : 0
-    if(document.hasFocus() && gameState.userHasBeenActive) sound.play()
-    // }
-}
+gainNode[0].gain.value = /*starting value*/ 0
+gainNode[1].gain.value = /*starting value*/ 0
+
+// connect our audio graph from the audio source/input node to the destination
+track[0].connect(gainNode[0]).connect(audioCtx[0].destination)
+track[1].connect(gainNode[1]).connect(audioCtx[1].destination)
+
 
 /*  ------------------------------------------------------------
     infoBox
@@ -712,10 +732,10 @@ export function showBox(box) {
                 case 0:
                 case 1: 
                 case 8: 
-                    forcePlaySound(sGoodNews, volumeScaler.sGoodNews)
+                    // can playSound here
                     break
                 case 2: 
-                    forcePlaySound(sCatchFire, volumeScaler.sCatchFire)
+                    // can playSound here
                     break
             }
         }
@@ -958,33 +978,19 @@ function updateForest() {
 
             /* update sound */
 
-            // start playing sounds:
-
-            if (!gameState.userHasBeenActive && navigator.userActivation.hasBeenActive) {
-                console.log(`setting gameState.userHasBeenActive = true`)
-                gameState.userHasBeenActive = true
-                // start playing sounds, on loop
-                sBurning.loop = true
-                playSound(sBurning, 1)
-                sForest.loop = true
-                playSound(sForest, 1)
-            }
-
             // update volume of ambient sounds:
 
             if (gameState.userHasBeenActive) {
 
                 // update volumes:
-                playSound(sBurning, percentageOfTrees("burning") * volumeScaler.sBurning)
-                // console.log(`volume of burning sounds: ${percentageOfTrees("burning") * volumeScaler.sBurning}`)
-                playSound(sForest, percentageOfTrees("normal") * volumeScaler.sForest)
-                // console.log(`volume of forest sounds: ${percentageOfTrees("normal") * volumeScaler.sForest}`)
+				gainNode[0].gain.value = percentageOfTrees("normal");
+				gainNode[1].gain.value = (percentageOfTrees("burning") * 2) + (percentageOfTrees("dry") * 1 / 3);
             
                 if(!pauseForestUpdate) {
                     // randomly play a random-sound from the forest:
                     const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
                     if (Math.random() < 1 / secondses) {
-                        playSound(sEagle, Math.random() * percentageOfTrees("normal") * volumeScaler.sEagle)
+                        // can playSound here
                     } 
                 }
             }
