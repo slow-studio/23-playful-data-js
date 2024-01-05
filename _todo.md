@@ -3,10 +3,10 @@
 publish:
 [ ] host on https://playforgood.news
 [ ] disable play-experience on desktop devices
+    [ ] add message: "please open on a phone. if you open it on a larger screen, it will greedily eat up your battery and memory (much like how we're eating up the environment)."
 
 environment:
-[ ] improve sounds. build soundscape. find more randomSounds. 
-[ ] add message: "please open on a phone. if you open it on a larger screen, it will greedily eat up your battery and memory (much like how we're eating up the environment)."
+[ ] improve sounds. build soundscape. 
 
 forest:
 [✓] add variation in tree-colour
@@ -30,25 +30,27 @@ essay:
     [ ] add links to actual "good news" articles.
 
 play:
-[ ] why will someone want to save the forest? (make them plant it first, perhaps?)
-[ ] strengthen design future/fiction narrative.
-    [ ] years not noticed on news articles. make the passage of time obvious. (use an upfront slider?)
+[✓] why will someone want to save the forest? (make them plant it first, perhaps?)
+[x] strengthen design future/fiction narrative.
+    [x] years not noticed on news articles. make the passage of time obvious. 
+    [✓] (use an upfront slider?)
+[✓] add a gamestate bar, showing a combined stat about the quality of gameplay (incl. health of forest, activity by person, etc). maybe it is "climate change vs you" or just "trees saved".
+[ ] improve gamestate bars
 [ ] conclusion
     [ ] remove "conclusion"? (and show some kind of stats in every #infoBox)
     [ ] improve criteria for triggering game-conclusion (infoBox-0)
     [ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
     [ ] add a (well-timed) conclusion or reward to the experience. maybe also display some scores ("trees saved", etc) in the concluding message (infoBox-0)
-[ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. eg: good news comes when the person is doing well, and not randomly.
-[ ] a gamestate bar, showing a combined stat about the quality of gameplay (incl. health of forest, activity by person, etc). maybe it is "climate change vs you" or just "trees saved".
+    [ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. eg: good news comes when the person is doing well, and not randomly.
 
 tidy:
-[ ] replace setInterval with requestAnimationFrame(callback)
-[ ] organise code (into files or modules)
-[ ] remove unnecessary console.log messages
+[✓] replace setInterval with requestAnimationFrame(callback)
+[✓] organise code (into files or modules)
+[✓] remove unnecessary console.log messages
 
 ios/safari bugs:
-[ ] disable double-tap-to-zoom on ios devices.
-[ ] fix sound: volume-settings dont seem to work on iphone browsers
+[✓] disable double-tap-to-zoom on ios devices.
+[✓] fix sound: volume-settings dont seem to work on iphone browsers
 
 gamify:
 [x] mousedrag to cut trees (leave stumps behind). [code example](https://developer.mozilla.org/en-US/docs/Web/API/Touch/radiusX)
