@@ -68,6 +68,12 @@ const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
 /** @type {{upper: number; lower: number}} clicks (on sick trees) after which the conclusion wants to show up */
 const CLICKLIMIT = { upper: 120, lower: 10 }
 
+/* variables used while spawning each tree into the forest */
+let rowID = 0
+let treeIDinRow = 0
+let maxTreeIDinRow = treeIDinRow
+let loopRunner = true
+
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
 var totalTreesInForest = 0
 
@@ -791,171 +797,177 @@ export function hideBox(box, seed) {
     }
 }
 
-/** updates :root definitions in the stylesheet */
-updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width + 'px')
+window.onload = () => {
 
-/*  ------------------------------------------------------------
-    spawn trees into the forest 
-    ------------------------------------------------------------  */
+	/** updates :root definitions in the stylesheet */
+	updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width + 'px')
 
-// get parent element
-const forest = document.getElementById("forest")
+	/*  ------------------------------------------------------------
+		spawn trees into the forest 
+		------------------------------------------------------------  */
 
-/**
- * @typedef {Object} SettingsObject
- * @property {object} padding - padding inside the #forest div
- * @property {number} padding.t
- * @property {number} padding.r 
- * @property {number} padding.b
- * @property {number} padding.l
- * @property {object} spacing - spacing between trees (in pixels) 
- * @property {number} spacing.h - horizontal spacing between trees (in pixels) 
- * @property {number} spacing.v - vertical spacing between trees (in pixels) 
- * @property {object} orderly - defines how uniformly is everything drawn for each specified key
- * @property {boolean} orderly.positionally - spawn trees randomly in front or behind each other (by making sure every tree's zIndex is +1 than the previous tree's zIndex)
- * @property {number} orderly.maxZIndexDeviation - if (orderly.positionally == false ) then maxZIndexDeviation defines how disorderly the trees will be 
- * @property {boolean} orderly.shape - are all trees uniformly shaped?
- * @property {boolean} orderly.colour - should we introduce some randomness in the colours?
- */
-/** @type {SettingsObject} settings for the forest */
-const forestSettings = {
-    padding: {
-        t: 20 - svgtree.dim.height / 6,
-        r: 20,
-        b: 20,
-        l: 20
-    },
-    spacing: {
-        h: svgtree.dim.width * 2 / 3,
-        v: 37.5
-    },
-    orderly: {
-        positionally: true,
-        maxZIndexDeviation: 2, /* only relevant if ( positionally == false ) */
-        shape: true,
-        colour: false
-    }
+	// get parent element
+	const forest = document.getElementById("forest")
+
+	/**
+	 * @typedef {Object} SettingsObject
+	 * @property {object} padding - padding inside the #forest div
+	 * @property {number} padding.t
+	 * @property {number} padding.r 
+	 * @property {number} padding.b
+	 * @property {number} padding.l
+	 * @property {object} spacing - spacing between trees (in pixels) 
+	 * @property {number} spacing.h - horizontal spacing between trees (in pixels) 
+	 * @property {number} spacing.v - vertical spacing between trees (in pixels) 
+	 * @property {object} orderly - defines how uniformly is everything drawn for each specified key
+	 * @property {boolean} orderly.positionally - spawn trees randomly in front or behind each other (by making sure every tree's zIndex is +1 than the previous tree's zIndex)
+	 * @property {number} orderly.maxZIndexDeviation - if (orderly.positionally == false ) then maxZIndexDeviation defines how disorderly the trees will be 
+	 * @property {boolean} orderly.shape - are all trees uniformly shaped?
+	 * @property {boolean} orderly.colour - should we introduce some randomness in the colours?
+	 */
+	/** @type {SettingsObject} settings for the forest */
+	const forestSettings = {
+		padding: {
+			t: 20 - svgtree.dim.height / 6,
+			r: 20,
+			b: 20,
+			l: 20
+		},
+		spacing: {
+			h: svgtree.dim.width * 2 / 3,
+			v: 37.5
+		},
+		orderly: {
+			positionally: true,
+			maxZIndexDeviation: 2, /* only relevant if ( positionally == false ) */
+			shape: true,
+			colour: false
+		}
+	}
+
+	/** ensure that all the trees sit in the centre of the #forest div */
+	const maxWidthOfForest = forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r)
+	let widthOfTreesInRow = /* starting value */ svgtree.dim.width
+	while(widthOfTreesInRow + svgtree.dim.width <= maxWidthOfForest ) {
+		widthOfTreesInRow += forestSettings.spacing.h
+	}
+	forestSettings.padding.l += (maxWidthOfForest-widthOfTreesInRow)/2
+	forestSettings.padding.r += (maxWidthOfForest-widthOfTreesInRow)/2
+
+	/** @type {number} keeps track of the highest z-index assigned to any tree */
+	var highestZIndexOnTree = 0
+
+	/*  spawn all trees. */
+
+	for (let i = 0; loopRunner; i++) {
+		// sanity check
+		if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break }
+		// create new div
+		/** @type {HTMLDivElement} */
+		const newDiv = document.createElement("div")
+		// store the tree's information in its own object
+		tree[i] = {
+			div: newDiv,
+			id: 'tree-' + i,
+			positionInForestGrid: {
+				y: rowID,
+				x: treeIDinRow
+			},
+			class: 'tree',
+			zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
+			dimensions: {
+				l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
+				t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
+				w: svgtree.dim.width,
+				h: svgtree.dim.height,
+				/** @type {{ x: number, y: number }} */
+				heart: {
+					/* will be filled correctly when the tree is spawned */
+					x: svgtree.dim.width / 2,
+					y: svgtree.dim.height / 2
+				}
+			},
+			state: {
+				default:    /* [state, substate] */ [0,0],
+				previous:   /* [state, substate] */ [0,0],
+				now:        /* [state, substate] */ [0,0],
+				/* state-specific parameters */
+				drySubstateCounter: 1, // when a tree is drying out, this helps us keep track of how dry it is. (it helps us assign a suitable colour to the tree.)
+				totalProtectionTime: approx(protectionDuration, 20), 
+				protectionTime: 0, // how much time has this tree been protected for
+			},
+			properties: {
+				resilience: /*  must be an integer (i.e., min value = 1). the value here is a placeholder. actual value set by updateTree(). */ 1, 
+				colour: {
+					foliageProtected: 	randomiseHSLColour( "--protected"	, 	5, 15, forestSettings.orderly.colour ),
+					foliageNormal: 		randomiseHSLColour( "--green"		,	3, 15, forestSettings.orderly.colour ),
+					foliageDry: 		randomiseHSLColour( "--autumn"		,	3, 20, forestSettings.orderly.colour ),
+					stump: 				randomiseHSLColour( "--wood"		,	0,  5, forestSettings.orderly.colour ),
+				}
+			},
+			behaviour: 0, // -1: move backward | 0: stay as-is | 1: move forward (in the tree's life-cycle)
+			isProtected: false,
+		}
+		// set id and class
+		newDiv.setAttribute('class', tree[i].class)
+		newDiv.setAttribute('id', tree[i].id)
+
+		// add the placeholder svg-element into newDiv
+		newDiv.innerHTML = svgtree.src.starttag + svgtree.src.innerhtml[tree[i].state.now[0]][tree[i].state.now[1]] + svgtree.src.endtag
+		// then, grab the svg-element...
+		const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
+		svgelement.setAttribute('tree-id',`${i}`)
+		svgelement.setAttribute('data-pos', `${tree[i].positionInForestGrid.x},${tree[i].positionInForestGrid.y}`)
+		// ... and, finally, draw the tree (within the svg-element):
+		updateTree(svgelement)
+
+		// newDiv should be as large as the tree-image
+		newDiv.style.width = tree[i].dimensions.w + 'px'
+		// position the tree (so that it sits at the correct location within a desired pattern in the forest)
+		newDiv.style.left = tree[i].dimensions.l + 'px'
+		newDiv.style.top = tree[i].dimensions.t + 'px'
+		tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w / 2, y: tree[i].dimensions.t + tree[i].dimensions.h / 2 }
+		// draw trees on the next line if you exceed #forest's right-most bounds
+		if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w) {
+			rowID++
+			treeIDinRow = 0
+		} else {
+			treeIDinRow++
+			// update counter that counts the max number of trees on the longest row
+			maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
+		}
+		// stop drawing trees if you exceed #forest's bottom-most bounds
+		if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v + tree[i].dimensions.h)
+			loopRunner = false
+		// set z-index, so that lower-placed trees seem to be in front
+		newDiv.style.zIndex = (tree[i].zindex).toString()
+		// keep track of the highest z-index assigned to any tree
+		if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
+		// finally, make the div a child of #forest
+		forest.appendChild(newDiv)
+		// update the value for total number of trees spawned in the forest
+		totalTreesInForest += 1
+	}
+
+	console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
+
+	/** #infoBox should have a z-index higher than all spawned trees */
+	updateStyle(infoBox.parentElement, "z-index", (highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1).toString())
+
+	/*  ------------------------------------------------------------
+		update the forest.
+		------------------------------------------------------------  */
+
+	updateForest()
+
+
+	/*  ------------------------------------------------------------
+		if the person taps on the screen
+		------------------------------------------------------------  */
+
+	document.addEventListener("click", handleClicks)
+	
 }
-
-/** ensure that all the trees sit in the centre of the #forest div */
-const maxWidthOfForest = forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r)
-let widthOfTreesInRow = /* starting value */ svgtree.dim.width
-while(widthOfTreesInRow + svgtree.dim.width <= maxWidthOfForest ) {
-    widthOfTreesInRow += forestSettings.spacing.h
-}
-forestSettings.padding.l += (maxWidthOfForest-widthOfTreesInRow)/2
-forestSettings.padding.r += (maxWidthOfForest-widthOfTreesInRow)/2
-
-/** @type {number} keeps track of the highest z-index assigned to any tree */
-var highestZIndexOnTree = 0
-
-/*  spawn all trees. */
-
-let rowID = 0
-let treeIDinRow = 0
-let maxTreeIDinRow = treeIDinRow
-let loopRunner = true
-
-for (let i = 0; loopRunner; i++) {
-    // sanity check
-    if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break }
-    // create new div
-    /** @type {HTMLDivElement} */
-    const newDiv = document.createElement("div")
-    // store the tree's information in its own object
-    tree[i] = {
-        div: newDiv,
-        id: 'tree-' + i,
-        positionInForestGrid: {
-            y: rowID,
-            x: treeIDinRow
-        },
-        class: 'tree',
-        zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
-        dimensions: {
-            l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
-            t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
-            w: svgtree.dim.width,
-            h: svgtree.dim.height,
-            /** @type {{ x: number, y: number }} */
-            heart: {
-                /* will be filled correctly when the tree is spawned */
-                x: svgtree.dim.width / 2,
-                y: svgtree.dim.height / 2
-            }
-        },
-        state: {
-            default:    /* [state, substate] */ [0,0],
-            previous:   /* [state, substate] */ [0,0],
-            now:        /* [state, substate] */ [0,0],
-            /* state-specific parameters */
-            drySubstateCounter: 1, // when a tree is drying out, this helps us keep track of how dry it is. (it helps us assign a suitable colour to the tree.)
-            totalProtectionTime: approx(protectionDuration, 20), 
-            protectionTime: 0, // how much time has this tree been protected for
-        },
-        properties: {
-            resilience: /*  must be an integer (i.e., min value = 1). the value here is a placeholder. actual value set by updateTree(). */ 1, 
-            colour: {
-                foliageProtected: randomiseHSLColour('--protected', 5, 15, forestSettings.orderly.colour),
-                foliageNormal: randomiseHSLColour('--green', 3, 15, forestSettings.orderly.colour),
-                foliageDry: randomiseHSLColour('--autumn', 3, 20, forestSettings.orderly.colour),
-                stump: randomiseHSLColour('--wood', 0, 5, forestSettings.orderly.colour),
-            }
-        },
-        behaviour: 0, // -1: move backward | 0: stay as-is | 1: move forward (in the tree's life-cycle)
-        isProtected: false,
-    }
-    // set id and class
-    newDiv.setAttribute('class', tree[i].class)
-    newDiv.setAttribute('id', tree[i].id)
-
-    // add the placeholder svg-element into newDiv
-    newDiv.innerHTML = svgtree.src.starttag + svgtree.src.innerhtml[tree[i].state.now[0]][tree[i].state.now[1]] + svgtree.src.endtag
-    // then, grab the svg-element...
-    const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
-    svgelement.setAttribute('tree-id',`${i}`)
-    svgelement.setAttribute('data-pos', `${tree[i].positionInForestGrid.x},${tree[i].positionInForestGrid.y}`)
-    // ... and, finally, draw the tree (within the svg-element):
-    updateTree(svgelement)
-
-    // newDiv should be as large as the tree-image
-    newDiv.style.width = tree[i].dimensions.w + 'px'
-    // position the tree (so that it sits at the correct location within a desired pattern in the forest)
-    newDiv.style.left = tree[i].dimensions.l + 'px'
-    newDiv.style.top = tree[i].dimensions.t + 'px'
-    tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w / 2, y: tree[i].dimensions.t + tree[i].dimensions.h / 2 }
-    // draw trees on the next line if you exceed #forest's right-most bounds
-    if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w) {
-        rowID++
-        treeIDinRow = 0
-    } else {
-        treeIDinRow++
-        // update counter that counts the max number of trees on the longest row
-        maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
-    }
-    // stop drawing trees if you exceed #forest's bottom-most bounds
-    if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v + tree[i].dimensions.h)
-        loopRunner = false
-    // set z-index, so that lower-placed trees seem to be in front
-    newDiv.style.zIndex = (tree[i].zindex).toString()
-    // keep track of the highest z-index assigned to any tree
-    if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
-    // finally, make the div a child of #forest
-    forest.appendChild(newDiv)
-    // update the value for total number of trees spawned in the forest
-    totalTreesInForest += 1
-}
-
-console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
-
-/** #infoBox should have a z-index higher than all spawned trees */
-updateStyle(infoBox.parentElement, "z-index", (highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1).toString())
-
-/*  ------------------------------------------------------------
-    update the forest.
-    ------------------------------------------------------------  */
-
-updateForest()
 
 /** calls itself at the end of each animation frame */
 function updateForest() {
@@ -1260,12 +1272,6 @@ function updateForest() {
 
     window.requestAnimationFrame(updateForest)
 }
-
-/*  ------------------------------------------------------------
-    if the person taps on the screen
-    ------------------------------------------------------------  */
-
-document.addEventListener("click", handleClicks)
 
 /** @param {MouseEvent} e */
 function handleClicks(e) {
