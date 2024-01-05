@@ -1,9 +1,11 @@
 import { pauseForestUpdate, cheatcodes } from "./cheatcodes.js";
 import { updateStyle, interpolateHSLColour, randomiseCustomHSLColourProperty as randomiseHSLColour, approx, map } from "./helpers.js";
+import { gainNode } from "./sound.js";
 import { svgtree } from "./svgtree.js";
 
+
 /*  ------------------------------------------------------------
-    helpers
+    varialbles
     ------------------------------------------------------------  */
 
 /**
@@ -14,7 +16,8 @@ import { svgtree } from "./svgtree.js";
  *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
  */
 
-document.body.addEventListener('keydown', function(event) {cheatcodes(event)})
+// get parent element
+const forest = document.getElementById("forest")
 
 const REFRESH_RATE = 10 // fps
 const REFRESH_TIME = 1000 / REFRESH_RATE // time in millisecond
@@ -40,7 +43,7 @@ const CHARRED_TIME_MULTIPLIER = 25
 /**
  * game state variables
  */
-const gameState = {
+export const gameState = {
     print: false,
     userHasBeenActive: false,
     lastUpdatedAt: 0, // time when updateForest was last run
@@ -75,10 +78,367 @@ let maxTreeIDinRow = treeIDinRow
 let loopRunner = true
 
 /** @type {number} counts total number of trees (by incrementing its value each time a tree is spawned) */
-var totalTreesInForest = 0
+export var totalTreesInForest = 0
 
 /** an array. stores one object (each) for every tree. the object contains all info/settings for that tree. */
 const tree = []
+
+
+/*  ------------------------------------------------------------
+	1. spawn trees into the forest
+	2. kick-start updateForest
+	3. addEventListener to handleClicks
+	------------------------------------------------------------  */
+
+window.onload = () => {
+
+	// don't show #content at the start : show the #playarea (and #forest) only.
+	showcontent(false)
+
+	// sets #infoBox's transition-duration 
+	updateStyle(infoBox,"transition-duration",infoBoxTransitionDuration+'ms')
+	// sets the content and display-position of the infoBox at startup
+	setInfo(infoBox, 1)
+
+	/** updates :root definitions in the stylesheet */
+	updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width + 'px')
+
+	/*  ------------------------------------------------------------
+		spawn trees into the forest 
+		------------------------------------------------------------  */
+
+	/** @type {SettingsObject} settings for the forest */
+	const forestSettings = {
+		padding: {
+			t: 20 - svgtree.dim.height / 6,
+			r: 20,
+			b: 20,
+			l: 20
+		},
+		spacing: {
+			h: svgtree.dim.width * 2 / 3,
+			v: 37.5
+		},
+		orderly: {
+			positionally: true,
+			maxZIndexDeviation: 2, /* only relevant if ( positionally == false ) */
+			shape: true,
+			colour: false
+		}
+	}
+
+	/** ensure that all the trees sit in the centre of the #forest div */
+	const maxWidthOfForest = forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r)
+	let widthOfTreesInRow = /* starting value */ svgtree.dim.width
+	while(widthOfTreesInRow + svgtree.dim.width <= maxWidthOfForest ) {
+		widthOfTreesInRow += forestSettings.spacing.h
+	}
+	forestSettings.padding.l += (maxWidthOfForest-widthOfTreesInRow)/2
+	forestSettings.padding.r += (maxWidthOfForest-widthOfTreesInRow)/2
+
+	/** @type {number} keeps track of the highest z-index assigned to any tree */
+	var highestZIndexOnTree = 0
+
+	/*  spawn all trees. */
+
+	for (let i = 0; loopRunner; i++) {
+		// sanity check
+		if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break }
+		// create new div
+		/** @type {HTMLDivElement} */
+		const newDiv = document.createElement("div")
+		// store the tree's information in its own object
+		tree[i] = {
+			div: newDiv,
+			id: 'tree-' + i,
+			positionInForestGrid: {
+				y: rowID,
+				x: treeIDinRow
+			},
+			class: 'tree',
+			zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
+			dimensions: {
+				l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
+				t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
+				w: svgtree.dim.width,
+				h: svgtree.dim.height,
+				/** @type {{ x: number, y: number }} */
+				heart: {
+					/* will be filled correctly when the tree is spawned */
+					x: svgtree.dim.width / 2,
+					y: svgtree.dim.height / 2
+				}
+			},
+			state: {
+				default:    /* [state, substate] */ [0,0],
+				previous:   /* [state, substate] */ [0,0],
+				now:        /* [state, substate] */ [0,0],
+				/* state-specific parameters */
+				drySubstateCounter: 1, // when a tree is drying out, this helps us keep track of how dry it is. (it helps us assign a suitable colour to the tree.)
+				totalProtectionTime: approx(protectionDuration, 20), 
+				protectionTime: 0, // how much time has this tree been protected for
+			},
+			properties: {
+				resilience: /*  must be an integer (i.e., min value = 1). the value here is a placeholder. actual value set by updateTree(). */ 1, 
+				colour: {
+					foliageProtected: 	randomiseHSLColour( "--protected"	, 	5, 15, forestSettings.orderly.colour ),
+					foliageNormal: 		randomiseHSLColour( "--green"		,	3, 15, forestSettings.orderly.colour ),
+					foliageDry: 		randomiseHSLColour( "--autumn"		,	3, 20, forestSettings.orderly.colour ),
+					stump: 				randomiseHSLColour( "--wood"		,	0,  5, forestSettings.orderly.colour ),
+				}
+			},
+			behaviour: 0, // -1: move backward | 0: stay as-is | 1: move forward (in the tree's life-cycle)
+			isProtected: false,
+		}
+		// set id and class
+		newDiv.setAttribute('class', tree[i].class)
+		newDiv.setAttribute('id', tree[i].id)
+
+		// add the placeholder svg-element into newDiv
+		newDiv.innerHTML = svgtree.src.starttag + svgtree.src.innerhtml[tree[i].state.now[0]][tree[i].state.now[1]] + svgtree.src.endtag
+		// then, grab the svg-element...
+		const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
+		svgelement.setAttribute('tree-id',`${i}`)
+		svgelement.setAttribute('data-pos', `${tree[i].positionInForestGrid.x},${tree[i].positionInForestGrid.y}`)
+		// ... and, finally, draw the tree (within the svg-element):
+		updateTree(svgelement)
+
+		// newDiv should be as large as the tree-image
+		newDiv.style.width = tree[i].dimensions.w + 'px'
+		// position the tree (so that it sits at the correct location within a desired pattern in the forest)
+		newDiv.style.left = tree[i].dimensions.l + 'px'
+		newDiv.style.top = tree[i].dimensions.t + 'px'
+		tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w / 2, y: tree[i].dimensions.t + tree[i].dimensions.h / 2 }
+		// draw trees on the next line if you exceed #forest's right-most bounds
+		if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w) {
+			rowID++
+			treeIDinRow = 0
+		} else {
+			treeIDinRow++
+			// update counter that counts the max number of trees on the longest row
+			maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
+		}
+		// stop drawing trees if you exceed #forest's bottom-most bounds
+		if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v + tree[i].dimensions.h)
+			loopRunner = false
+		// set z-index, so that lower-placed trees seem to be in front
+		newDiv.style.zIndex = (tree[i].zindex).toString()
+		// keep track of the highest z-index assigned to any tree
+		if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
+		// finally, make the div a child of #forest
+		forest.appendChild(newDiv)
+		// update the value for total number of trees spawned in the forest
+		totalTreesInForest += 1
+	}
+
+	console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
+
+	/** #infoBox should have a z-index higher than all spawned trees */
+	updateStyle(infoBox.parentElement, "z-index", (highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1).toString())
+
+	updateForest()
+
+	document.body.addEventListener('keydown', function(event) {cheatcodes(event)})
+	document.addEventListener("click", handleClicks)
+	
+}
+
+
+/*  ------------------------------------------------------------
+	helpers
+	------------------------------------------------------------  */
+
+/** @type {HTMLElement} */
+export const infoBox = document.getElementById('infoBox')
+
+const infoBoxTransitionDuration = 600
+const showBoxDelayDuration = 600
+
+/**
+ * @param {HTMLElement} box
+ * @param {number} infotype - 1: intro | 2: display task | 8: instructions to tap | 0: conclusion
+ */
+export function setInfo(box, infotype) {
+    box.setAttribute('infotype', infotype.toString())
+    // first, empty-out the box
+    box.innerHTML = ``
+    // populate the box
+    switch(infotype) {
+        case 1:
+            // introduction
+            let i1 = addChildTag(box, 'h3')
+            i1.innerHTML = `plant your forest.`
+            let i2 = addChildTag(box, 'p')
+            i2.innerHTML = `tap on the earth to help nurture a tree.`
+            break
+        case 2:
+            // display task
+            let g1 = addChildTag(box, 'h3')
+            g1.innerHTML = `take care of your forest.`
+            let g2 = addChildTag(box, 'p')
+            g2.innerHTML = `tap on a dry or burning tree to save it.`
+            break
+        case 8:
+            // instructions to tap
+            let t1 = addChildTag(box, 'h3')
+            t1.innerHTML = `you can save the forest.`
+            let t2 = addChildTag(box, 'p')
+            t2.innerHTML = `please tap on a dry or burning tree to save it.`
+            break
+        case 0:
+            // conclusion
+            let c1 = addChildTag(box, 'h3')
+            c1.innerHTML = `thank you for playing.`
+            let c2 = addChildTag(box, 'p')
+            c2.innerHTML = `please read about why we made this.`
+            break
+    }
+    // add close-button to dismiss box
+    if(
+        true 
+        && infotype!=0
+    ) {
+        let closeBtn = addChildTag(box, 'button')
+        closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
+        closeBtn.setAttribute('id', 'closeInfoBox')
+        closeBtn.addEventListener('click', () => {
+            hideBox(infoBox, true)
+            showcontent(false)
+        })
+    }
+    // add button to reveal essay
+    if(
+        infotype==0 
+        || infotype==1 
+        || gameState.playTime>=1000*60
+    ) {
+        let readBtn = addChildTag(box, 'button')
+        readBtn.innerHTML = '<p>read about this project.</p>'
+        readBtn.setAttribute('id', 'read')
+        readBtn.addEventListener('click', () => showcontent(true))
+    }
+
+    /** 
+     * @param {string} tag  
+     */
+    function addChildTag(parent, tag) {
+        let child = document.createElement(tag)
+        parent.appendChild(child)
+        return child
+    }
+}
+
+/**
+ * @returns {boolean} tracks whether the element is displayed or not 
+ * @param {HTMLElement} box
+ */
+function boxDisplayAttrIs(box) {
+    const attr = box.getAttribute('display')
+    switch(attr) {
+        case "true": return true
+        case "false": return false
+    }
+}
+
+/**
+ * @param HTMLElement} box 
+ */
+export function showBox(box) {
+    box.setAttribute('display', true) // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
+    const infotype = Number(box.getAttribute('infotype'))
+    setTimeout(function() {
+        // sound:
+        if(gameState.userHasBeenActive) {
+            switch(infotype) {
+                case 0:
+                case 1: 
+                case 8: 
+                    // can playSound here
+                    break
+                case 2: 
+                    // can playSound here
+                    break
+            }
+        }
+        // visual:
+        box.style.height = `fit-content`
+        box.style.height = `${box.offsetHeight}px` //`calc(100vh - 2rem)`
+        box.style.bottom = `1rem` //`calc(100vh - 1rem)`
+    }, showBoxDelayDuration)
+}
+
+/**
+ * @param {HTMLElement} box 
+ * @param {boolean} [seed=true] - seedDryTrees when box closes?
+ */
+export function hideBox(box, seed) {
+    box.setAttribute('display', 'false')
+    console.log(`hiding infoBox.`)
+    box.style.bottom = `-100vh`
+    box.style.height = "0"
+    if (seed) {
+        let seeds = 1
+        const infotype = Number(box.getAttribute('infotype'))
+        if (infotype==2) {
+            console.log(`goal-task displayed. will now seed ${seeds} dry tree${seeds==1?'':'s'}.`)
+            seedDryTrees(Math.max(seeds, 1))
+        }
+    } else console.log(`dry-trees will *not* be seeded.`)
+    const infotype = Number(box.getAttribute('infotype'))
+    switch(infotype) {
+        case 1: 
+            startExperience() 
+            gameState.shownInfo1 = true 
+            gameState.shownInfo2 = false
+            console.log(`seen info #1.`) 
+            gameState.print == true 
+            break
+        case 2: 
+            startExperience() 
+            gameState.shownInfo2 = true 
+            console.log(`seen info #2.`) 
+            gameState.print == true 
+            break
+        case 8: 
+            gameState.shownInfo8 = true 
+            console.log(`seen info #8.`) 
+            gameState.print == true 
+            break
+        case 0: 
+            gameState.shownInfo0 = true 
+            console.log(`seen info #0.`) 
+            gameState.print == true 
+            break
+    }
+}
+
+/**
+ * @typedef {Object} SettingsObject
+ * @property {object} padding - padding inside the #forest div
+ * @property {number} padding.t
+ * @property {number} padding.r 
+ * @property {number} padding.b
+ * @property {number} padding.l
+ * @property {object} spacing - spacing between trees (in pixels) 
+ * @property {number} spacing.h - horizontal spacing between trees (in pixels) 
+ * @property {number} spacing.v - vertical spacing between trees (in pixels) 
+ * @property {object} orderly - defines how uniformly is everything drawn for each specified key
+ * @property {boolean} orderly.positionally - spawn trees randomly in front or behind each other (by making sure every tree's zIndex is +1 than the previous tree's zIndex)
+ * @property {number} orderly.maxZIndexDeviation - if (orderly.positionally == false ) then maxZIndexDeviation defines how disorderly the trees will be 
+ * @property {boolean} orderly.shape - are all trees uniformly shaped?
+ * @property {boolean} orderly.colour - should we introduce some randomness in the colours?
+ */
+
+
+function startExperience() {
+    gameState.startTime = Date.now()
+    gameState.playTime = Date.now() - gameState.startTime
+    gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
+    gameState.clicksontrees = 0
+    gameState.clicksonsicktrees = 0
+    gameState.health = gameState.starthealth
+    gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
+}
 
 /**
  * show or hide #content div. (it appears below the #forest div, and has the project writeup in it.)
@@ -95,18 +455,6 @@ function showcontent(show) {
         left: 0,
         behavior: "smooth",
     })
-}
-// don't show #content at the start : show the #playarea (and #forest) only.
-showcontent(false)
-
-function startExperience() {
-    gameState.startTime = Date.now()
-    gameState.playTime = Date.now() - gameState.startTime
-    gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
-    gameState.clicksontrees = 0
-    gameState.clicksonsicktrees = 0
-    gameState.health = gameState.starthealth
-    gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
 }
 
 /**
@@ -556,417 +904,11 @@ function updateTree(svgelement) {
     }
 }
 
-/*  ------------------------------------------------------------
-    sound
-    ------------------------------------------------------------  */
-
-/* create an instance of the audio context, to get access to all the features and functionality of the Web Audio API */
-// @ts-ignore
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioCtx = []
-audioCtx[0] = new AudioContext();
-audioCtx[1] = new AudioContext();
-
-// get the audio element 
-const audioElement = []
-audioElement[0] = document.querySelector("audio[data-type='ambience'][data-name='forest']");
-audioElement[1] = document.querySelector("audio[data-type='ambience'][data-name='burning']");
-
-// pass it into the audio context
-const track = []
-track[0] = audioCtx[0].createMediaElementSource(audioElement[0]);
-track[1] = audioCtx[1].createMediaElementSource(audioElement[1]);
-
-// add the play and pause functionality
-document.body.addEventListener('click', () => {
-    
-    // ensure that gameState.userHasBeenActive is set to be true
-    gameState.userHasBeenActive = true
-
-    // Check if context is in suspended state (autoplay policy)
-    if (audioCtx[0].state === "suspended") {
-        audioCtx[0].resume();
-    }
-	if (audioCtx[1].state === "suspended") {
-        audioCtx[1].resume();
-    }
-    // Play track
-    audioElement[0].play();
-	audioElement[1].play();
-})
-
-// what to do when the track finishes playing. Our HTMLMediaElement fires an ended event once it's finished playing, so we can listen for that and run code accordingly:
-audioElement[0].addEventListener("ended", () => {
-    // Play track. essentially, looping it.
-    audioElement[0].play();
-});
-audioElement[1].addEventListener("ended", () => {
-    // Play track. essentially, looping it.
-    audioElement[1].play();
-});
-
 // count the number of trees in any particular state
 /** @param {string} state */
 function percentageOfTrees(state) {
     let trees = document.getElementsByClassName(state)
     return Number(trees.length / totalTreesInForest)
-}
-
-// volume
-const gainNode = []
-gainNode[0] = audioCtx[0].createGain();
-gainNode[1] = audioCtx[1].createGain();
-
-gainNode[0].gain.value = /*starting value*/ 0
-gainNode[1].gain.value = /*starting value*/ 0
-
-// connect our audio graph from the audio source/input node to the destination
-track[0].connect(gainNode[0]).connect(audioCtx[0].destination)
-track[1].connect(gainNode[1]).connect(audioCtx[1].destination)
-
-
-/*  ------------------------------------------------------------
-    infoBox
-    ------------------------------------------------------------  */
-
-/** @type {HTMLElement} */
-export const infoBox = document.getElementById('infoBox')
-
-const infoBoxTransitionDuration = 600
-const showBoxDelayDuration = 600
-updateStyle(infoBox,"transition-duration",infoBoxTransitionDuration+'ms')
-
-// sets the content and display-position of the infoBox at startup
-setInfo(infoBox, 1)
-
-/**
- * @param {HTMLElement} box
- * @param {number} infotype - 1: intro | 2: display task | 8: instructions to tap | 0: conclusion
- */
-export function setInfo(box, infotype) {
-    box.setAttribute('infotype', infotype.toString())
-    // first, empty-out the box
-    box.innerHTML = ``
-    // populate the box
-    switch(infotype) {
-        case 1:
-            // introduction
-            let i1 = addChildTag(box, 'h3')
-            i1.innerHTML = `plant your forest.`
-            let i2 = addChildTag(box, 'p')
-            i2.innerHTML = `tap on the earth to help nurture a tree.`
-            break
-        case 2:
-            // display task
-            let g1 = addChildTag(box, 'h3')
-            g1.innerHTML = `take care of your forest.`
-            let g2 = addChildTag(box, 'p')
-            g2.innerHTML = `tap on a dry or burning tree to save it.`
-            break
-        case 8:
-            // instructions to tap
-            let t1 = addChildTag(box, 'h3')
-            t1.innerHTML = `you can save the forest.`
-            let t2 = addChildTag(box, 'p')
-            t2.innerHTML = `please tap on a dry or burning tree to save it.`
-            break
-        case 0:
-            // conclusion
-            let c1 = addChildTag(box, 'h3')
-            c1.innerHTML = `thank you for playing.`
-            let c2 = addChildTag(box, 'p')
-            c2.innerHTML = `please read about why we made this.`
-            break
-    }
-    // add close-button to dismiss box
-    if(
-        true 
-        && infotype!=0
-    ) {
-        let closeBtn = addChildTag(box, 'button')
-        closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
-        closeBtn.setAttribute('id', 'closeInfoBox')
-        closeBtn.addEventListener('click', () => {
-            hideBox(infoBox, true)
-            showcontent(false)
-        })
-    }
-    // add button to reveal essay
-    if(
-        infotype==0 
-        || infotype==1 
-        || gameState.playTime>=1000*60
-    ) {
-        let readBtn = addChildTag(box, 'button')
-        readBtn.innerHTML = '<p>read about this project.</p>'
-        readBtn.setAttribute('id', 'read')
-        readBtn.addEventListener('click', () => showcontent(true))
-    }
-
-    /** 
-     * @param {string} tag  
-     */
-    function addChildTag(parent, tag) {
-        let child = document.createElement(tag)
-        parent.appendChild(child)
-        return child
-    }
-}
-
-/**
- * @returns {boolean} tracks whether the element is displayed or not 
- * @param {HTMLElement} box
- */
-function boxDisplayAttrIs(box) {
-    const attr = box.getAttribute('display')
-    switch(attr) {
-        case "true": return true
-        case "false": return false
-    }
-}
-
-/**
- * @param HTMLElement} box 
- */
-export function showBox(box) {
-    box.setAttribute('display', true) // note: keep this statement outside the setTimeout(), to prevent showBox() from being called multiple times before the delayed actions (below) happen.
-    const infotype = Number(box.getAttribute('infotype'))
-    setTimeout(function() {
-        // sound:
-        if(gameState.userHasBeenActive) {
-            switch(infotype) {
-                case 0:
-                case 1: 
-                case 8: 
-                    // can playSound here
-                    break
-                case 2: 
-                    // can playSound here
-                    break
-            }
-        }
-        // visual:
-        box.style.height = `fit-content`
-        box.style.height = `${box.offsetHeight}px` //`calc(100vh - 2rem)`
-        box.style.bottom = `1rem` //`calc(100vh - 1rem)`
-    }, showBoxDelayDuration)
-}
-
-/**
- * @param {HTMLElement} box 
- * @param {boolean} [seed=true] - seedDryTrees when box closes?
- */
-export function hideBox(box, seed) {
-    box.setAttribute('display', 'false')
-    console.log(`hiding infoBox.`)
-    box.style.bottom = `-100vh`
-    box.style.height = "0"
-    if (seed) {
-        let seeds = 1
-        const infotype = Number(box.getAttribute('infotype'))
-        if (infotype==2) {
-            console.log(`goal-task displayed. will now seed ${seeds} dry tree${seeds==1?'':'s'}.`)
-            seedDryTrees(Math.max(seeds, 1))
-        }
-    } else console.log(`dry-trees will *not* be seeded.`)
-    const infotype = Number(box.getAttribute('infotype'))
-    switch(infotype) {
-        case 1: 
-            startExperience() 
-            gameState.shownInfo1 = true 
-            gameState.shownInfo2 = false
-            console.log(`seen info #1.`) 
-            gameState.print == true 
-            break
-        case 2: 
-            startExperience() 
-            gameState.shownInfo2 = true 
-            console.log(`seen info #2.`) 
-            gameState.print == true 
-            break
-        case 8: 
-            gameState.shownInfo8 = true 
-            console.log(`seen info #8.`) 
-            gameState.print == true 
-            break
-        case 0: 
-            gameState.shownInfo0 = true 
-            console.log(`seen info #0.`) 
-            gameState.print == true 
-            break
-    }
-}
-
-window.onload = () => {
-
-	/** updates :root definitions in the stylesheet */
-	updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width + 'px')
-
-	/*  ------------------------------------------------------------
-		spawn trees into the forest 
-		------------------------------------------------------------  */
-
-	// get parent element
-	const forest = document.getElementById("forest")
-
-	/**
-	 * @typedef {Object} SettingsObject
-	 * @property {object} padding - padding inside the #forest div
-	 * @property {number} padding.t
-	 * @property {number} padding.r 
-	 * @property {number} padding.b
-	 * @property {number} padding.l
-	 * @property {object} spacing - spacing between trees (in pixels) 
-	 * @property {number} spacing.h - horizontal spacing between trees (in pixels) 
-	 * @property {number} spacing.v - vertical spacing between trees (in pixels) 
-	 * @property {object} orderly - defines how uniformly is everything drawn for each specified key
-	 * @property {boolean} orderly.positionally - spawn trees randomly in front or behind each other (by making sure every tree's zIndex is +1 than the previous tree's zIndex)
-	 * @property {number} orderly.maxZIndexDeviation - if (orderly.positionally == false ) then maxZIndexDeviation defines how disorderly the trees will be 
-	 * @property {boolean} orderly.shape - are all trees uniformly shaped?
-	 * @property {boolean} orderly.colour - should we introduce some randomness in the colours?
-	 */
-	/** @type {SettingsObject} settings for the forest */
-	const forestSettings = {
-		padding: {
-			t: 20 - svgtree.dim.height / 6,
-			r: 20,
-			b: 20,
-			l: 20
-		},
-		spacing: {
-			h: svgtree.dim.width * 2 / 3,
-			v: 37.5
-		},
-		orderly: {
-			positionally: true,
-			maxZIndexDeviation: 2, /* only relevant if ( positionally == false ) */
-			shape: true,
-			colour: false
-		}
-	}
-
-	/** ensure that all the trees sit in the centre of the #forest div */
-	const maxWidthOfForest = forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r)
-	let widthOfTreesInRow = /* starting value */ svgtree.dim.width
-	while(widthOfTreesInRow + svgtree.dim.width <= maxWidthOfForest ) {
-		widthOfTreesInRow += forestSettings.spacing.h
-	}
-	forestSettings.padding.l += (maxWidthOfForest-widthOfTreesInRow)/2
-	forestSettings.padding.r += (maxWidthOfForest-widthOfTreesInRow)/2
-
-	/** @type {number} keeps track of the highest z-index assigned to any tree */
-	var highestZIndexOnTree = 0
-
-	/*  spawn all trees. */
-
-	for (let i = 0; loopRunner; i++) {
-		// sanity check
-		if (i >= TREELIMIT /*an arbitarily large number*/) { /* bug out, because otherwise this for-loop will hang stuff */ break }
-		// create new div
-		/** @type {HTMLDivElement} */
-		const newDiv = document.createElement("div")
-		// store the tree's information in its own object
-		tree[i] = {
-			div: newDiv,
-			id: 'tree-' + i,
-			positionInForestGrid: {
-				y: rowID,
-				x: treeIDinRow
-			},
-			class: 'tree',
-			zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
-			dimensions: {
-				l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
-				t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
-				w: svgtree.dim.width,
-				h: svgtree.dim.height,
-				/** @type {{ x: number, y: number }} */
-				heart: {
-					/* will be filled correctly when the tree is spawned */
-					x: svgtree.dim.width / 2,
-					y: svgtree.dim.height / 2
-				}
-			},
-			state: {
-				default:    /* [state, substate] */ [0,0],
-				previous:   /* [state, substate] */ [0,0],
-				now:        /* [state, substate] */ [0,0],
-				/* state-specific parameters */
-				drySubstateCounter: 1, // when a tree is drying out, this helps us keep track of how dry it is. (it helps us assign a suitable colour to the tree.)
-				totalProtectionTime: approx(protectionDuration, 20), 
-				protectionTime: 0, // how much time has this tree been protected for
-			},
-			properties: {
-				resilience: /*  must be an integer (i.e., min value = 1). the value here is a placeholder. actual value set by updateTree(). */ 1, 
-				colour: {
-					foliageProtected: 	randomiseHSLColour( "--protected"	, 	5, 15, forestSettings.orderly.colour ),
-					foliageNormal: 		randomiseHSLColour( "--green"		,	3, 15, forestSettings.orderly.colour ),
-					foliageDry: 		randomiseHSLColour( "--autumn"		,	3, 20, forestSettings.orderly.colour ),
-					stump: 				randomiseHSLColour( "--wood"		,	0,  5, forestSettings.orderly.colour ),
-				}
-			},
-			behaviour: 0, // -1: move backward | 0: stay as-is | 1: move forward (in the tree's life-cycle)
-			isProtected: false,
-		}
-		// set id and class
-		newDiv.setAttribute('class', tree[i].class)
-		newDiv.setAttribute('id', tree[i].id)
-
-		// add the placeholder svg-element into newDiv
-		newDiv.innerHTML = svgtree.src.starttag + svgtree.src.innerhtml[tree[i].state.now[0]][tree[i].state.now[1]] + svgtree.src.endtag
-		// then, grab the svg-element...
-		const svgelement = newDiv.getElementsByTagName("svg")[0] // ∵ the first (and only) child is an <svg>
-		svgelement.setAttribute('tree-id',`${i}`)
-		svgelement.setAttribute('data-pos', `${tree[i].positionInForestGrid.x},${tree[i].positionInForestGrid.y}`)
-		// ... and, finally, draw the tree (within the svg-element):
-		updateTree(svgelement)
-
-		// newDiv should be as large as the tree-image
-		newDiv.style.width = tree[i].dimensions.w + 'px'
-		// position the tree (so that it sits at the correct location within a desired pattern in the forest)
-		newDiv.style.left = tree[i].dimensions.l + 'px'
-		newDiv.style.top = tree[i].dimensions.t + 'px'
-		tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w / 2, y: tree[i].dimensions.t + tree[i].dimensions.h / 2 }
-		// draw trees on the next line if you exceed #forest's right-most bounds
-		if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w) {
-			rowID++
-			treeIDinRow = 0
-		} else {
-			treeIDinRow++
-			// update counter that counts the max number of trees on the longest row
-			maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
-		}
-		// stop drawing trees if you exceed #forest's bottom-most bounds
-		if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v + tree[i].dimensions.h)
-			loopRunner = false
-		// set z-index, so that lower-placed trees seem to be in front
-		newDiv.style.zIndex = (tree[i].zindex).toString()
-		// keep track of the highest z-index assigned to any tree
-		if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
-		// finally, make the div a child of #forest
-		forest.appendChild(newDiv)
-		// update the value for total number of trees spawned in the forest
-		totalTreesInForest += 1
-	}
-
-	console.log(totalTreesInForest + " trees spawned in " + (rowID) + " rows, with " + (maxTreeIDinRow + 1) + " or fewer trees per row.")
-
-	/** #infoBox should have a z-index higher than all spawned trees */
-	updateStyle(infoBox.parentElement, "z-index", (highestZIndexOnTree + forestSettings.orderly.maxZIndexDeviation + 1).toString())
-
-	/*  ------------------------------------------------------------
-		update the forest.
-		------------------------------------------------------------  */
-
-	updateForest()
-
-
-	/*  ------------------------------------------------------------
-		if the person taps on the screen
-		------------------------------------------------------------  */
-
-	document.addEventListener("click", handleClicks)
-	
 }
 
 /** calls itself at the end of each animation frame */
@@ -1283,10 +1225,6 @@ function handleClicks(e) {
         didClickHappenOnTree(e)
     }
 }
-
-/*  ------------------------------------------------------------
-    if the click happened on a tree...
-    ------------------------------------------------------------  */
 
 /** @param {MouseEvent} e */
 function didClickHappenOnTree(e) {

@@ -239,7 +239,7 @@ svg {
     width: 100%;
     background-color: var(--paper-light);
     display: flex; flex-direction: column; align-items: center;
-    height: /* placeholder */ 0; 
+    height: /* placeholder. should be set to 0 (at start) so that the #content div is not visible. */ 0; 
     padding: /* placeholder */ 0; 
     border-top: /* placeholder */ none; 
     overflow: /* placeholder */ hidden; 
