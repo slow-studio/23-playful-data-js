@@ -1,5 +1,4 @@
-import { setInfo, infoBox, showBox, hideBox } from "./script.js";
-import { updateStyle } from "./helpers.js";
+import { updateStyle, setInfo, infoBox, showBox, hideBox } from "./script.js";
 
 /** cheat code helpers */
 export let pauseForestUpdate = false
