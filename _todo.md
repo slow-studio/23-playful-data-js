@@ -5,58 +5,34 @@ publish:
 [ ] disable play-experience on desktop devices
     [ ] add message: "please open on a phone. if you open it on a larger screen, it will greedily eat up your battery and memory (much like how we're eating up the environment)."
 
-environment:
-[ ] improve sounds. build soundscape. 
+sound
+[ ] improve soundscape. add random sounds.
 
 forest:
-[✓] add variation in tree-colour
-[✓] update tree-shapes
-    [✓] on-fire trees are offset. (they are lower than other trees.)
-    [✓] dry and on-fire trees should use the fully-grown-tree svg-path for foliage
-    [✓] absent trees have fully-grown-tree svg-path in them, but it is invisible. (use class='invisible' for this.)
-[✓] state-change from normal to dry should be gradual. (interpolate colour.)
-[✓] tap on an absent-tree to make it grow. (because it has a larger clickable-area.)
-[ ] when tapped on, an absent tree respawns BUT ONLY at the start of the game.
+[ ] improve gamestate bars
+[ ] when tapped on, an absent tree respawns at any point in the game.
 [ ] seed dryness in a single spot, and let the dryness spread organically
-[ ] content should be different depending on the person's behaviour: { played at all, clicked at all, saved the forest well, did poorly, played for long, etc }.
 
-infoBox messages:
-[x] add links to actual "good news" articles
-[ ] update (or remove) mouse-pointer svg's
+conclusion:
+[ ] add stats on every infoBox. 
+    eg: { trees planted, saved, time spent, etc }
+[ ] review conclusion criteria (i.e., the if statements). 
+[ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
+[ ] conclusion infoBox can be dismissed, to allow people to take screenshots.
 
 essay:
 [ ] people read the "read about this project" button first. it's too conspicuous.
 [ ] improve the essay.
-    [ ] add links to actual "good news" articles.
+[ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. 
+    eg: { played at all, clicked at all, saved the forest well, did poorly, played for long, saved # trees, etc }.
+[ ] present links to actual "good news" articles.
 
-play:
-[✓] why will someone want to save the forest? (make them plant it first, perhaps?)
-[x] strengthen design future/fiction narrative.
-    [x] years not noticed on news articles. make the passage of time obvious. 
-    [✓] (use an upfront slider?)
-[✓] add a gamestate bar, showing a combined stat about the quality of gameplay (incl. health of forest, activity by person, etc). maybe it is "climate change vs you" or just "trees saved".
-[ ] improve gamestate bars
-[ ] conclusion
-    [ ] remove "conclusion"? (and show some kind of stats in every #infoBox)
-    [ ] improve criteria for triggering game-conclusion (infoBox-0)
-    [ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
-    [ ] add a (well-timed) conclusion or reward to the experience. maybe also display some scores ("trees saved", etc) in the concluding message (infoBox-0)
-    [ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. eg: good news comes when the person is doing well, and not randomly.
+bugs:
+[ ] tapping seems sluggish. (check if throttled-framerate is causing this issue.)
 
 tidy:
-[✓] replace setInterval with requestAnimationFrame(callback)
-[✓] organise code (into files or modules)
-[✓] remove unnecessary console.log messages
+[ ] (on desktop) update/remove mouse-pointer svg's
 
-ios/safari bugs:
-[✓] disable double-tap-to-zoom on ios devices.
-[✓] fix sound: volume-settings dont seem to work on iphone browsers
-
-gamify:
-[x] mousedrag to cut trees (leave stumps behind). [code example](https://developer.mozilla.org/en-US/docs/Web/API/Touch/radiusX)
-[x] add scorekeeping graphic
-[x] add a button to toggle 'game' and 'toy' mode
-[x] modes: axe & water (click & drag ; click on tool buttons ; click & hold)
 
 ---
 
