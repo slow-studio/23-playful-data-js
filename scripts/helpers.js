@@ -36,66 +36,55 @@ export function map(value1, min1, max1, min2, max2, clamp) {
 }
 // console.log(map(5,0,10,-1,-.9))
 
-/** 
- * fetch the value of a property in the stylesheet 
- * @param {'root' | HTMLElement} element
- * @param {string} property
- * @returns {string}
- * |  
- * example: getStyleProperty(document.getElementById('container'), 'padding-right')
- */
-export function getStyleProperty(element, property) {
-    if (element == 'root')
-        element = document.documentElement
-    if(property.slice(0,3)=='var') { 
-        property = property.slice(property.indexOf("(")+1,property.indexOf(")"))
-    }
-    let val = window.getComputedStyle(element).getPropertyValue(property).trim()
-    if(!val) console.log(`property "${property}" not found in css style definitions for element "${element}"`)
-    return val
-    /* note: trim() was used because: https://stackoverflow.com/questions/41725725/access-css-variable-from-javascript#comment107745427_41725782 */
-}
 /**
- * fetch the value of a property (from the :root element) in the stylesheet 
- * @param {string} property 
- * @returns {string}
- * |  
- * example: getStylePropertyFromRoot('--fire')
- */
-export function getStylePropertyFromRoot(property) {
-    return getStyleProperty('root', property)
-}
-
-/**
- * @param {string} c - HSL colour
+ * @param {string} c - name of the (colour-)property defiend within the :root element within the css-stylesheet
  * @param {number} rhby - randomise H by this much % [range: 0-100]
  * @param {number} rlby - randomise L by this much % [range: 0-100]
  * @param {boolean} [blocker=false] - blocks this function from randomising the colour
  * @returns {string}
  * |  
  * examples: 
- * - randomiseHSLColour('hsl(16, 57%, 50%)', 15, 30)
- * - randomiseHSLColour('--fire', 15, 30)
- * - randomiseHSLColour('var(--fire)', 15, 30)
+ * - randomiseCustomHSLColourProperty('--fire', 15, 30)
  */
-export function randomiseHSLColour(c, rhby, rlby, blocker) {
-    if (c.slice(0, 3) == 'var') {
-        c = c.slice(c.indexOf("(") + 1, c.indexOf(")"))
+export function randomiseCustomHSLColourProperty(c, rhby, rlby, blocker) {
+    let successflag = false
+    let errorcode = 0
+    const fallbackcolour = "hsl(0, 0%, 0%)"
+    // console.log(`will now run randomiseHSLColour():`)
+    const rootStyles = getComputedStyle(document.documentElement)
+    // console.log(`step 1: ran getComputedStyle on the root object.`)
+    // console.log(rootStyles)
+    if(!rootStyles) {
+        // console.log(`step 1: getComputedStyle was unable to fetch styles. returning fallback colour: "${fallbackcolour}"`)
+        errorcode = 1
+    } else {
+        let val = rootStyles.getPropertyValue(c).trim()
+        // console.log(`step 2: for proprty "${c}", value fetched = "${val}".`)
+        if(!val) {
+            // console.log(`step 2: unable to get property value. returning fallback colour: "${fallbackcolour}"`)
+            errorcode = 2
+        } else {
+            let hsl = val.split(",")
+            if (hsl[0].split("(")[0].localeCompare("hsl")!=0) {
+                // console.log(`step 2: property value is not in hsl format. returning fallback colour: "${fallbackcolour}"`)
+                errorcode = 3
+            } else {
+                // console.log(`step 3: randomising hsl-colour "${val}".`)
+                let h = Number(hsl[0].split("(")[1])
+                h = blocker ? h : approx(h, rhby); if (h <= 0 || h >= 360) h = 0; h = Math.floor(h);
+                let s = Number(hsl[1].split("%")[0].trim())
+                let l = Number(hsl[2].split("%")[0].trim())
+                l = blocker ? l : approx(l, rlby); if (l <= 0) l = 0; if (l >= 100) l = 100; l = Math.floor(l);
+                // console.log(`step 3: result: "hsl(${h}, ${s}%, ${l}%)"`)
+                successflag = true
+                return `hsl(${h}, ${s}%, ${l}%)`
+            }
+        }
     }
-    if (c.slice(0, 2) == '--') {
-        c = getStylePropertyFromRoot(`var(${c})`)
+    if(successflag == false) {
+        console.log(`failed to randomise colour: ${c} \nerror code: ${errorcode} \nreturning fallback colour: ${fallbackcolour}`)
+        return fallbackcolour
     }
-    let hsl = c.split(",")
-    if (hsl[0].split("(")[0] != "hsl") {
-        console.log(`supplied colour "${c}" is not in HSL format. so, randomiseHSLColour() can not randomise colour. so: returning colour {string} as-is: ${c}.`)
-        return c
-    }
-    let h = Number(hsl[0].split("(")[1])
-    h = blocker ? h : approx(h, rhby); if (h <= 0 || h >= 360) h = 0; h = Math.floor(h);
-    let s = Number(hsl[1].split("%")[0].trim())
-    let l = Number(hsl[2].split("%")[0].trim())
-    l = blocker ? l : approx(l, rlby); if (l <= 0) l = 0; if (l >= 100) l = 100; l = Math.floor(l);
-    return `hsl(${h}, ${s}%, ${l}%)`
 }
 
 /**

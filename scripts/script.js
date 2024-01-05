@@ -1,5 +1,5 @@
 import { pauseForestUpdate, cheatcodes } from "./cheatcodes.js";
-import { updateStyle, interpolateHSLColour, randomiseHSLColour, approx, map } from "./helpers.js";
+import { updateStyle, interpolateHSLColour, randomiseCustomHSLColourProperty as randomiseHSLColour, approx, map } from "./helpers.js";
 import { svgtree } from "./svgtree.js";
 
 /*  ------------------------------------------------------------
