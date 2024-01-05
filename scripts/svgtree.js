@@ -1,5 +1,5 @@
 /*  ------------------------------------------------------------
-    collect information before drawing tree
+    information for drawing a tree
     ------------------------------------------------------------  */
 
 export const svgtree = {
