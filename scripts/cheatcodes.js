@@ -1,9 +1,5 @@
 import { setInfo, infoBox, showBox, hideBox } from "./infoBox.js";
-import { updateStyle } from "./script.js";
-
-
-/** cheat code helpers */
-export let pauseForestUpdate = false
+import { pauseSimulation, playPauseSwitch, showcontent } from "./script.js";
 
 /**
  * cheat codes
@@ -14,35 +10,30 @@ export function cheatcodes(e) {
   console.log(`the ${key}-key was pressed on the keyboard.`)
   switch(key) {
     case ' ': 
-        pauseForestUpdate = !pauseForestUpdate
-        // offer visual feedback:
-        if(pauseForestUpdate) updateStyle(document.body,"background-color","var(--body-bg-colour-paused)") 
-        else updateStyle(document.body,"background-color","var(--body-bg-colour-running)") 
-        // write to console:
-        console.log(`pause forestUpdate: ${pauseForestUpdate}`)
+        playPauseSwitch()
         break;
     case '1':
         console.log(`update infoBox content: set introductory info.`)
         setInfo(infoBox, 1)
-        console.log(`show #infoBox.`)
+        console.log(`show #infoBox ${key}.`)
         showBox(infoBox)
         break;
     case '8':
         console.log(`update infoBox content: nudging person to tap the screen.`)
         setInfo(infoBox, 8)
-        console.log(`show #infoBox.`)
+        console.log(`show #infoBox ${key}.`)
         showBox(infoBox)
         break;
     case '2':
         console.log(`update infoBox content: display goal.`)
         setInfo(infoBox, 2)
-        console.log(`show #infoBox.`)
+        console.log(`show #infoBox ${key}.`)
         showBox(infoBox)
         break;
     case '0':
         console.log(`update infoBox content: conclusion.`)
         setInfo(infoBox, 0)
-        console.log(`show #infoBox.`)
+        console.log(`show #infoBox ${key}.`)
         showBox(infoBox)
         break;
     case 'z': 
@@ -55,3 +46,12 @@ export function cheatcodes(e) {
         break;
   }
 }
+
+export const playPauseButton = document.getElementById('playPauseButton')
+playPauseButton.addEventListener('click', playPauseSwitch)
+
+const showContentButton = document.getElementById('showContentButton')
+showContentButton.addEventListener('click', () => {
+    pauseSimulation(true)
+    showcontent(true)
+})

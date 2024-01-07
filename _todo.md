@@ -9,16 +9,13 @@ sound
 [ ] improve soundscape. add random sounds.
 
 forest:
-[ ] improve gamestate bars
 [ ] when tapped on, an absent tree respawns at any point in the game.
 [ ] seed dryness in a single spot, and let the dryness spread organically
 
 conclusion:
 [ ] add stats on every infoBox. 
     eg: { trees planted, saved, time spent, etc }
-[ ] review conclusion criteria (i.e., the if statements). 
 [ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
-[ ] conclusion infoBox can be dismissed, to allow people to take screenshots.
 
 essay:
 [ ] people read the "read about this project" button first. it's too conspicuous.

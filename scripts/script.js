@@ -1,4 +1,4 @@
-import { pauseForestUpdate, cheatcodes } from "./cheatcodes.js";
+import { cheatcodes, playPauseButton } from "./cheatcodes.js";
 import { infoBox, infoBoxTransitionDuration, setInfo, showBox, boxDisplayAttrIs } from "./infoBox.js";
 import { gainNode } from "./sound.js";
 import { svgtree } from "./svgtree.js";
@@ -23,6 +23,8 @@ const REFRESH_RATE = 10 // fps
 const REFRESH_TIME = 1000 / REFRESH_RATE // time in millisecond
 let FRAMECOUNT = 0
 
+export let pauseForestUpdate = false
+
 /** duration for which a protected tree stays protected */
 const protectionDuration = 7500 // time in millisecond
 
@@ -44,29 +46,40 @@ const CHARRED_TIME_MULTIPLIER = 25
  * game state variables
  */
 export const gameState = {
-    print: false,
+    print: false, // should this gameState object be printed to the console?
     userHasBeenActive: false,
-    lastUpdatedAt: 0, // time when updateForest was last run
+    lastUpdatedAt: 0, // time (in milliseconds) when updateForest was last run
     startTime: Date.now(), // milliseconds
     playTime: 0, // milliseconds
-    playTimeSeconds: 0, // seconds
     starthealth: 1,
     health: 1,
-    clicks: 0,
-    clicksontrees: 0,
-    clicksonsicktrees: 0,
-    shownInfo1: false,
-    shownInfo2: false,
-    shownInfo8: false,
-    shownInfo0: false,
+    clicks : { 
+		total: 0,
+		ontrees: 0,
+		onsicktrees: 0,
+	},
+    shownInfoBox: {
+		_1: false,
+    	_2: false,
+    	_8: false,
+    	_0: false,
+	},
+	statusBars: {
+		update: false, // should statusBars update?
+	},
 }
 // console.log(JSON.stringify(gameState, null, 2))
+
+// status bars
+export const barPlanted = document.getElementById('barPlanted')
+export const barTime = document.getElementById('barTime')
+export const barClicks = document.getElementById('barClicks')
 
 /** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
 const TREELIMIT = 2500;
 
 /** time (in millisecond) after which the conclusion wants to show up */
-const PLAYTIMELIMIT = 90000 // e.g. 90000ms = 90s = 1½ min
+const PLAYTIMELIMIT = 60000 // e.g. 90000ms = 90s = 1½ min
 
 /** @type {{upper: number; lower: number}} clicks (on sick trees) after which the conclusion wants to show up */
 const CLICKLIMIT = { upper: 120, lower: 10 }
@@ -270,9 +283,9 @@ export function startExperience() {
     gameState.startTime = Date.now()
     gameState.playTime = Date.now() - gameState.startTime
     gameState.starthealth = document.getElementsByClassName("normal").length / totalTreesInForest
-    gameState.clicksontrees = 0
-    gameState.clicksonsicktrees = 0
     gameState.health = gameState.starthealth
+    gameState.clicks.ontrees = 0
+    gameState.clicks.onsicktrees = 0
     gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
 }
 
@@ -750,6 +763,8 @@ export function percentageOfTrees(state) {
 /** calls itself at the end of each animation frame */
 export function updateForest() {
 
+	console.log(`updateStatusBars = ${gameState.statusBars.update}`)
+
     if(Date.now() - gameState.lastUpdatedAt < REFRESH_TIME) {
         // do nothing
     } else {
@@ -798,6 +813,9 @@ export function updateForest() {
             
             const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
             const countalivetrees = normals.length + drys.length + burnings.length
+
+			/** once the person plants this much of the forest, the challenge (to protect it) will begin. */
+			const READINESS_THRESHOLD = 0.5
             
             /** 
              * update each tree
@@ -809,49 +827,47 @@ export function updateForest() {
             // update gameState object
             gameState.health = normals.length / totalTreesInForest
             gameState.playTime = Date.now() - gameState.startTime
-            gameState.playTimeSeconds = Math.round(gameState.playTime / 1000)
 
             // update status bars
-            const barNormals = document.getElementById('barNormals')
-            const barDrys = document.getElementById('barDrys')
-            const barBurnings = document.getElementById('barBurnings')
-            const barTime = document.getElementById('barTime')
-            const barClicks = document.getElementById('barClicks')
-            const statusNormals = normals.length / totalTreesInForest
-            const statusDrys = drys.length / totalTreesInForest
-            const statusBurnings = burnings.length / totalTreesInForest
-            const statusTime = gameState.playTime / PLAYTIMELIMIT
-            const statusClicks = gameState.clicksonsicktrees / CLICKLIMIT.upper
-            updateStyle(barNormals, "width", `${100 * statusNormals}%`)
-            updateStyle(barDrys, "width", `${100 * statusDrys}%`)
-            updateStyle(barBurnings, "width", `${100 * statusBurnings}%`)
-            updateStyle(barTime, "width", `${100 * statusTime}%`)
-            // console.log(`${Math.round(100 * statusTime)}%`)
-            updateStyle(barClicks, "width", `${100 * statusClicks}%`)
-            // console.log(`${Math.round(100 * statusClicks)}%`)
-            
+			if(gameState.statusBars.update == true) {
 
+				const statusPlanted = (normals.length + drys.length) / (READINESS_THRESHOLD * totalTreesInForest)
+				const statusTime = gameState.playTime / PLAYTIMELIMIT
+				const statusClicks = gameState.clicks.onsicktrees / CLICKLIMIT.upper
+
+				// if we're in the planting phase
+				if(gameState.shownInfoBox._1 == true && gameState.shownInfoBox._2 == false) {
+					updateStyle(barPlanted, "width", `${100 * statusPlanted}%`)
+				}
+				// if we're in the protecting phase
+				if(gameState.shownInfoBox._2 == true && gameState.shownInfoBox._0 == false) {
+					updateStyle(barClicks, "width", `${100 * statusClicks}%`)
+					updateStyle(barTime, "width", `${100 * statusTime}%`)
+					// console.log(`${Math.round(100 * statusTime)}%`)
+				}
+			}
+            
             if (boxDisplayAttrIs(infoBox)) {
                 // do nothing
             } else {
 
                 /* show instructions */
                 // 1.
-                if (gameState.shownInfo1 == false) {
-                    console.log(`starting the experience.`)
+                if (gameState.shownInfoBox._1 == false) {
+                    console.log(`displaying the task: plant your forest.`)
                     setInfo(infoBox, 1)
                     showBox(infoBox)
                 }
-                // 2. 
-                const READINESS_THRESHOLD = 0.5
+                // 2.
                 if (
                     true
-                    && gameState.shownInfo1 == true
-                    && gameState.shownInfo2 == false 
+                    && gameState.shownInfoBox._1 == true
+                    && gameState.shownInfoBox._2 == false 
+					&& gameState.shownInfoBox._0 == false
                     // if the person has spawned a certain-number of trees
                     && countpresenttrees >= totalTreesInForest * READINESS_THRESHOLD
                 ) {
-                    console.log(`displaying the task.`)
+                    console.log(`displaying the task: protect your forest.`)
                     setInfo(infoBox, 2)
                     showBox(infoBox)
                     /** 
@@ -864,10 +880,11 @@ export function updateForest() {
                 // ...instruct them to click on trees!
                 if (
                     true
-                    && gameState.shownInfo2 == true 
-                    && gameState.shownInfo8 == false 
+                    && gameState.shownInfoBox._2 == true 
+                    && gameState.shownInfoBox._8 == false 
+					&& gameState.shownInfoBox._0 == false
                     && gameState.health < gameState.starthealth * .5
-                    && gameState.clicksonsicktrees < 1
+                    && gameState.clicks.onsicktrees < 1
                 ) {
                     console.log(`encouraging person to tap on trees.`)
                     setInfo(infoBox, 8)
@@ -876,33 +893,15 @@ export function updateForest() {
                 // 0.
                 if (
                     true
-                    && gameState.shownInfo2 == true
+					&& gameState.shownInfoBox._0 == false
+                    && gameState.shownInfoBox._2 == true
                     && (
                         gameState.playTime >= PLAYTIMELIMIT
                         ||
-                        (
-                            drys.length + burnings.length == 0
-                            && normals.length / countalivetrees >= READINESS_THRESHOLD
-                            && (
-                            gameState.clicksonsicktrees >= CLICKLIMIT.upper
-                            ||
-                            gameState.clicksonsicktrees >= CLICKLIMIT.lower && gameState.playTime >= 10000
-                            )
-                        )
-                        ||
-                        (gameState.clicksonsicktrees >= CLICKLIMIT.lower && countalivetrees == 0)
+						gameState.clicks.onsicktrees >= CLICKLIMIT.upper
                     )
                 ) {
-                    if (drys.length + burnings.length <= 2) {
-                        for(let i=0 ; i<drys.length ; i++) {
-                            const treeid = drys[i].getAttribute('tree-id')
-                            tree[treeid].behaviour = -1
-                        }
-                        for(let i=0 ; i<burnings.length ; i++) {
-                            const treeid = burnings[i].getAttribute('tree-id')
-                            tree[treeid].behaviour = -2
-                        }
-                    }
+					console.log(`displaying the coclusion box.`)
                     setInfo(infoBox,0)
                     showBox(infoBox)
                 }
@@ -914,7 +913,7 @@ export function updateForest() {
                 const AUTORESPAWN_EMPTY_FOREST = false
                 const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
                 const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
-                let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfo2 == false ? .9985 : map(gameState.clicksonsicktrees, 0, CLICKLIMIT.upper, 0.995, 1)
+                let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfoBox._2 == false ? .9985 : map(gameState.clicks.onsicktrees, 0, CLICKLIMIT.upper, 0.995, 1)
                 const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995)
                 const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
                 const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
@@ -941,7 +940,7 @@ export function updateForest() {
                 //         }
                 //     }
                 //     // else: if there are some trees
-                //     else if (gameState.shownInfo2 == false) {
+                //     else if (gameState.shownInfo._2 == false) {
                 //         const thisthreshold = TREE_RESPAWN_PROBABILITY * Math.pow(forstcover, 2) / 100
                 //         if (Math.random() < thisthreshold) {
                 //             // console.log(`(probability: ${(100 * thisthreshold).toFixed(3)}%) re-spawning tree-${absents[i].getAttribute('tree-id')}.`)
@@ -970,7 +969,7 @@ export function updateForest() {
                 // if(drys.length==0) seedDryTrees(3)
 
                 // dry -> burning
-                if (gameState.shownInfo2 == true) {
+                if (gameState.shownInfoBox._2 == true) {
                     for (let i = 0; i < drys.length; i++) {
                         if (Math.random() > THRESHOLD_SETFIRE) {
                             tree[drys[i].getAttribute('tree-id')].behaviour = 1
@@ -1016,9 +1015,9 @@ export function updateForest() {
                  */
 
                 const IMMUNITY_TO_FIRE = .99
-                const IMMUNITY_TO_DRYING = gameState.shownInfo2?.9975:.999
+                const IMMUNITY_TO_DRYING = gameState.shownInfoBox._2?.9975:.999
                 const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */
-                    gameState.shownInfo2 ?
+                    gameState.shownInfoBox._2 ?
                     // if the person is saving the forest
                     map(
                         normals.length / countpresenttrees,
@@ -1036,7 +1035,7 @@ export function updateForest() {
                         .99,
                         .99999
                     )
-                if(gameState.shownInfo2 && RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) 
+                if(gameState.shownInfoBox._2 && RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) 
                     console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
 
                 spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1, false)
@@ -1054,7 +1053,7 @@ export function updateForest() {
 /** @param {MouseEvent} e */
 function handleClicks(e) {
     // count the click
-    gameState.clicks++
+    gameState.clicks.total++
     // if the forest is allowed to update, then...
     if (! (boxDisplayAttrIs(infoBox))) {
         // ...check if the click happened on a tree
@@ -1081,7 +1080,6 @@ function didClickHappenOnTree(e) {
             console.log(`clicked on #${element.id} | did not click on #forest`)
             return true
         }
-
         return false
     })
 
@@ -1111,14 +1109,14 @@ function didClickHappenOnTree(e) {
         // console.log(c)
 
         // count the click
-        if(filteredElements.length>0) gameState.clicksontrees++
+        if(filteredElements.length>0) gameState.clicks.ontrees++
 
         // now, we instruct each (clicked-)tree to change
         for (const i in filteredElements) {            
             const SVGElementOfClickedTree = filteredElements[i]
             const treeid = Number(SVGElementOfClickedTree.getAttribute('tree-id'))
             if (SVGElementOfClickedTree.classList.contains("burning") || SVGElementOfClickedTree.classList.contains("dry")) {
-                gameState.clicksonsicktrees++
+                gameState.clicks.onsicktrees++
                 // if (SVGElementOfClickedTree.classList.contains("dry")) console.log(`click on ${treeid}: dry -> normal`)
                 // if (SVGElementOfClickedTree.classList.contains("burning")) console.log(`click on ${treeid}: burning -> dry`)
                 tree[treeid].behaviour = -1
@@ -1139,9 +1137,9 @@ function didClickHappenOnTree(e) {
             }
             if (SVGElementOfClickedTree.classList.contains("absent")) {
                 let threshold
-                if(gameState.shownInfo2 == true) 
+                if(gameState.shownInfoBox._2 == true) 
                     threshold = .5
-                else if(gameState.shownInfo2 == false)
+                else if(gameState.shownInfoBox._2 == false)
                     threshold = 1
                 if(Math.random() <= threshold) {
                     // console.log(`click on ${treeid}: absent -> normal`)
@@ -1277,4 +1275,22 @@ export function interpolateHSLColour(start, end, totalSteps, currentStep, factor
 export function updateStyle(e, p, v) {
     if (e == 'root') e = document.documentElement
     return e.style.setProperty(p, v)
+}
+
+export function playPauseSwitch() {
+    pauseForestUpdate = !pauseForestUpdate
+    pauseSimulation(pauseForestUpdate)
+    // if simulation is running, don't show the project-essay:
+    // if(pauseForestUpdate==false) showcontent(false)
+}
+
+export function pauseSimulation(play) {
+    pauseForestUpdate = play
+    // update dataset in html element
+    playPauseButton.setAttribute('data-playing', (!pauseForestUpdate).toString())
+    // change background colour
+    if(pauseForestUpdate) updateStyle(document.body,"background-color","var(--body-bg-colour-paused)") 
+    else updateStyle(document.body,"background-color","var(--body-bg-colour-running)") 
+    // write to console:
+    console.log(`pause forestUpdate: ${pauseForestUpdate}`)
 }

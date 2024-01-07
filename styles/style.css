@@ -117,7 +117,8 @@ svg {
     margin-left: auto; margin-right: auto; 
     flex: 0 0 auto;
     width: calc(100% - 2rem);
-    position: relative; top: 1rem;
+    position: relative; top: /* placeholder. but it should be positioned out-of-view at the start. */-5rem;
+    transition: top 300ms ease-in-out 0ms;
     /* background: yellow; */
     border-top:1px solid var(--borderColour);
 }
@@ -134,11 +135,30 @@ svg {
 
 #status .row p.label {
     z-index: 2;
+    display: flex;
+    flex-direction: row;
     position: absolute;
     font-size:50%;
     font-weight: bold;
-    margin-left: 0.1875rem;
     margin-top: 0.03125rem;
+}
+#status .row p.label a {
+    display: inline-block;
+    text-align: center;
+    background-color: var(--paper-light);
+    border-right: 1px solid var(--blackish);
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 150ms ease-in-out 0ms;
+}
+#status .row p.label a:first-child{
+    border-left: 1px solid var(--blackish);
+}
+#status .row p.label a[data-playing="true"] {
+    background-color: var(--green);
+}
+#status .row p.label a[data-playing="false"]{
+    background-color: var(--autumn);
 }
 
 #status .row .bar {
@@ -150,27 +170,20 @@ svg {
     transition: width 300ms ease-in-out 0ms;
 }
 
-#statusHealth {
-    display: none !important;
+#statusPlanted p.label,
+#statusClicks p.label,
+#statusTime p.label {
+    padding-left: 0.1875rem;
 }
 
-#barNormals {
-    background-color: var(--green);
-    width: /* updated by script */ 0%;
-}
-#barDrys {
-    display: none !important;
-    background-color: var(--autumn);
-    width: /* updated by script */ 0%;
-}
-#barBurnings {
-    display: none !important;
-    background-color: var(--fire);
+#barPlanted {
+    background-color: var(--protected);
     width: /* updated by script */ 0%;
 }
 #barTime {
     background-color: grey;
     width: /* updated by script */ 0%;
+    transition-duration: 600ms;
 }
 #barClicks {
     background-color: var(--protected);

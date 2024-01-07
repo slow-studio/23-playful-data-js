@@ -1,4 +1,4 @@
-import { gameState, seedDryTrees, showcontent, startExperience } from "./script.js"
+import { barClicks, gameState, seedDryTrees, showcontent, startExperience, updateStyle } from "./script.js"
 
 /** @type {HTMLElement} */
 export const infoBox = document.getElementById('infoBox')
@@ -48,7 +48,7 @@ export function setInfo(box, infotype) {
     // add close-button to dismiss box
     if(
         true 
-        && infotype!=0
+        // && infotype!=0
     ) {
         let closeBtn = addChildTag(box, 'button')
         closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
@@ -60,12 +60,14 @@ export function setInfo(box, infotype) {
     }
     // add button to reveal essay
     if(
-        infotype==0 
-        || infotype==1 
-        || gameState.playTime>=1000*60
+        true
+        && (
+            infotype==0 
+            || infotype==1
+        )
     ) {
         let readBtn = addChildTag(box, 'button')
-        readBtn.innerHTML = '<p>read about this project.</p>'
+        readBtn.innerHTML = `<p>read today's news.</p>`
         readBtn.setAttribute('id', 'read')
         readBtn.addEventListener('click', () => showcontent(true))
     }
@@ -102,13 +104,22 @@ export function showBox(box) {
         // sound:
         if(gameState.userHasBeenActive) {
             switch(infotype) {
-                case 0:
                 case 1: 
-                case 8: 
-                    // can playSound here
+                    updateStyle(document.getElementById("status"),"top","-5rem")
+                    gameState.statusBars.update = false
                     break
                 case 2: 
+                    updateStyle(document.getElementById("status"),"top","-5rem")
                     // can playSound here
+                    gameState.statusBars.update = false
+                    break
+                case 8: 
+                    gameState.statusBars.update = true
+                    // can playSound here
+                    break
+                case 0:
+                    updateStyle(document.getElementById("status"),"top","-5rem")
+                    gameState.statusBars.update = false
                     break
             }
         }
@@ -139,25 +150,44 @@ export function hideBox(box, seed) {
     const infotype = Number(box.getAttribute('infotype'))
     switch(infotype) {
         case 1: 
+            updateStyle(document.getElementById("status"),"top","1rem")
+            updateStyle(document.getElementById("statusPlanted"),"display","block")
+            updateStyle(document.getElementById("statusTime"),"display","none")
+            updateStyle(document.getElementById("statusClicks"),"display","none")
+            updateStyle(document.getElementById("statusInfo"),"display","none")
+            gameState.statusBars.update = true
             startExperience() 
-            gameState.shownInfo1 = true 
-            gameState.shownInfo2 = false
+            gameState.shownInfoBox._1 = true 
+            gameState.shownInfoBox._2 = false
             console.log(`seen info #1.`) 
             gameState.print == true 
             break
         case 2: 
+            updateStyle(document.getElementById("status"),"top","1rem")
+            updateStyle(document.getElementById("statusPlanted"),"display","none")
+            updateStyle(document.getElementById("statusTime"),"display","block")
+            updateStyle(document.getElementById("statusClicks"),"display","block")
+            updateStyle(document.getElementById("statusInfo"),"display","none")
+            gameState.statusBars.update = true
             startExperience() 
-            gameState.shownInfo2 = true 
+            gameState.shownInfoBox._2 = true 
             console.log(`seen info #2.`) 
             gameState.print == true 
             break
         case 8: 
-            gameState.shownInfo8 = true 
+            gameState.statusBars.update = true
+            gameState.shownInfoBox._8 = true 
             console.log(`seen info #8.`) 
             gameState.print == true 
             break
         case 0: 
-            gameState.shownInfo0 = true 
+            updateStyle(document.getElementById("status"),"top","1rem")
+            updateStyle(document.getElementById("statusPlanted"),"display","none")
+            updateStyle(document.getElementById("statusTime"),"display","none")
+            updateStyle(document.getElementById("statusClicks"),"display","none")
+            updateStyle(document.getElementById("statusInfo"),"display","block")
+            gameState.statusBars.update = false
+            gameState.shownInfoBox._0 = true 
             console.log(`seen info #0.`) 
             gameState.print == true 
             break
