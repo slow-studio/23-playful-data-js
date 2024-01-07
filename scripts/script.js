@@ -1325,3 +1325,13 @@ export function pauseSimulation(play) {
     // write to console:
     console.log(`pauseForestUpdate: ${gameState.pauseForestUpdate}`)
 }
+
+/**
+ * scale probability with respect to throttled-refresh-rate
+ * @param {number} n 
+ * @returns {number}
+ */
+function rr(n) {
+    // use this if we throttle refresh-rates:
+    return 1 - ((10 * (1 - n)) / (REFRESH_RATE))
+}
