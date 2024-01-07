@@ -171,14 +171,14 @@ svg {
     display: inline-block;
     text-align: center;
     background-color: var(--paper-light);
-    border-right: 1px solid var(--blackish);
+    border-right: 1px solid var(--borderColour);
     text-decoration: none;
     color: inherit;
     transition: background-color 150ms ease-in-out 0ms;
 }
 
 #status .row p.label a:first-child {
-    border-left: 1px solid var(--blackish);
+    border-left: 1px solid var(--borderColour);
 }
 
 #status .row p.label a[data-playing="true"] {
