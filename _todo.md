@@ -26,7 +26,7 @@ essay:
 [ ] present links to actual "good news" articles.
 
 bugs:
-[ ] tapping seems sluggish. (check if throttled-framerate is causing this issue.)
+[...] tapping seems sluggish. (check if throttled-framerate is causing this issue.)
 
 tidy:
 [ ] (on desktop) update/remove mouse-pointer svg's
