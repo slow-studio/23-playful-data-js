@@ -80,6 +80,9 @@ export const gameState = {
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
+/** once the person plants this much of the forest, the challenge (to protect it) will begin. */
+const READINESS_THRESHOLD = 0.33
+
 /** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
 const TREELIMIT = 2500;
 
@@ -811,9 +814,6 @@ export function updateForest() {
             
             const countpresenttrees = normals.length + drys.length + burnings.length + charreds.length
             const countalivetrees = normals.length + drys.length + burnings.length
-
-			/** once the person plants this much of the forest, the challenge (to protect it) will begin. */
-			const READINESS_THRESHOLD = 0.33
             
             /** 
              * update each tree
