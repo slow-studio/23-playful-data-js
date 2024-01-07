@@ -65,6 +65,9 @@ export const gameState = {
 		total: 0,
 		ontrees: 0,
 		onsicktrees: 0,
+        ondrytrees: 0,
+        onburningtrees: 0,
+        onabsenttrees: 0,
 	},
     shownInfoBox: {
 			_1: false,
@@ -281,6 +284,9 @@ export function startExperience() {
     gameState.health = gameState.starthealth
     gameState.clicks.ontrees = 0
     gameState.clicks.onsicktrees = 0
+    gameState.clicks.ondrytrees = 0
+    gameState.clicks.onburningtrees = 0
+    gameState.clicks.onabsenttrees = 0
     // gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
 }
 
@@ -824,7 +830,7 @@ export function updateForest() {
             // update status bars
 			const statusPlanted = (normals.length + drys.length) / (READINESS_THRESHOLD * totalTreesInForest)
 			const statusTime = gameState.playTime / PLAYTIMELIMIT
-			const statusClicks = gameState.clicks.onsicktrees / CLICKLIMIT.upper
+			const statusClicks = ((gameState.clicks.onburningtrees * 1.5) + gameState.clicks.ondrytrees + (gameState.clicks.onabsenttrees * 1/3)) / CLICKLIMIT.upper
 			if(gameState.statusBars.update == true) {
 
 				// if we're in the planting phase
@@ -1115,10 +1121,16 @@ function didClickHappenOnTree(e) {
         for (const i in filteredElements) {            
             const SVGElementOfClickedTree = filteredElements[i]
             const treeid = Number(SVGElementOfClickedTree.getAttribute('tree-id'))
-            if (SVGElementOfClickedTree.classList.contains("burning") || SVGElementOfClickedTree.classList.contains("dry")) {
+            if (SVGElementOfClickedTree.classList.contains("burning")) {
+                gameState.clicks.onburningtrees++
                 gameState.clicks.onsicktrees++
-                // if (SVGElementOfClickedTree.classList.contains("dry")) console.log(`click on ${treeid}: dry -> normal`)
-                // if (SVGElementOfClickedTree.classList.contains("burning")) console.log(`click on ${treeid}: burning -> dry`)
+                // console.log(`click on ${treeid}: burning -> dry`)
+                tree[treeid].behaviour = -1
+            }
+            if (SVGElementOfClickedTree.classList.contains("dry")) {
+                gameState.clicks.ondrytrees++
+                gameState.clicks.onsicktrees++
+                // console.log(`click on ${treeid}: dry -> normal`)
                 tree[treeid].behaviour = -1
             }
             if (SVGElementOfClickedTree.classList.contains("normal")) {
@@ -1147,6 +1159,7 @@ function didClickHappenOnTree(e) {
 				}
 				// step 2. if the absent tree was not near any burning tree, it is safe to germinate
 				if (burningneighbour == false) {
+                    gameState.clicks.onabsenttrees++
 					// console.log(`click on ${treeid}: absent -> normal`)
 					tree[treeid].behaviour = 1
 				}
