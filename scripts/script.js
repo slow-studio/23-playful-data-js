@@ -917,7 +917,7 @@ export function updateForest() {
                 const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
                 let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfoBox._2 == false ? .9985 : map(gameState.clicks.onsicktrees, 0, CLICKLIMIT.upper, 0.99967, 1)
                 const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995)
-                const THRESHOLD_STOPFIRE = /* suggested: .99  */ 0.98
+                const THRESHOLD_FIRETOCHARRED = /* suggested: .99  */ 0.98
                 const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
                 const forstcover = countpresenttrees / alltrees.length
 
@@ -983,7 +983,7 @@ export function updateForest() {
 
                 // burning -> charred
                 for (let i = 0; i < burnings.length; i++) {
-                    if (Math.random() > THRESHOLD_STOPFIRE) {
+                    if (Math.random() > THRESHOLD_FIRETOCHARRED) {
                         tree[burnings[i].getAttribute('tree-id')].behaviour = 1
                     }
                 }
