@@ -433,6 +433,10 @@ svg {
     font-weight: bold;
     /* font-style: italic; */
     border: 1px solid black;
+    opacity: 0;
+    transition: 
+        /* value for transition-duration is a placeholder */
+        opacity 600ms ease-in-out 0ms;
 }
 
 #info #infoBox button p {

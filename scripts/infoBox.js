@@ -75,6 +75,24 @@ export function setInfo(box, infotype) {
         readBtn.setAttribute('id', 'read')
         readBtn.addEventListener('click', () => showcontent(true))
     }
+    // buttons appear later, and fade into view when they do
+    let buttons = box.getElementsByTagName('button')
+    for (let i = 0; i < buttons.length; i++) {
+        updateStyle(buttons[i], 'display', 'none')
+        updateStyle(buttons[i], 'opacity', '0')
+        setTimeout(()=>{
+            updateStyle(buttons[i], 'display', 'block')
+            updateStyle(buttons[i], 'transition-duration', `${infoBoxTransitionDuration}ms`)
+            updateStyle(buttons[i], 'opacity', '1')
+        },infoBoxTransitionDuration*4)
+        setTimeout(()=>{
+            let heighttoadd = `0px`
+            for(let i=0 ; i< buttons.length ; i++) {
+                heighttoadd += ` + ${getComputedStyle(buttons[i]).marginBottom} + ${getComputedStyle(buttons[i]).height}`
+            }
+            updateStyle(box, 'height', `calc(${heighttoadd} + ${getComputedStyle(box).height})`)
+        },infoBoxTransitionDuration*4)
+    }
 
     /** 
      * @param {string} tag  
