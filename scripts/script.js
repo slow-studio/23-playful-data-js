@@ -1132,16 +1132,21 @@ function didClickHappenOnTree(e) {
                 tree[treeid].behaviour = 1
             }
             if (SVGElementOfClickedTree.classList.contains("absent")) {
-                let threshold
-                if(gameState.shownInfoBox._2 == true) 
-                    threshold = .5
-                else if(gameState.shownInfoBox._2 == false)
-                    threshold = 1
-                if(Math.random() <= threshold) {
-                    // console.log(`click on ${treeid}: absent -> normal`)
-                    tree[treeid].behaviour = 1
-                }
-            }
+				// an absent tree can not germinate if the ground is too hot. so:
+				// step 1. check if this absent tree was next to any tapped burning-tree (i.e., check if any burning trees were present in the current "tap")
+				let burningneighbour = false
+				for (let f = 0; f < filteredElements.length; f++) {
+					if (filteredElements[f].classList.contains("burning")) {
+						burningneighbour = true
+						break
+					}
+				}
+				// step 2. if the absent tree was not near any burning tree, it is safe to germinate
+				if (burningneighbour == false) {
+					// console.log(`click on ${treeid}: absent -> normal`)
+					tree[treeid].behaviour = 1
+				}
+			}
         }
     }
 }

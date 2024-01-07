@@ -10,7 +10,6 @@ sound
 [ ] improve soundscape. add random sounds.
 
 forest:
-[ ] when tapped on, an absent tree respawns at any point in the game.
 [ ] seed dryness in a single spot, and let the dryness spread organically
 [ ] when saving the forest, trees should dry out on a rate connecting to the time-statusBar. during open-play, rate of srying may be random (or, at-least, not manic).
 
