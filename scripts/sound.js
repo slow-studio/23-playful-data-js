@@ -7,7 +7,6 @@ import { gameState, totalTreesInForest } from "./script.js";
     ------------------------------------------------------------  */
 
 /* create an instance of the audio context, to get access to all the features and functionality of the Web Audio API */
-// @ts-ignore
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioCtx = []
 audioCtx[0] = new AudioContext();
