@@ -894,9 +894,9 @@ export function updateForest() {
 					&& gameState.shownInfoBox._0 == false
                     && gameState.shownInfoBox._2 == true
                     && (
-                        gameState.playTime >= PLAYTIMELIMIT
+                        statusTime >= 1
                         ||
-						gameState.clicks.onsicktrees >= CLICKLIMIT.upper
+						statusClicks >= 1
                     )
                 ) {
 					console.log(`displaying the coclusion box.`)
