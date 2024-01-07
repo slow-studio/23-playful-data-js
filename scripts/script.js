@@ -53,7 +53,7 @@ const CHARRED_TIME_MULTIPLIER = 25
  * game state variables
  */
 export const gameState = {
-	pauseForestUpdate: false,
+    pauseForestUpdate: false,
     print: false, // should this gameState object be printed to the console?
     userHasBeenActive: false,
     lastUpdatedAt: 0, // time (in milliseconds) when updateForest was last run
@@ -61,23 +61,23 @@ export const gameState = {
     playTime: 0, // milliseconds
     starthealth: 1,
     health: 1,
-    clicks : { 
-		total: 0,
-		ontrees: 0,
-		onsicktrees: 0,
+    clicks: {
+        total: 0,
+        ontrees: 0,
+        onsicktrees: 0,
         ondrytrees: 0,
         onburningtrees: 0,
         onabsenttrees: 0,
-	},
+    },
     shownInfoBox: {
-			_1: false,
-    	_2: false,
-    	_8: false,
-    	_0: false,
-	},
-	statusBars: {
-		update: false, // should statusBars update?
-	},
+        _1: false,
+        _2: false,
+        _8: false,
+        _0: false,
+    },
+    statusBars: {
+        update: false, // should statusBars update?
+    },
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
