@@ -947,7 +947,7 @@ export function updateForest() {
                 // }
 
                 // normal -> dry
-								//   -- method 1: continuously, in several spots:
+				//   -- method 1: continuously, in several spots:
                 for (let i = 0; i < normals.length; i++) {
                     const treeid = normals[i].getAttribute('tree-id')
                     const treestate = tree[treeid].state.now
@@ -960,8 +960,8 @@ export function updateForest() {
                         && Math.random() > THRESHOLD_MAKEDRY
                     ) {
                         tree[treeid].behaviour = 1
-												// a clump of trees dry out together
-											spreadInfection(document.querySelectorAll(`svg[tree-id='${treeid}']`), 2, 0.75, 1, false)
+                        // a clump of trees dry out together
+                        spreadInfection(document.querySelectorAll(`svg[tree-id='${treeid}']`), 2, 0.75, 1, false)
                     }
                 }
                 // //   -- method 2: at a specific moment, by calling seedDryTrees():
