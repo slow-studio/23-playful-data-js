@@ -1189,7 +1189,7 @@ export function approx(n, p) {
  * @param {number} max1 - upper limit in source range
  * @param {number} min2 - lower limit of destination range
  * @param {number} max2 - upper limit of destination range
- * @param {number} [clamp=0] - 0: none | 1: clamp lower only | 2: clamp upper only | 3: clamp both
+ * @param {number} [clamp=0] - 0: don't clamp | 1: clamp lower only | 2: clamp upper only | 3: clamp both | -1: clamping is irrelevant in this map()
  */
 export function map(value1, min1, max1, min2, max2, clamp) {
     if(min1==max1) {
@@ -1210,6 +1210,9 @@ export function map(value1, min1, max1, min2, max2, clamp) {
             if(value2<=min2) value2 = min2
             break
         case 0: // clamp none
+            // do nothing
+            break
+        case -1: // clamp value doesnt matter, because the value is never going to exceed the upper- and lower-bounds.
             // do nothing
             break
         default:
