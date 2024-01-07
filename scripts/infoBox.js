@@ -18,6 +18,7 @@ export function setInfo(box, infotype) {
     switch(infotype) {
         case 1:
             // introduction
+            console.log(`update infoBox content: set introductory info.`)
             let i1 = addChildTag(box, 'h3')
             i1.innerHTML = `plant your forest.`
             let i2 = addChildTag(box, 'p')
@@ -25,6 +26,7 @@ export function setInfo(box, infotype) {
             break
         case 2:
             // display task
+            console.log(`update infoBox content: display goal.`)
             let g1 = addChildTag(box, 'h3')
             g1.innerHTML = `take care of your forest.`
             let g2 = addChildTag(box, 'p')
@@ -32,6 +34,7 @@ export function setInfo(box, infotype) {
             break
         case 8:
             // instructions to tap
+            console.log(`update infoBox content: nudging person to tap the screen.`)
             let t1 = addChildTag(box, 'h3')
             t1.innerHTML = `you can save the forest.`
             let t2 = addChildTag(box, 'p')
@@ -39,6 +42,7 @@ export function setInfo(box, infotype) {
             break
         case 0:
             // conclusion
+            console.log(`update infoBox content: conclusion.`)
             let c1 = addChildTag(box, 'h3')
             c1.innerHTML = `thank you for playing.`
             let c2 = addChildTag(box, 'p')
@@ -103,6 +107,7 @@ export function showBox(box) {
     setTimeout(function() {
         // sound:
         if(gameState.userHasBeenActive) {
+            console.log(`show #infoBox ${infotype}.`)
             switch(infotype) {
                 case 1: 
                     updateStyle(document.getElementById("status"),"top","-5rem")

@@ -763,8 +763,6 @@ export function percentageOfTrees(state) {
 /** calls itself at the end of each animation frame */
 export function updateForest() {
 
-	console.log(`updateStatusBars = ${gameState.statusBars.update}`)
-
     if(Date.now() - gameState.lastUpdatedAt < REFRESH_TIME) {
         // do nothing
     } else {
