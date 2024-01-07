@@ -3,7 +3,6 @@ import { infoBox, infoBoxTransitionDuration, setInfo, showBox, boxDisplayAttrIs 
 import { gainNode } from "./sound.js";
 import { svgtree } from "./svgtree.js";
 
-
 /*  ------------------------------------------------------------
     varialbles
     ------------------------------------------------------------  */
@@ -94,7 +93,7 @@ let loopRunner = true
 export var totalTreesInForest = 0
 
 /** an array. stores one object (each) for every tree. the object contains all info/settings for that tree. */
-const tree = []
+export const tree = []
 
 
 /*  ------------------------------------------------------------

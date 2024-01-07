@@ -1,4 +1,4 @@
-import { divBarClicks, gameState, seedDryTrees, showcontent, startExperience, updateStyle } from "./script.js"
+import { divBarClicks, gameState, seedDryTrees, showcontent, startExperience, totalTreesInForest, tree, updateStyle } from "./script.js"
 
 /** @type {HTMLElement} */
 export const infoBox = document.getElementById('infoBox')
@@ -155,6 +155,8 @@ export function hideBox(box) {
             startExperience() 
             gameState.shownInfoBox._1 = true 
             gameState.shownInfoBox._2 = false
+            // pick a random tree and spawn it:
+            tree[Math.floor(Math.random()*totalTreesInForest)].behaviour = 1
             // console.log(`seen info #1.`) 
             // gameState.print == true 
             break
