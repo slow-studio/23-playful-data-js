@@ -17,7 +17,6 @@ conclusion:
     eg: { trees planted, saved, time spent, etc }
 
 essay:
-[ ] people read the "read about this project" button first. it's too conspicuous.
 [ ] improve the essay.
 [ ] different messaging (in #infoBox) depending on the gamestate/timed-conclusion of the playful experience. 
     eg: { played at all, clicked at all, saved the forest well, did poorly, played for long, saved # trees, etc }.

@@ -29,7 +29,11 @@ export function setInfo(box, infotype) {
             addChildTag(box, 'p').innerHTML = `this is why we're so happy to place <em>this</em> patch of rescued forest-land under your care.`
             addChildTag(box,'p').innerHTML = `let&rsquo;s plant some trees, shall we?`
             addButton_close(box,`start planting your forest:`)
-            // addButton_showcontent(box,`read today's news.`)
+            /* 
+                note: 
+                do not link to the essay here. 
+                people *must* at-least plant the forest to read the news. 
+            */
             makeButtonsAppear(box, 4000)
             break
         case 2:
