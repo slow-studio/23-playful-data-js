@@ -19,10 +19,13 @@ export function setInfo(box, infotype) {
         case 1:
             // console.log(`update infoBox content: set introductory info.`)
             // introduction
-            let i1 = addChildTag(box, 'h3')
-            i1.innerHTML = `plant your forest.`
-            let i2 = addChildTag(box, 'p')
-            i2.innerHTML = `tap on the earth to help nurture a tree.`
+            const futuredate = Math.round(((new Date()).getFullYear() + 15)/10)*10
+            addChildTag(box, 'h3').innerHTML = `hello:`
+            addChildTag(box,'p').innerHTML = `welcome to ${futuredate}.`
+            addChildTag(box,'p').innerHTML = `starting with the global <em>take back our future</em> movement (in ${futuredate - 5}), revolutions around the world have repossessed thousands of damaged ecosystems over five remarkable years.`
+            addChildTag(box,'p').innerHTML = `now: climate-cadets (like you and me) have begun working to re-wild these oceans, forests, grasslands, and deserts.`
+            addChildTag(box, 'p').innerHTML = `this is why we're so happy to place <em>this</em> patch of rescued forest-land under your care.`
+            addChildTag(box,'p').innerHTML = `let&rsquo;s plant some trees, shall we?`
             addButton_close(box,`start planting:`)
             // addButton_showcontent(box,`read today's news.`)
             makeButtonsAppear(box, 4000)
