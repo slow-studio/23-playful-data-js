@@ -915,9 +915,8 @@ export function updateForest() {
                 const AUTORESPAWN_EMPTY_FOREST = false
                 const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
                 const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
-                let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfoBox._2 == false ? .9985 : map(gameState.clicks.onsicktrees, 0, CLICKLIMIT.upper, 0.99967, 1)
-                const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995)
-                const THRESHOLD_FIRETOCHARRED = /* suggested: .99  */ 0.98
+                let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfoBox._2 == false ? .9985 : map(gameState.clicks.onsicktrees, 0, CLICKLIMIT.upper, 0.99967, 1,3)
+                const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995,0)
                 const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
                 const forstcover = countpresenttrees / alltrees.length
 
@@ -1029,7 +1028,8 @@ export function updateForest() {
                         0,
                         1,
                         .999995,
-                        .99975
+                        .99975,
+                        3 // clamp values
                     )
                     :
                     // if person is still planting the forest
@@ -1038,7 +1038,8 @@ export function updateForest() {
                         0,
                         1,
                         .99,
-                        .99999
+                        .99999,
+                        3  // clamp values
                     )
                 if(gameState.shownInfoBox._2 && RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) 
                     console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
@@ -1188,7 +1189,7 @@ export function approx(n, p) {
  * @param {number} max1 - upper limit in source range
  * @param {number} min2 - lower limit of destination range
  * @param {number} max2 - upper limit of destination range
- * @param {boolean} [clamp=false] 
+ * @param {number} [clamp=0] - 0: none | 1: clamp lower only | 2: clamp upper only | 3: clamp both
  */
 export function map(value1, min1, max1, min2, max2, clamp) {
     if(min1==max1) {
@@ -1197,13 +1198,26 @@ export function map(value1, min1, max1, min2, max2, clamp) {
     }
     const gradient = (max2-min2) / (max1-min1)
     let value2 = min2 + ((value1 - min1) * gradient)
-    if (clamp==true) {
-        if(value2>=max2) value2 = max2
-        if(value2<=min2) value2 = min2
+    switch(clamp) {
+        case 3: // clamp both
+            if(value2<=min2) value2 = min2
+            if(value2>=max2) value2 = max2
+            break
+        case 2: // clamp upper only
+            if(value2>=max2) value2 = max2
+            break
+        case 1: // clamp lower only
+            if(value2<=min2) value2 = min2
+            break
+        case 0: // clamp none
+            // do nothing
+            break
+        default:
+            console.log(`map() doesn't know what to do with the supplied clamp-param "${clamp}".`)
     }
     return value2
 }
-// console.log(map(5,0,10,-1,-.9))
+// console.log(map(5,0,10,-1,-.9,0))
 
 /**
  * @param {string} c - name of the (colour-)property defiend within the :root element within the css-stylesheet
