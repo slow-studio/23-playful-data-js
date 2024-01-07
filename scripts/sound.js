@@ -8,20 +8,20 @@ import { gameState, totalTreesInForest } from "./script.js";
 
 /* create an instance of the audio context, to get access to all the features and functionality of the Web Audio API */
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioCtx = []
-audioCtx[0] = new AudioContext();
-audioCtx[1] = new AudioContext();
+const audioCtx = [new AudioContext(), new AudioContext()]
 
-// get the audio element 
-const audioElement = []
-audioElement[0] = document.querySelector("audio[data-type='ambience'][data-name='forest']");
-audioElement[1] = document.querySelector("audio[data-type='ambience'][data-name='burning']");
+// get the audio element
+/** @type HTMLAudioElement[] */
+const audioElement = [
+    document.querySelector("audio[data-type='ambience'][data-name='forest']"),
+    document.querySelector("audio[data-type='ambience'][data-name='burning']")
+];
 
 // pass it into the audio context
-const track = []
-track[0] = audioCtx[0].createMediaElementSource(audioElement[0]);
-track[1] = audioCtx[1].createMediaElementSource(audioElement[1]);
-
+const track = [
+    audioCtx[0].createMediaElementSource(audioElement[0]),
+    audioCtx[1].createMediaElementSource(audioElement[1])
+];
 // add the play and pause functionality
 document.body.addEventListener('click', () => {
     
