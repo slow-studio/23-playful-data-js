@@ -15,7 +15,6 @@ conclusion:
 [ ] infoBox#2 can have future-news in it, in order to justify the challenge (to save the forest from climate-change -induced forest-fires).
 [ ] add stats on every infoBox. 
     eg: { trees planted, saved, time spent, etc }
-[ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
 
 essay:
 [ ] people read the "read about this project" button first. it's too conspicuous.
@@ -25,7 +24,7 @@ essay:
 [ ] present links to actual "good news" articles.
 
 bugs:
-[] tapping is sluggish. unable to remove 300ms delay (reserved for detecting double-clicks) on browsers.
+[x] tapping is sluggish. unable to remove 300ms delay (reserved for detecting double-clicks) on browsers.
 
 tidy:
 [ ] (on desktop) update/remove mouse-pointer svg's
