@@ -26,7 +26,7 @@ essay:
 [ ] present links to actual "good news" articles.
 
 bugs:
-[ ] tapping seems sluggish. (check if throttled-framerate is causing this issue.)
+[] tapping is sluggish. unable to remove 300ms delay (reserved for detecting double-clicks) on browsers.
 
 tidy:
 [ ] (on desktop) update/remove mouse-pointer svg's
