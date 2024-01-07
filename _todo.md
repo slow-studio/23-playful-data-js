@@ -14,6 +14,7 @@ forest:
 [ ] when saving the forest, trees should dry out on a rate connecting to the time-statusBar. during open-play, rate of drying may be random (or, at-least, be non-zero and not-manic). 
 
 conclusion:
+[ ] infoBox#2 can have future-news in it, in order to justify the challenge (to save the forest from climate-change -induced forest-fires).
 [ ] add stats on every infoBox. 
     eg: { trees planted, saved, time spent, etc }
 [ ] when conclusion (or any news) is shown, buttons should allow us to "play again".
