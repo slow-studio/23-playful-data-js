@@ -1,5 +1,8 @@
 import { divBarClicks, gameState, seedDryTrees, showcontent, startExperience, totalTreesInForest, tree, updateStyle } from "./script.js"
 
+// variables required for the design-fiction
+const futuredate = Math.round(((new Date()).getFullYear() + 10)/10)*10
+
 /** @type {HTMLElement} */
 export const infoBox = document.getElementById('infoBox')
 
@@ -19,14 +22,13 @@ export function setInfo(box, infotype) {
         case 1:
             // console.log(`update infoBox content: set introductory info.`)
             // introduction
-            const futuredate = Math.round(((new Date()).getFullYear() + 15)/10)*10
-            addChildTag(box, 'h3').innerHTML = `hello:`
+            addChildTag(box, 'h3').innerHTML = `hello, cadet #${Math.round(Math.random()*10000000)}:`
             addChildTag(box,'p').innerHTML = `welcome to ${futuredate}.`
-            addChildTag(box,'p').innerHTML = `starting with the global <em>take back our future</em> movement (in ${futuredate - 5}), revolutions around the world have repossessed thousands of damaged ecosystems over five remarkable years.`
-            addChildTag(box,'p').innerHTML = `now: climate-cadets (like you and me) have begun working to re-wild these oceans, forests, grasslands, and deserts.`
+            addChildTag(box,'p').innerHTML = `starting with the great <em>take back our future</em> movement (in ${(new Date()).getFullYear()}), revolutions around the world have repossessed thousands of damaged ecosystems over ${futuredate - (new Date()).getFullYear()} remarkable years.`
+            addChildTag(box,'p').innerHTML = `now: climate-cadets like you and me can begin working to re-generate and re-wild our oceans, forests, grasslands and deserts.`
             addChildTag(box, 'p').innerHTML = `this is why we're so happy to place <em>this</em> patch of rescued forest-land under your care.`
             addChildTag(box,'p').innerHTML = `let&rsquo;s plant some trees, shall we?`
-            addButton_close(box,`start planting:`)
+            addButton_close(box,`start planting your forest:`)
             // addButton_showcontent(box,`read today's news.`)
             makeButtonsAppear(box, 4000)
             break
