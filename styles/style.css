@@ -382,19 +382,19 @@ svg {
 }
 
 #info #infoBox[infotype='1'] {
-    background-color: var(--paper-light);
-}
-
-#info #infoBox[infotype='2'] {
-    background-color: var(--autumn);
-}
-
-#info #infoBox[infotype='8'] {
     background-color: var(--paper-dark);
 }
 
+#info #infoBox[infotype='2'] {
+    background-color: var(--paper-dark);
+}
+
+#info #infoBox[infotype='8'] {
+    background-color: var(--autumn);
+}
+
 #info #infoBox[infotype='0'] {
-    background-color: var(--green);
+    background-color: var(--paper-dark);
 }
 
 #info #infoBox p,
