@@ -913,7 +913,7 @@ export function updateForest() {
                  */
 
                 const AUTORESPAWN_EMPTY_FOREST = false
-                const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ 100*2/3
+                const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ READINESS_THRESHOLD * 100
                 const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
                 let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfoBox._2 == false ? .9985 : map(gameState.clicks.onsicktrees, 0, CLICKLIMIT.upper, 0.99967, 1,3)
                 const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995,0)
