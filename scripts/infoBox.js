@@ -58,7 +58,7 @@ export function setInfo(box, infotype) {
         closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
         closeBtn.setAttribute('id', 'closeInfoBox')
         closeBtn.addEventListener('click', () => {
-            hideBox(infoBox, true)
+            hideBox(infoBox)
             showcontent(false)
         })
     }
@@ -139,19 +139,11 @@ export function showBox(box) {
  * @param {HTMLElement} box 
  * @param {boolean} [seed=true] - seedDryTrees when box closes?
  */
-export function hideBox(box, seed) {
+export function hideBox(box) {
     box.setAttribute('display', 'false')
     console.log(`hiding infoBox.`)
     box.style.bottom = `-100vh`
     box.style.height = "0"
-    if (seed) {
-        let seeds = 1
-        const infotype = Number(box.getAttribute('infotype'))
-        if (infotype==2) {
-            console.log(`goal-task displayed. will now seed ${seeds} dry tree${seeds==1?'':'s'}.`)
-            seedDryTrees(Math.max(seeds, 1))
-        }
-    } else console.log(`dry-trees will *not* be seeded.`)
     const infotype = Number(box.getAttribute('infotype'))
     switch(infotype) {
         case 1: 
