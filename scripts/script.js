@@ -16,18 +16,25 @@ import { svgtree } from "./svgtree.js";
  *      - helper tool: https://yoksel.github.io/url-encoder/ or https://svgwiz.com/
  */
 
-// get parent element
-const forest = document.getElementById("forest")
+// parent element for all tree in the forest
+export const divForest = document.getElementById("forest")
+// status bars
+export const divBarPlanted = document.getElementById('barPlanted')
+export const divBarTime = document.getElementById('barTime')
+export const divBarClicks = document.getElementById('barClicks')
 
 const REFRESH_RATE = 10 // fps
 const REFRESH_TIME = 1000 / REFRESH_RATE // time in millisecond
 let FRAMECOUNT = 0
 
-export let pauseForestUpdate = false
+/** time (in millisecond) after which the conclusion wants to show up */
+const PLAYTIMELIMIT = 60000 // e.g. 90000ms = 90s = 1½ min
+
+/** @type {{upper: number; lower: number}} clicks (on sick trees) after which the conclusion wants to show up */
+const CLICKLIMIT = { upper: 120, lower: 10 }
 
 /** duration for which a protected tree stays protected */
-const protectionDuration = 7500 // time in millisecond
-
+const PROTECTIONDURATION = 7500 // time in millisecond
 /** steps a tree takes to dry out */
 const STEPSTODRYOUT = 20
 
@@ -46,6 +53,7 @@ const CHARRED_TIME_MULTIPLIER = 25
  * game state variables
  */
 export const gameState = {
+	pauseForestUpdate: false,
     print: false, // should this gameState object be printed to the console?
     userHasBeenActive: false,
     lastUpdatedAt: 0, // time (in milliseconds) when updateForest was last run
@@ -59,7 +67,7 @@ export const gameState = {
 		onsicktrees: 0,
 	},
     shownInfoBox: {
-		_1: false,
+			_1: false,
     	_2: false,
     	_8: false,
     	_0: false,
@@ -70,19 +78,8 @@ export const gameState = {
 }
 // console.log(JSON.stringify(gameState, null, 2))
 
-// status bars
-export const barPlanted = document.getElementById('barPlanted')
-export const barTime = document.getElementById('barTime')
-export const barClicks = document.getElementById('barClicks')
-
 /** @type {number} maximum number of trees to draw. (we can keep this number arbitarily large.) */
 const TREELIMIT = 2500;
-
-/** time (in millisecond) after which the conclusion wants to show up */
-const PLAYTIMELIMIT = 60000 // e.g. 90000ms = 90s = 1½ min
-
-/** @type {{upper: number; lower: number}} clicks (on sick trees) after which the conclusion wants to show up */
-const CLICKLIMIT = { upper: 120, lower: 10 }
 
 /* variables used while spawning each tree into the forest */
 let rowID = 0
@@ -110,8 +107,6 @@ window.onload = () => {
 
 	// sets #infoBox's transition-duration 
 	updateStyle(infoBox,"transition-duration",infoBoxTransitionDuration+'ms')
-	// sets the content and display-position of the infoBox at startup
-	setInfo(infoBox, 1)
 
 	/** updates :root definitions in the stylesheet */
 	updateStyle(/* :root */ document.documentElement, /* variable */ '--treewidth', svgtree.dim.width + 'px')
@@ -141,7 +136,7 @@ window.onload = () => {
 	}
 
 	/** ensure that all the trees sit in the centre of the #forest div */
-	const maxWidthOfForest = forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r)
+	const maxWidthOfForest = divForest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r)
 	let widthOfTreesInRow = /* starting value */ svgtree.dim.width
 	while(widthOfTreesInRow + svgtree.dim.width <= maxWidthOfForest ) {
 		widthOfTreesInRow += forestSettings.spacing.h
@@ -171,8 +166,8 @@ window.onload = () => {
 			class: 'tree',
 			zindex: i + (forestSettings.orderly.positionally ? 0 : Math.pow(-1, Math.floor(2 * Math.random())) * forestSettings.orderly.maxZIndexDeviation),
 			dimensions: {
-				l: forest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
-				t: forest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
+				l: divForest.offsetLeft + forestSettings.padding.l + (treeIDinRow * forestSettings.spacing.h) + (rowID % 2 === 0 ? (forestSettings.spacing.h / 4) : (-forestSettings.spacing.h / 4)) + (forestSettings.orderly.positionally ? 0 : ((Math.random() < .5 ? -1 : 1) * Math.random()*svgtree.dim.width/4)),
+				t: divForest.offsetTop + forestSettings.padding.t + forestSettings.spacing.v * rowID,
 				w: svgtree.dim.width,
 				h: svgtree.dim.height,
 				/** @type {{ x: number, y: number }} */
@@ -188,7 +183,7 @@ window.onload = () => {
 				now:        /* [state, substate] */ [0,0],
 				/* state-specific parameters */
 				drySubstateCounter: 1, // when a tree is drying out, this helps us keep track of how dry it is. (it helps us assign a suitable colour to the tree.)
-				totalProtectionTime: approx(protectionDuration, 20), 
+				totalProtectionTime: approx(PROTECTIONDURATION, 20), 
 				protectionTime: 0, // how much time has this tree been protected for
 			},
 			properties: {
@@ -223,7 +218,7 @@ window.onload = () => {
 		newDiv.style.top = tree[i].dimensions.t + 'px'
 		tree[i].dimensions.heart = { x: tree[i].dimensions.l + tree[i].dimensions.w / 2, y: tree[i].dimensions.t + tree[i].dimensions.h / 2 }
 		// draw trees on the next line if you exceed #forest's right-most bounds
-		if (forest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w) {
+		if (divForest.offsetWidth - (forestSettings.padding.l + forestSettings.padding.r) < (treeIDinRow + 1) * forestSettings.spacing.h + tree[i].dimensions.w) {
 			rowID++
 			treeIDinRow = 0
 		} else {
@@ -232,14 +227,14 @@ window.onload = () => {
 			maxTreeIDinRow = treeIDinRow >= maxTreeIDinRow ? treeIDinRow : maxTreeIDinRow
 		}
 		// stop drawing trees if you exceed #forest's bottom-most bounds
-		if (forest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v + tree[i].dimensions.h)
+		if (divForest.offsetHeight - (forestSettings.padding.t + forestSettings.padding.b) < rowID * forestSettings.spacing.v + tree[i].dimensions.h)
 			loopRunner = false
 		// set z-index, so that lower-placed trees seem to be in front
 		newDiv.style.zIndex = (tree[i].zindex).toString()
 		// keep track of the highest z-index assigned to any tree
 		if (i > 0) if (tree[i].zindex > tree[i - 1].zindex) highestZIndexOnTree = tree[i].zindex
 		// finally, make the div a child of #forest
-		forest.appendChild(newDiv)
+		divForest.appendChild(newDiv)
 		// update the value for total number of trees spawned in the forest
 		totalTreesInForest += 1
 	}
@@ -286,7 +281,7 @@ export function startExperience() {
     gameState.health = gameState.starthealth
     gameState.clicks.ontrees = 0
     gameState.clicks.onsicktrees = 0
-    gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
+    // gameState.print = true // will print gameState.playTime at the next time that updateForest() runs
 }
 
 /**
@@ -767,7 +762,7 @@ export function updateForest() {
         // do nothing
     } else {
 
-        if (pauseForestUpdate) {
+        if (gameState.pauseForestUpdate) {
             // do nothing
         } else {
 
@@ -789,7 +784,7 @@ export function updateForest() {
 				gainNode[0].gain.value = percentageOfTrees("normal");
 				gainNode[1].gain.value = (percentageOfTrees("burning") * 2) + (percentageOfTrees("dry") * 1 / 3);
             
-                if(!pauseForestUpdate) {
+                if(!gameState.pauseForestUpdate) {
                     // randomly play a random-sound from the forest:
                     const secondses = approx(30,75) // time (in seconds) after which the random sound ought to play
                     if (Math.random() < 1 / secondses) {
@@ -827,20 +822,19 @@ export function updateForest() {
             gameState.playTime = Date.now() - gameState.startTime
 
             // update status bars
+			const statusPlanted = (normals.length + drys.length) / (READINESS_THRESHOLD * totalTreesInForest)
+			const statusTime = gameState.playTime / PLAYTIMELIMIT
+			const statusClicks = gameState.clicks.onsicktrees / CLICKLIMIT.upper
 			if(gameState.statusBars.update == true) {
-
-				const statusPlanted = (normals.length + drys.length) / (READINESS_THRESHOLD * totalTreesInForest)
-				const statusTime = gameState.playTime / PLAYTIMELIMIT
-				const statusClicks = gameState.clicks.onsicktrees / CLICKLIMIT.upper
 
 				// if we're in the planting phase
 				if(gameState.shownInfoBox._1 == true && gameState.shownInfoBox._2 == false) {
-					updateStyle(barPlanted, "width", `${100 * statusPlanted}%`)
+					updateStyle(divBarPlanted, "width", `${100 * statusPlanted}%`)
 				}
 				// if we're in the protecting phase
 				if(gameState.shownInfoBox._2 == true && gameState.shownInfoBox._0 == false) {
-					updateStyle(barClicks, "width", `${100 * statusClicks}%`)
-					updateStyle(barTime, "width", `${100 * statusTime}%`)
+					updateStyle(divBarClicks, "width", `${100 * statusClicks}%`)
+					updateStyle(divBarTime, "width", `${100 * statusTime}%`)
 					// console.log(`${Math.round(100 * statusTime)}%`)
 				}
 			}
@@ -899,9 +893,13 @@ export function updateForest() {
 						statusClicks >= 1
                     )
                 ) {
-					console.log(`displaying the coclusion box.`)
+					let showBoxAfterDelay = false
                     setInfo(infoBox,0)
-                    showBox(infoBox)
+					setTimeout(() => {
+						if(showBoxAfterDelay) pauseSimulation(true)
+						console.log(`displaying the conclusion box.`)
+						showBox(infoBox)
+					}, showBoxAfterDelay?infoBoxTransitionDuration:0)
                 }
 
                 /**
@@ -1276,19 +1274,19 @@ export function updateStyle(e, p, v) {
 }
 
 export function playPauseSwitch() {
-    pauseForestUpdate = !pauseForestUpdate
-    pauseSimulation(pauseForestUpdate)
+    gameState.pauseForestUpdate = !gameState.pauseForestUpdate
+    pauseSimulation(gameState.pauseForestUpdate)
     // if simulation is running, don't show the project-essay:
     // if(pauseForestUpdate==false) showcontent(false)
 }
 
 export function pauseSimulation(play) {
-    pauseForestUpdate = play
+    gameState.pauseForestUpdate = play
     // update dataset in html element
-    playPauseButton.setAttribute('data-playing', (!pauseForestUpdate).toString())
+    playPauseButton.setAttribute('data-playing', (!gameState.pauseForestUpdate).toString())
     // change background colour
-    if(pauseForestUpdate) updateStyle(document.body,"background-color","var(--body-bg-colour-paused)") 
+    if(gameState.pauseForestUpdate) updateStyle(document.body,"background-color","var(--body-bg-colour-paused)") 
     else updateStyle(document.body,"background-color","var(--body-bg-colour-running)") 
     // write to console:
-    console.log(`pause forestUpdate: ${pauseForestUpdate}`)
+    console.log(`pauseForestUpdate: ${gameState.pauseForestUpdate}`)
 }

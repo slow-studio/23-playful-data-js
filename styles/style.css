@@ -48,6 +48,7 @@ body {
     --body-bg-colour-running: var(--paper-light);
     --body-bg-colour-paused: var(--paper-dark);
     background-color: var(--paper-light);
+    transition: background-color 150ms ease-in-out 0ms;
     text-align: center;
     font-family: 'Merriweather', serif;
     font-weight: 300;
@@ -135,6 +136,7 @@ svg {
     margin-right: auto;
     flex: 0 0 auto;
     width: calc(100% - 2rem);
+    height: 2rem;
     position: relative;
     top:
         /* placeholder. but it should be positioned out-of-view at the start. */

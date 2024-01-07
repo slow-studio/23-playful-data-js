@@ -1,4 +1,4 @@
-import { barClicks, gameState, seedDryTrees, showcontent, startExperience, updateStyle } from "./script.js"
+import { divBarClicks, gameState, seedDryTrees, showcontent, startExperience, updateStyle } from "./script.js"
 
 /** @type {HTMLElement} */
 export const infoBox = document.getElementById('infoBox')
@@ -17,32 +17,32 @@ export function setInfo(box, infotype) {
     // populate the box
     switch(infotype) {
         case 1:
+            // console.log(`update infoBox content: set introductory info.`)
             // introduction
-            console.log(`update infoBox content: set introductory info.`)
             let i1 = addChildTag(box, 'h3')
             i1.innerHTML = `plant your forest.`
             let i2 = addChildTag(box, 'p')
             i2.innerHTML = `tap on the earth to help nurture a tree.`
             break
         case 2:
+            // console.log(`update infoBox content: display goal.`)
             // display task
-            console.log(`update infoBox content: display goal.`)
             let g1 = addChildTag(box, 'h3')
             g1.innerHTML = `take care of your forest.`
             let g2 = addChildTag(box, 'p')
             g2.innerHTML = `tap on a dry or burning tree to save it.`
             break
         case 8:
+            // console.log(`update infoBox content: nudging person to tap the screen.`)
             // instructions to tap
-            console.log(`update infoBox content: nudging person to tap the screen.`)
             let t1 = addChildTag(box, 'h3')
             t1.innerHTML = `you can save the forest.`
             let t2 = addChildTag(box, 'p')
             t2.innerHTML = `please tap on a dry or burning tree to save it.`
             break
         case 0:
+            // console.log(`update infoBox content: conclusion.`)
             // conclusion
-            console.log(`update infoBox content: conclusion.`)
             let c1 = addChildTag(box, 'h3')
             c1.innerHTML = `thank you for playing.`
             let c2 = addChildTag(box, 'p')
@@ -51,7 +51,7 @@ export function setInfo(box, infotype) {
     }
     // add close-button to dismiss box
     if(
-        true 
+        true    
         // && infotype!=0
     ) {
         let closeBtn = addChildTag(box, 'button')
@@ -107,7 +107,7 @@ export function showBox(box) {
     setTimeout(function() {
         // sound:
         if(gameState.userHasBeenActive) {
-            console.log(`show #infoBox ${infotype}.`)
+            // console.log(`show #infoBox ${infotype}.`)
             switch(infotype) {
                 case 1: 
                     updateStyle(document.getElementById("status"),"top","-5rem")
@@ -137,11 +137,10 @@ export function showBox(box) {
 
 /**
  * @param {HTMLElement} box 
- * @param {boolean} [seed=true] - seedDryTrees when box closes?
  */
 export function hideBox(box) {
     box.setAttribute('display', 'false')
-    console.log(`hiding infoBox.`)
+    console.log(`hide infoBox.`)
     box.style.bottom = `-100vh`
     box.style.height = "0"
     const infotype = Number(box.getAttribute('infotype'))
@@ -156,8 +155,8 @@ export function hideBox(box) {
             startExperience() 
             gameState.shownInfoBox._1 = true 
             gameState.shownInfoBox._2 = false
-            console.log(`seen info #1.`) 
-            gameState.print == true 
+            // console.log(`seen info #1.`) 
+            // gameState.print == true 
             break
         case 2: 
             updateStyle(document.getElementById("status"),"top","1rem")
@@ -168,14 +167,14 @@ export function hideBox(box) {
             gameState.statusBars.update = true
             startExperience() 
             gameState.shownInfoBox._2 = true 
-            console.log(`seen info #2.`) 
-            gameState.print == true 
+            // console.log(`seen info #2.`) 
+            // gameState.print == true 
             break
         case 8: 
             gameState.statusBars.update = true
             gameState.shownInfoBox._8 = true 
-            console.log(`seen info #8.`) 
-            gameState.print == true 
+            // console.log(`seen info #8.`) 
+            // gameState.print == true 
             break
         case 0: 
             updateStyle(document.getElementById("status"),"top","1rem")
@@ -185,8 +184,8 @@ export function hideBox(box) {
             updateStyle(document.getElementById("statusInfo"),"display","block")
             gameState.statusBars.update = false
             gameState.shownInfoBox._0 = true 
-            console.log(`seen info #0.`) 
-            gameState.print == true 
+            // console.log(`seen info #0.`) 
+            // gameState.print == true 
             break
     }
 }
