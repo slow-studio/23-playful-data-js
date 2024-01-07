@@ -915,9 +915,52 @@ export function updateForest() {
                 const AUTORESPAWN_EMPTY_FOREST = false
                 const PERCENT_OF_FOREST_TO_RESPAWN = /* suggested: 75%  */ READINESS_THRESHOLD * 100
                 const TREE_RESPAWN_PROBABILITY = /* suggested: .5 */ 6.25
-                let THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ gameState.shownInfoBox._2 == false ? .9985 : map(gameState.clicks.onsicktrees, 0, CLICKLIMIT.upper, 0.99967, 1,3)
-                const THRESHOLD_SETFIRE = /* suggested: .99  */ normals.length <= countpresenttrees * .1 ? 0.95 : map(normals.length/countpresenttrees, 0, 1, .9925, .995,0)
-                const THRESHLD_DISINTEGRATE = /* suggested: .99  */ 0.99
+                const THRESHOLD_MAKEDRY = /* suggested (when seeDryTrees() is disabled): .999 */ 
+                    rr(
+                        // if we're outside the challenge-period
+                        (
+                            gameState.shownInfoBox._0 == true 
+                            || 
+                            gameState.shownInfoBox._2 == false
+                        ) ? 
+                        // then trees dry-out at a low'ish rate
+                        .99985
+                        // else 
+                        : 
+                        // if we're inside the challenge-period:
+                        // [ time running out -> saving the forest well (-1 -> +1) ] -> [ trees are less likely to dry out (so, the MAKEDRY threshold increases (0 -> 1)) ]
+                        map(statusClicks - statusTime, -.2, .1, 0.99667, .99995, 2)
+                        // rr(.9995)
+                    )
+                const THRESHOLD_SETFIRE = /* suggested: .99  */ 
+                    rr(
+                        // if the challenge has not begun
+                        gameState.shownInfoBox._2 == false ?
+                        // then trees shouldn't catch fire
+                        rr(1)
+                        // else: 
+                        : (
+                            // if we've surpassed the goal-period
+                            gameState.shownInfoBox._0 == true ? 
+                            // trees may catch fire at a low'ish rate
+                            rr(.9975)
+                            // else:
+                            : 
+                            // we're inside the challenge-period
+                            (
+                                // if very few trees are left
+                                normals.length <= totalTreesInForest * .1 ? 
+                                // then fire spreads very rapidly 
+                                .95
+                                // else
+                                : 
+                                // as normal-trees get fewer (1 -> 0), the fire spreads faster (i.e., the SETFIRE threshold reduces (1 -> 0))
+                                map(normals.length / countpresenttrees, 1, 0, .9975, .995, 0)
+                            )
+                        )
+                    )
+                const THRESHOLD_FIRETOCHARRED = /* suggested: .985  */ rr(map(normals.length / countpresenttrees, 0, 1, .95, .985, -1))
+                const THRESHLD_DISINTEGRATE = /* suggested: .99  */ rr(0.995)
                 const forstcover = countpresenttrees / alltrees.length
 
                 // absent -> new shoot (which grows into a tree)
@@ -962,21 +1005,21 @@ export function updateForest() {
                         && tree[treeid].isProtected == false
                         // and we can overcome this threshold (so that only a few trees starting drying at any given time)
                         && Math.random() > THRESHOLD_MAKEDRY
+                        // if there are few normal trees (i.e., many dry/burning ones), seed fewer dry trees
+                        && Math.random() > map ( normals.length / countpresenttrees, 0, 1, 1, 0, -1 )
                     ) {
                         tree[treeid].behaviour = 1
                         // a clump of trees dry out together
-                        spreadInfection(document.querySelectorAll(`svg[tree-id='${treeid}']`), 2, 0.75, 1, false)
+                        // spreadInfection(document.querySelectorAll(`svg[tree-id='${treeid}']`), 2, 0.5, 1, false)
                     }
                 }
                 // //   -- method 2: at a specific moment, by calling seedDryTrees():
                 // if(drys.length==0) seedDryTrees(3)
 
                 // dry -> burning
-                if (gameState.shownInfoBox._2 == true) {
-                    for (let i = 0; i < drys.length; i++) {
-                        if (Math.random() > THRESHOLD_SETFIRE) {
-                            tree[drys[i].getAttribute('tree-id')].behaviour = 1
-                        }
+                for (let i = 0; i < drys.length; i++) {
+                    if (Math.random() > THRESHOLD_SETFIRE) {
+                        tree[drys[i].getAttribute('tree-id')].behaviour = 1
                     }
                 }
 
@@ -1018,28 +1061,30 @@ export function updateForest() {
                  * make fire, dryness, health spread from one tree to its neighbours 
                  */
 
-                const IMMUNITY_TO_FIRE = .99
-                const IMMUNITY_TO_DRYING = gameState.shownInfoBox._2?.9933:.999
+                const IMMUNITY_TO_FIRE = /* .99 */ rr(map(normals.length / countpresenttrees, 0, 1, .98, .99, -1))
+                const IMMUNITY_TO_DRYING = rr(.99)
                 const RESISTENCE_TO_RECOVERING = /*suggested: 0.99995 */
-                    gameState.shownInfoBox._2 ?
-                    // if the person is saving the forest
-                    map(
-                        normals.length / countpresenttrees,
-                        0,
-                        1,
-                        .999995,
-                        .99975,
-                        3 // clamp values
-                    )
-                    :
-                    // if person is still planting the forest
-                    map(
-                        countpresenttrees / totalTreesInForest,
-                        0,
-                        1,
-                        .99,
-                        .99999,
-                        3  // clamp values
+                    rr(
+                        gameState.shownInfoBox._2 ?
+                        // if the person is saving the forest
+                        map(
+                            normals.length / countpresenttrees,
+                            0,
+                            1,
+                            .999995,
+                            .99975,
+                            3 // clamp values
+                        )
+                        :
+                        // if person is still planting the forest
+                        map(
+                            countpresenttrees / totalTreesInForest,
+                            0,
+                            1,
+                            .99,
+                            .99999,
+                            3  // clamp values
+                        )
                     )
                 if(gameState.shownInfoBox._2 && RESISTENCE_TO_RECOVERING <= IMMUNITY_TO_DRYING) 
                     console.log(`warning: IMMUNITY_TO_RECOVERING (${RESISTENCE_TO_RECOVERING}) should be *much* greater than IMMUNITY_TO_DRYING ${IMMUNITY_TO_DRYING} (which it currently is not).`)
