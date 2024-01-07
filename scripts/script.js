@@ -959,7 +959,9 @@ export function updateForest() {
                         // and we can overcome this threshold (so that only a few trees starting drying at any given time)
                         && Math.random() > THRESHOLD_MAKEDRY
                     ) {
-                        tree[normals[i].getAttribute('tree-id')].behaviour = 1
+                        tree[treeid].behaviour = 1
+												// a clump of trees dry out together
+											spreadInfection(document.querySelectorAll(`svg[tree-id='${treeid}']`), 2, 0.75, 1, false)
                     }
                 }
                 // //   -- method 2: at a specific moment, by calling seedDryTrees():
