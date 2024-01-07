@@ -1046,7 +1046,7 @@ export function updateForest() {
 
                 spreadInfection(burnings, 3, IMMUNITY_TO_FIRE, 1, false)
                 spreadInfection(drys, 2, IMMUNITY_TO_DRYING, 1, false)
-                // spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, false)
+                spreadInfection(normals, 1, RESISTENCE_TO_RECOVERING, 1, false)
             }
         }
         
