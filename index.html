@@ -1,101 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <html prefix="og: https://ogp.me/ns#">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>the word for world is forest</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="styles/style-startingTemplate.css">
-        <link rel="stylesheet" href="styles/style.css">
-        <!-- start: opengraph tags to make this page a rich-object -->
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="the word for world is forest">
-        <meta property="og:url" content="https://slow-studio.github.io/23-playful-data-js/">
-        <meta property="og:description" content="... and we've set it on fire.">
-        <meta property="og:image" content="https://slow-studio.github.io/23-playful-data-js/assets/ogImage.jpg" />
-        <meta property="og:image:type" content="image/jpeg" />
-        <meta property="og:image:width" content="720" />
-        <meta property="og:image:height" content="540" />
-        <meta property="og:site_name" content="slowstudio • playful data">
-        <!-- end: opengraph tags to make this page a rich-object -->
-    </head>
-    <body>
-        <div id="playarea">
-			
-			<div id="status">
-				<div class="row" id="statusInfo">
-					<p class="label">
-						<a id="playPauseButton" data-playing="true">play—pause</a>
-						<a id="showContentButton">read news</a>
-						<a href="https://slow.studio/" target="_blank">visit <em>slow</em></a>
-					</p>
-				</div>
-				<div class="row" id="statusPlanted">
-					<p class="label">trees planted</p>
-					<div class="bar" id="barPlanted"></div>
-				</div>
-				<div class="row" id="statusTime">
-					<p class="label">time passed</p>
-					<div class="bar" id="barTime"></div>
-				</div>
-				<div class="row" id="statusClicks">
-					<p class="label">trees helped</p>
-					<div class="bar" id="barClicks"></div>
-				</div>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>the word for world is forest</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="styles/style-startingTemplate.css">
+	<link rel="stylesheet" href="styles/style.css">
+	<!-- start: opengraph tags to make this page a rich-object -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="the word for world is forest">
+	<meta property="og:url" content="https://slow-studio.github.io/23-playful-data-js/">
+	<meta property="og:description" content="... and we've set it on fire.">
+	<meta property="og:image" content="https://slow-studio.github.io/23-playful-data-js/assets/ogImage.jpg" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta property="og:image:width" content="720" />
+	<meta property="og:image:height" content="540" />
+	<meta property="og:site_name" content="slowstudio • playful data">
+	<!-- end: opengraph tags to make this page a rich-object -->
+</head>
+
+<body>
+	<div id="playarea">
+
+		<div id="status">
+			<div class="row" id="statusInfo">
+				<p class="label">
+					<a id="playPauseButton" data-playing="true">play—pause</a>
+					<a id="showContentButton">read news</a>
+					<a href="https://slow.studio/" target="_blank">visit <em>slow</em></a>
+				</p>
 			</div>
+			<div class="row" id="statusPlanted">
+				<p class="label">trees planted</p>
+				<div class="bar" id="barPlanted"></div>
+			</div>
+			<div class="row" id="statusTime">
+				<p class="label">time passed</p>
+				<div class="bar" id="barTime"></div>
+			</div>
+			<div class="row" id="statusClicks">
+				<p class="label">trees helped</p>
+				<div class="bar" id="barClicks"></div>
+			</div>
+		</div>
 
-            <div id="forest">
-            </div>
+		<div id="forest">
+		</div>
 
-            <div id="info">
-                <div id="infoBox">
-                    <svg id='dismissInfoBoxIcon' xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 512 512'><g transform='rotate(45 256 256)'><rect id='r' x='16' y='216' width='480' height='80' rx='14'/><use href='#r' transform='rotate(90 256 256)'/></g></svg>
-                    <p id="nb_date">june&ndash;december 2023</p>
-                    <h3 id="nb_headline">the word for world is forest</h3>
-                    <p id="nb_author">avani samaga, shobhan s</p>
-                    <p id="nb_source">slowstudio</p> 
-                    <p id="nb_byline">
-                        data envelops us, and influences how we're controlled. however, it is opaque and un-affective. publicly, it is manifest through essays, graphs-and-charts (rectangles and circles), and dashboards — overexposure to it makes us numb to it, and at best only mildly affected. so we'd like to make it a little playful, perhaps interactive, and certainly more memorable. we'd also like to make things that can be distributed en masse (instead of being niche (like ar), or requiring special apps or hardware (like vr), or more expensive to distribute (think: print)), and so should work right off the bat on a mobile-browser.
-                    </p>
-                </div><!-- end: #infoBox -->
-            </div><!-- end: #info -->
-        
-        </div><!-- end: #playarea -->
-        
-        <div id="content">
+		<div id="info">
+			<div id="infoBox">
+				<svg id='dismissInfoBoxIcon' xmlns='http://www.w3.org/2000/svg' width='16' height='16'
+					viewBox='0 0 512 512'>
+					<g transform='rotate(45 256 256)'>
+						<rect id='r' x='16' y='216' width='480' height='80' rx='14' />
+						<use href='#r' transform='rotate(90 256 256)' />
+					</g>
+				</svg>
+				<p id="nb_date">june&ndash;december 2023</p>
+				<h3 id="nb_headline">the word for world is forest</h3>
+				<p id="nb_author">avani samaga, shobhan s</p>
+				<p id="nb_source">slowstudio</p>
+				<p id="nb_byline">
+					data envelops us, and influences how we're controlled. however, it is opaque and un-affective.
+					publicly, it is manifest through essays, graphs-and-charts (rectangles and circles), and dashboards
+					— overexposure to it makes us numb to it, and at best only mildly affected. so we'd like to make it
+					a little playful, perhaps interactive, and certainly more memorable. we'd also like to make things
+					that can be distributed en masse (instead of being niche (like ar), or requiring special apps or
+					hardware (like vr), or more expensive to distribute (think: print)), and so should work right off
+					the bat on a mobile-browser.
+				</p>
+			</div><!-- end: #infoBox -->
+		</div><!-- end: #info -->
 
-            <div id="header">
-                <h1>the word for world is forest</h1>
-            </div><!-- end: #header -->
+	</div><!-- end: #playarea -->
 
-            <p>
-                you spent the last few minutes of your time taking care of/watching this little digital forest. each burning tree you’ve saved by clicking on, is an action to prevent climate change that people are actively working on in the real world. 
-            </p>
-            <p>
-                how you chose to interact with your forest results in it developing differently. every click(or ignored tree) is a human’s choice made when it comes to climate change and wildfires.
-            </p>
-            <p>
-                you put in the effort to save your forest and protect what you could. these efforts can be translated to real life, and every action you take can possibly make a difference in the world we live in. 
-            </p>
-            <p>
-                without you putting out the burning trees, the forest continues to burn. &mdash; in the same way, inaction may result in the world continuing to degrade. action helps take care of the environment.
-            </p>
+	<div id="content">
 
-            <div id="footer">
-                <p>
-                    <strong><a href="https://slow.studio/" target="_blank">slowstudio</a></strong>
-                    <br>
-                    2023
-                </p>
-            </div><!-- end: #footer -->
+		<div id="header">
+			<h1>the word for world is forest</h1>
+		</div><!-- end: #header -->
 
-        </div><!-- end: #content -->
+		<p>
+			you spent the last few minutes of your time taking care of/watching this little digital forest. each burning
+			tree you’ve saved by clicking on, is an action to prevent climate change that people are actively working on
+			in the real world.
+		</p>
+		<p>
+			how you chose to interact with your forest results in it developing differently. every click(or ignored
+			tree) is a human’s choice made when it comes to climate change and wildfires.
+		</p>
+		<p>
+			you put in the effort to save your forest and protect what you could. these efforts can be translated to
+			real life, and every action you take can possibly make a difference in the world we live in.
+		</p>
+		<p>
+			without you putting out the burning trees, the forest continues to burn. &mdash; in the same way, inaction
+			may result in the world continuing to degrade. action helps take care of the environment.
+		</p>
 
-		<audio src="assets/sound/ambient-forest.mp3" data-type="ambience" data-name="forest"></audio>
-		<audio src="assets/sound/ambient-burning.mp3" data-type="ambience" data-name="burning"></audio>
-        
-        <script src="scripts/script.js" type="module"></script>
-    </body>
+		<div id="footer">
+			<p>
+				<strong><a href="https://slow.studio/" target="_blank">slowstudio</a></strong>
+				<br>
+				2023
+			</p>
+		</div><!-- end: #footer -->
+
+	</div><!-- end: #content -->
+
+	<audio src="assets/sound/ambient-forest.mp3" data-type="ambience" data-name="forest"></audio>
+	<audio src="assets/sound/ambient-burning.mp3" data-type="ambience" data-name="burning"></audio>
+
+	<script src="scripts/script.js" type="module"></script>
+</body>
+
 </html>

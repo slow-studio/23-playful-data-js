@@ -15,7 +15,9 @@
     --wood: hsl(17, 58%, 38%);
     --fire: hsl(16, 57%, 50%);
     --firedarker: hsl(16, 100%, 38%);
-    --treewidth: /* placeholder */ 100px; 
+    --treewidth:
+        /* placeholder */
+        100px;
 }
 
 @media (min-width: 24rem) {
@@ -28,9 +30,11 @@ strong {
     font-weight: bold;
 }
 
-html, body {
+html,
+body {
     height: 100%;
-    margin: 0; padding: 0;
+    margin: 0;
+    padding: 0;
     /* text-transform: lowercase; */
     font-size: 125%;
 }
@@ -42,7 +46,7 @@ html {
 
 body {
     --body-bg-colour-running: var(--paper-light);
-    --body-bg-colour-paused : var(--paper-dark) ;
+    --body-bg-colour-paused: var(--paper-dark);
     background-color: var(--paper-light);
     text-align: center;
     font-family: 'Merriweather', serif;
@@ -52,16 +56,24 @@ body {
 }
 
 body * {
-    touch-action: manipulation; /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation, https://stackoverflow.com/a/53236027, and https://endtimes.dev/you-can-use-css-to-remove-the-double-tap-zoom-feature-on-ios/ */
+    /* Enable panning and pinch zoom gestures, but disable additional non-standard gestures such as double-tap to zoom. | see: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action#manipulation, https://stackoverflow.com/a/53236027, and https://endtimes.dev/you-can-use-css-to-remove-the-double-tap-zoom-feature-on-ios/ */
+    touch-action: manipulation;
 }
 
-audio { display: none; }
+audio {
+    display: none;
+}
 
-h1, h2, h3, p {
+h1,
+h2,
+h3,
+p {
     text-align: left;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     font-weight: 900;
 }
 
@@ -94,15 +106,20 @@ svg {
 }
 
 #playarea {
-    margin: 0; 
+    margin: 0;
     padding: 0;
-    width: 100vw; 
-    max-width: 100vh; margin-left: auto; margin-right: auto;
+    width: 100vw;
+    max-width: 100vh;
+    margin-left: auto;
+    margin-right: auto;
     height: 100vh;
-    overflow:hidden;
-    display: flex; 
+    overflow: hidden;
+    display: flex;
     flex-direction: column;
-    z-index: 0; /* z-index for #playarea should be lower than for #content */ position: relative; /* ∵ z-index can not have an effect if position is 'static'. */ 
+    /* z-index for #playarea should be lower than for #content */
+    z-index: 0;
+    /* ∵ z-index can not have an effect if position is 'static'. */
+    position: relative;
 }
 
 #playarea * {
@@ -114,22 +131,26 @@ svg {
 
 #status {
     --borderColour: var(--blackish);
-    margin-left: auto; margin-right: auto; 
+    margin-left: auto;
+    margin-right: auto;
     flex: 0 0 auto;
     width: calc(100% - 2rem);
-    position: relative; top: /* placeholder. but it should be positioned out-of-view at the start. */-5rem;
+    position: relative;
+    top:
+        /* placeholder. but it should be positioned out-of-view at the start. */
+        -5rem;
     transition: top 300ms ease-in-out 0ms;
     /* background: yellow; */
-    border-top:1px solid var(--borderColour);
+    border-top: 1px solid var(--borderColour);
 }
 
 #status .row {
-    display:block;
+    display: block;
     height: 1rem;
     margin-top: 0rem;
     position: unset;
     overflow: hidden;
-    border-bottom:1px solid var(--borderColour);
+    border-bottom: 1px solid var(--borderColour);
     text-align: left;
 }
 
@@ -138,10 +159,11 @@ svg {
     display: flex;
     flex-direction: row;
     position: absolute;
-    font-size:50%;
+    font-size: 50%;
     font-weight: bold;
     margin-top: 0.03125rem;
 }
+
 #status .row p.label a {
     display: inline-block;
     text-align: center;
@@ -151,18 +173,21 @@ svg {
     color: inherit;
     transition: background-color 150ms ease-in-out 0ms;
 }
-#status .row p.label a:first-child{
+
+#status .row p.label a:first-child {
     border-left: 1px solid var(--blackish);
 }
+
 #status .row p.label a[data-playing="true"] {
     background-color: var(--green);
 }
-#status .row p.label a[data-playing="false"]{
+
+#status .row p.label a[data-playing="false"] {
     background-color: var(--autumn);
 }
 
 #status .row .bar {
-    z-index:1;
+    z-index: 1;
     display: inline-block;
     height: inherit;
     margin: 0;
@@ -178,55 +203,70 @@ svg {
 
 #barPlanted {
     background-color: var(--protected);
-    width: /* updated by script */ 0%;
+    width:
+        /* updated by script */
+        0%;
 }
+
 #barTime {
     background-color: grey;
-    width: /* updated by script */ 0%;
+    width:
+        /* updated by script */
+        0%;
     transition-duration: 600ms;
 }
+
 #barClicks {
     background-color: var(--protected);
-    width: /* updated by script */ 0%;
+    width:
+        /* updated by script */
+        0%;
 }
 
 #forest {
     /* background-color: var(--green); */
     max-width: 100%;
     flex: 1 1 auto;
-    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer; 
-} 
+    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer;
+}
 
 #forest .tree {
     /* opacity: .8; */
     /* background-color: var(--yellow); */
     /* border: 1px solid black; */
-    width: /* placeholder */ var(--treewidth);
-    height:fit-content;
-    position: absolute; /* this helps us position the div's using js (by setting the style.top & style.left properties) */
-} 
+    width:
+        /* placeholder */
+        var(--treewidth);
+    height: fit-content;
+    position: absolute;
+    /* this helps us position the div's using js (by setting the style.top & style.left properties) */
+}
 
 #forest .tree svg {
-    height:fit-content;
+    height: fit-content;
 }
+
 #forest .tree svg .invisible {
     opacity: 0;
 }
 
-#forest .tree svg path, 
-#forest .tree svg polyline, 
+#forest .tree svg path,
+#forest .tree svg polyline,
 #forest .tree svg polygon {
-    fill:#000;
-    stroke:#000;
-    stroke-width:2px;
+    fill: #000;
+    stroke: #000;
+    stroke-width: 2px;
 }
+
 #forest .tree svg .foliage {
     fill: var(--green);
 }
+
 #forest .tree svg .fire {
     fill: var(--fire);
     opacity: .8333;
 }
+
 #forest .tree svg .stump {
     fill: var(--blackish);
 }
@@ -234,16 +274,20 @@ svg {
 #forest .tree svg.normal .foliage {
     fill: var(--green);
 }
+
 #forest .tree svg.protected .foliage,
 #forest .tree svg.protected.normal .foliage {
     fill: var(--protected);
 }
+
 #forest .tree svg.dry .foliage {
     fill: var(--autumn);
-} 
+}
+
 #forest .tree svg.burning .foliage {
     fill: var(--autumn);
 }
+
 #forest .tree svg.burning .stump {
     opacity: .05;
 }
@@ -251,17 +295,31 @@ svg {
 #content {
     width: 100%;
     background-color: var(--paper-light);
-    display: flex; flex-direction: column; align-items: center;
-    height: /* placeholder. should be set to 0 (at start) so that the #content div is not visible. */ 0; 
-    padding: /* placeholder */ 0; 
-    border-top: /* placeholder */ none; 
-    overflow: /* placeholder */ hidden; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height:
+        /* placeholder. should be set to 0 (at start) so that the #content div is not visible. */
+        0;
+    padding:
+        /* placeholder */
+        0;
+    border-top:
+        /* placeholder */
+        none;
+    overflow:
+        /* placeholder */
+        hidden;
     transition: all 300ms ease-in-out 0ms;
-    z-index: 1; /* z-index for #content should be higher than for #playarea */ position: relative; /* ∵ z-index can not have an effect if position is 'static'. */
+    /* z-index for #content should be higher than for #playarea */
+    z-index: 1;
+    /* ∵ z-index can not have an effect if position is 'static'. */
+    position: relative;
 }
 
-#content > * {
-    flex: 0 0 auto; /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
+#content>* {
+    /* flex-grow: 0; flex-shrink: 1; flex-basis: auto */
+    flex: 0 0 auto;
     width: 100%;
     max-width: calc(var(--fontscale) * 40rem);
     text-align: left;
@@ -279,7 +337,7 @@ svg {
     /* background-color: #fcc00077; */
     position: fixed;
     overflow: visible;
-    bottom:0;
+    bottom: 0;
     /* top:calc(100vh - 5rem); */
     height: 0;
     margin: 0 auto;
@@ -290,55 +348,71 @@ svg {
 #info #infoBox {
     position: absolute;
     width: var(--infoWidth);
-    bottom: /* placeholder */ -100vh;
-    height: /* placeholder */ calc(100vh - 2rem);
+    bottom:
+        /* placeholder */
+        -100vh;
+    height:
+        /* placeholder */
+        calc(100vh - 2rem);
     overflow: hidden;
-    opacity: /* placeholder */ 1;
-    transition: all /* transition-duration = placeholder */300ms ease-in-out 0ms;
-    background: rgba(255,255,255,.95);
+    opacity:
+        /* placeholder */
+        1;
+    transition:
+        /* value for transition-duration is a placeholder */
+        all 300ms ease-in-out 0ms;
+    background: rgba(255, 255, 255, .95);
     padding: 0 0 .5rem 0rem;
     border: 1px solid black;
     border-top: .67rem solid black;
     cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 8 8' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' xmlns:serif='http://www.serif.com/' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'%3E%3Ccircle cx='3.84' cy='3.84' r='3.84' style='fill:%23fff;' /%3E%3Cpath d='M3.84,0c2.119,0 3.84,1.721 3.84,3.84c0,2.119 -1.721,3.84 -3.84,3.84c-2.119,0 -3.84,-1.721 -3.84,-3.84c0,-2.119 1.721,-3.84 3.84,-3.84Zm0,0.5c1.843,0 3.34,1.497 3.34,3.34c0,1.843 -1.497,3.34 -3.34,3.34c-1.843,0 -3.34,-1.497 -3.34,-3.34c0,-1.843 1.497,-3.34 3.34,-3.34Z' /%3E%3Cpath d='M4.823,5.507l-0,0.625l-1.805,-0l0,-0.625l0.558,-0l-0,-2.318l-0.558,-0l0,-0.629l1.261,0l0,2.947l0.544,-0Z' /%3E%3Cpath d='M4.32,1.681c-0,0.115 -0.042,0.215 -0.126,0.299c-0.084,0.084 -0.183,0.126 -0.299,0.126c-0.115,-0 -0.214,-0.042 -0.296,-0.126c-0.081,-0.084 -0.122,-0.184 -0.122,-0.299c0,-0.116 0.041,-0.216 0.122,-0.299c0.082,-0.084 0.181,-0.126 0.296,-0.126c0.12,-0 0.221,0.041 0.303,0.122c0.081,0.082 0.122,0.183 0.122,0.303Z' /%3E%3C/svg%3E") 16 16, pointer;
 }
+
 #info #infoBox[infotype='1'] {
     background-color: var(--paper-light);
 }
+
 #info #infoBox[infotype='2'] {
     background-color: var(--autumn);
 }
+
 #info #infoBox[infotype='8'] {
     background-color: var(--paper-dark);
 }
+
 #info #infoBox[infotype='0'] {
     background-color: var(--green);
 }
-#info #infoBox p, 
+
+#info #infoBox p,
 #info #infoBox h3 {
     padding: 0 1.5rem;
 }
+
 #info #infoBox .headline {
     /* background-color: lightblue; */
     margin: .75rem auto auto;
     font-weight: bold;
 }
+
 #info #infoBox .quote {
     --leftmargin: 1.5rem;
-    margin-left: var(--leftmargin); 
+    margin-left: var(--leftmargin);
     width: calc(100% - var(--leftmargin));
     border-left: 1px solid black;
     padding: 0.03125rem .5rem;
 }
+
 #info #infoBox .date {
     font-style: italic;
 }
 
 #info #infoBox button {
-    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer; 
+    cursor: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3e%3cg transform='rotate(45 256 256)'%3e%3crect id='r' x='16' y='216' width='480' height='80' rx='14'/%3e%3cuse href='%23r' transform='rotate(90 256 256)'/%3e%3c/g%3e%3c/svg%3e") 16 16, pointer;
     padding: .25rem 1rem;
     border-radius: .5rem;
     box-shadow: none;
-    width:calc(100% - 3rem);
+    width: calc(100% - 3rem);
     background-color: inherit;
     margin: 1rem auto;
     text-align: center;
