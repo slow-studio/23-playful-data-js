@@ -1,5 +1,5 @@
 import { setInfo, infoBox, showBox, hideBox } from "./infoBox.js";
-import { pauseSimulation, playPauseSwitch, showcontent } from "./script.js";
+import { pauseSimulation, playPauseSwitch, showcontent, updateStyle } from "./script.js";
 
 /**
  * cheat codes
@@ -35,6 +35,22 @@ export function cheatcodes(e) {
     case 'x': 
         console.log(`pressed key ${key} hide #infoBox.`)
         hideBox(infoBox)
+        break;
+    case 's':
+        console.log(`pressed key${key}. show all status bars.`)
+        updateStyle(document.getElementById("status"),"top","1rem")
+        updateStyle(document.getElementById("statusPlanted"),"display","block")
+        updateStyle(document.getElementById("statusTime"),"display","block")
+        updateStyle(document.getElementById("statusClicks"),"display","block")
+        updateStyle(document.getElementById("statusInfo"),"display","block")
+        break;
+    case 'd':
+        console.log(`pressed key${key}. hide all status bars.`)
+        updateStyle(document.getElementById("status"),"top","-5rem")
+        updateStyle(document.getElementById("statusPlanted"),"display","none")
+        updateStyle(document.getElementById("statusTime"),"display","none")
+        updateStyle(document.getElementById("statusClicks"),"display","none")
+        updateStyle(document.getElementById("statusInfo"),"display","none")
         break;
   }
 }
