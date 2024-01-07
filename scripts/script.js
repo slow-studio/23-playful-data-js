@@ -808,7 +808,7 @@ export function updateForest() {
             const countalivetrees = normals.length + drys.length + burnings.length
 
 			/** once the person plants this much of the forest, the challenge (to protect it) will begin. */
-			const READINESS_THRESHOLD = 0.5
+			const READINESS_THRESHOLD = 0.33
             
             /** 
              * update each tree
