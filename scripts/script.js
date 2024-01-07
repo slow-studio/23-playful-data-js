@@ -947,7 +947,7 @@ export function updateForest() {
                 // }
 
                 // normal -> dry
-                //   -- method 1: automatically:
+								//   -- method 1: continuously, in several spots:
                 for (let i = 0; i < normals.length; i++) {
                     const treeid = normals[i].getAttribute('tree-id')
                     const treestate = tree[treeid].state.now
@@ -962,7 +962,7 @@ export function updateForest() {
                         tree[normals[i].getAttribute('tree-id')].behaviour = 1
                     }
                 }
-                // //   -- method 2: by calling seedDryTrees():
+                // //   -- method 2: at a specific moment, by calling seedDryTrees():
                 // if(drys.length==0) seedDryTrees(3)
 
                 // dry -> burning
