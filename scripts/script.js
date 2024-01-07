@@ -892,6 +892,7 @@ export function updateForest() {
 									||
 									statusClicks >= 1
 								)
+								&& burnings.length == 0
 							) {
 					let showBoxAfterDelay = false
                     setInfo(infoBox,0)
