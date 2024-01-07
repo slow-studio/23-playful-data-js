@@ -10,7 +10,6 @@ sound
 [ ] improve soundscape. add random sounds.
 
 forest:
-[ ] lower READINESS_THRESHOLD
 [ ] increment treesHelped if { person taps on an absent tree and that tree respawns } (by a factor of .33, or something like that)
 [...] seed dryness in a single spot, and let the dryness spread organically
 [ ] when saving the forest, trees should dry out on a rate connecting to the time-statusBar. during open-play, rate of drying may be random (or, at-least, be non-zero and not-manic). 

@@ -843,57 +843,57 @@ export function updateForest() {
                 // do nothing
             } else {
 							
-							/* show instructions */
-							// 1.
-							if (gameState.shownInfoBox._1 == false) {
-								console.log(`displaying the task: plant your forest.`)
-								setInfo(infoBox, 1)
-								showBox(infoBox)
-							}
-							// 2.
-							if (
-								true
-								&& gameState.shownInfoBox._1 == true
-								&& gameState.shownInfoBox._2 == false 
-								&& gameState.shownInfoBox._0 == false
-								// if the person has spawned a certain-number of trees
-								&& countpresenttrees >= totalTreesInForest * READINESS_THRESHOLD
-							) {
-								console.log(`displaying the task: protect your forest.`)
-								setInfo(infoBox, 2)
-								showBox(infoBox)
-								/** 
-								 * note: 
-								 * when this box is dismissed, startExperience() will be called.
-								 * */
-							}
-							// 8.
-							// if the health is getting low, but the person hasn't clicked yet...
-							// ...instruct them to click on trees!
-							if (
-								true
-								&& gameState.shownInfoBox._2 == true 
-								&& gameState.shownInfoBox._8 == false 
-								&& gameState.shownInfoBox._0 == false
-								&& gameState.health < gameState.starthealth * .5
-								&& gameState.clicks.onsicktrees < 1
-							) {
-								console.log(`encouraging person to tap on trees.`)
-								setInfo(infoBox, 8)
-								showBox(infoBox)
-							}
-							// 0.
-							if (
-								true
-								&& gameState.shownInfoBox._0 == false
-								&& gameState.shownInfoBox._2 == true
-								&& (
-									statusTime >= 1
-									||
-									statusClicks >= 1
-								)
-								&& burnings.length == 0
-							) {
+                /* show instructions */
+                // 1.
+                if (gameState.shownInfoBox._1 == false) {
+                    console.log(`displaying the task: plant your forest.`)
+                    setInfo(infoBox, 1)
+                    showBox(infoBox)
+                }
+                // 2.
+                if (
+                    true
+                    && gameState.shownInfoBox._1 == true
+                    && gameState.shownInfoBox._2 == false 
+                    && gameState.shownInfoBox._0 == false
+                    // if the person has spawned a certain-number of trees
+                    && countpresenttrees >= totalTreesInForest * READINESS_THRESHOLD
+                ) {
+                    console.log(`displaying the task: protect your forest.`)
+                    setInfo(infoBox, 2)
+                    showBox(infoBox)
+                    /** 
+                     * note: 
+                     * when this box is dismissed, startExperience() will be called.
+                     * */
+                }
+                // 8.
+                // if the health is getting low, but the person hasn't clicked yet...
+                // ...instruct them to click on trees!
+                if (
+                    true
+                    && gameState.shownInfoBox._2 == true 
+                    && gameState.shownInfoBox._8 == false 
+                    && gameState.shownInfoBox._0 == false
+                    && gameState.health < gameState.starthealth * .5
+                    && gameState.clicks.onsicktrees < 1
+                ) {
+                    console.log(`encouraging person to tap on trees.`)
+                    setInfo(infoBox, 8)
+                    showBox(infoBox)
+                }
+                // 0.
+                if (
+                    true
+                    && gameState.shownInfoBox._0 == false
+                    && gameState.shownInfoBox._2 == true
+                    && (
+                        statusTime >= 1
+                        ||
+                        statusClicks >= 1
+                    )
+                    && burnings.length == 0
+                ) {
 					let showBoxAfterDelay = false
                     setInfo(infoBox,0)
 					setTimeout(() => {
@@ -996,7 +996,7 @@ export function updateForest() {
                             tree[charreds[i].getAttribute('tree-id')].behaviour = 1
                         }
                     }
-                    else
+                    else {
                         // disintegrating -> absent :—
                         // if the tree is disintegrating (state = 5)...
                         if (treestate[0] == 5) {
@@ -1007,6 +1007,7 @@ export function updateForest() {
                                 it immediately moves to state  0.
                             */
                         }
+                    }
                 }
 
                 /** 
