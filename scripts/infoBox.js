@@ -23,6 +23,9 @@ export function setInfo(box, infotype) {
             i1.innerHTML = `plant your forest.`
             let i2 = addChildTag(box, 'p')
             i2.innerHTML = `tap on the earth to help nurture a tree.`
+            addButton_close(box,`start planting:`)
+            // addButton_showcontent(box,`read today's news.`)
+            makeButtonsAppear(box, 4000)
             break
         case 2:
             // console.log(`update infoBox content: display goal.`)
@@ -31,6 +34,8 @@ export function setInfo(box, infotype) {
             g1.innerHTML = `take care of your forest.`
             let g2 = addChildTag(box, 'p')
             g2.innerHTML = `tap on a dry or burning tree to save it.`
+            addButton_close(box,`tend to the forest:`)
+            makeButtonsAppear(box, 4000)
             break
         case 8:
             // console.log(`update infoBox content: nudging person to tap the screen.`)
@@ -39,6 +44,8 @@ export function setInfo(box, infotype) {
             t1.innerHTML = `you can save the forest.`
             let t2 = addChildTag(box, 'p')
             t2.innerHTML = `please tap on a dry or burning tree to save it.`
+            addButton_close(box,`return to the forest:`)
+            makeButtonsAppear(box, infoBoxTransitionDuration)
             break
         case 0:
             // console.log(`update infoBox content: conclusion.`)
@@ -47,34 +54,18 @@ export function setInfo(box, infotype) {
             c1.innerHTML = `thank you for playing.`
             let c2 = addChildTag(box, 'p')
             c2.innerHTML = `please read about why we made this.`
+            // addButton_close(box,`return to the forest.`)
+            addButton_showcontent(box,`read today's news.`)
+            makeButtonsAppear(box, 4000)
             break
     }
-    // add close-button to dismiss box
-    if(
-        true    
-        // && infotype!=0
-    ) {
-        let closeBtn = addChildTag(box, 'button')
-        closeBtn.innerHTML = infotype==1?'<p>go to the forest:</p>':'<p>return to the forest.</p>'
-        closeBtn.setAttribute('id', 'closeInfoBox')
-        closeBtn.addEventListener('click', () => {
-            hideBox(infoBox)
-            showcontent(false)
-        })
-    }
-    // add button to reveal essay
-    if(
-        true
-        && (
-            infotype==0 
-            || infotype==1
-        )
-    ) {
-        let readBtn = addChildTag(box, 'button')
-        readBtn.innerHTML = `<p>read today's news.</p>`
-        readBtn.setAttribute('id', 'read')
-        readBtn.addEventListener('click', () => showcontent(true))
-    }
+}
+
+/**
+ * @param {HTMLElement} box 
+ * @param {number} time 
+ */
+function makeButtonsAppear(box, time) {
     // buttons appear later, and fade into view when they do
     let buttons = box.getElementsByTagName('button')
     for (let i = 0; i < buttons.length; i++) {
@@ -84,24 +75,49 @@ export function setInfo(box, infotype) {
             updateStyle(buttons[i], 'display', 'block')
             updateStyle(buttons[i], 'transition-duration', `${infoBoxTransitionDuration}ms`)
             updateStyle(buttons[i], 'opacity', '1')
-        },infoBoxTransitionDuration*4)
+        },time)
         setTimeout(()=>{
             let heighttoadd = `0px`
             for(let i=0 ; i< buttons.length ; i++) {
                 heighttoadd += ` + ${getComputedStyle(buttons[i]).marginBottom} + ${getComputedStyle(buttons[i]).height}`
             }
             updateStyle(box, 'height', `calc(${heighttoadd} + ${getComputedStyle(box).height})`)
-        },infoBoxTransitionDuration*4)
+        },time)
     }
+}
 
-    /** 
-     * @param {string} tag  
-     */
-    function addChildTag(parent, tag) {
-        let child = document.createElement(tag)
-        parent.appendChild(child)
-        return child
-    }
+/** 
+ * @param {string} tag  
+ */
+function addChildTag(parent, tag) {
+    let child = document.createElement(tag)
+    parent.appendChild(child)
+    return child
+}
+
+/**
+ * @param {HTMLElement} box 
+ * @param {string} label
+ */
+function addButton_close(box, label) {
+    let closeBtn = addChildTag(box, 'button')
+    closeBtn.innerHTML = `<p>${label}</p>`
+    closeBtn.setAttribute('id', 'closeInfoBox')
+    closeBtn.addEventListener('click', () => {
+        hideBox(box)
+        showcontent(false)
+    })
+}
+
+/** 
+ * @param {HTMLElement} box 
+ * @param {string} label 
+ */
+function addButton_showcontent(box, label) {
+    let readBtn = addChildTag(box, 'button')
+    readBtn.innerHTML = `<p>${label}</p>`
+    readBtn.setAttribute('id', 'read')
+    readBtn.addEventListener('click', () => showcontent(true))
 }
 
 /**
