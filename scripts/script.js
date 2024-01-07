@@ -62,7 +62,6 @@ export const gameState = {
     starthealth: 1,
     health: 1,
     clicks: {
-        justClickedOnTree: false, // did the person just click on a tree? (if so, we will force the visuals to update right-away. otherwise the updating used to feel a bit sluggish.)
         total: 0,
         ontrees: 0,
         onsicktrees: 0,
@@ -765,15 +764,9 @@ export function percentageOfTrees(state) {
 /** calls itself at the end of each animation frame */
 export function updateForest() {
 
-    if(
-        true
-        && Date.now() - gameState.lastUpdatedAt < REFRESH_TIME 
-        && gameState.clicks.justClickedOnTree == false
-    ) {
+    if(Date.now() - gameState.lastUpdatedAt < REFRESH_TIME) {
         // do nothing
     } else {
-
-        gameState.clicks.justClickedOnTree = false
 
         if (gameState.pauseForestUpdate) {
             // do nothing
@@ -1121,13 +1114,8 @@ function didClickHappenOnTree(e) {
         // console.log("removed duplicates:")
         // console.log(c)
 
-        // if at-least one tree was, indeed, clicked on
-        if(filteredElements.length>0) {
-            // make note of this event
-            gameState.clicks.justClickedOnTree = true
-            // count the click
-            gameState.clicks.ontrees++
-        }
+        // count the click
+        if(filteredElements.length>0) gameState.clicks.ontrees++
 
         // now, we instruct each (clicked-)tree to change
         for (const i in filteredElements) {            
