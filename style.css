@@ -95,6 +95,7 @@ p.aboutProject {
 img {
     margin-top: 1rem;
     margin-bottom: 1rem;
+    max-width: fit-content;
 }
 
 img.hero{
